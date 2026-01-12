@@ -371,7 +371,7 @@ YAML-defined AI interactions created by teachers that define AI-powered experien
 - **Ownership**: Each tool has a creator (created_by) for attribution and permissions
 - **Soft Delete**: Supports archiving tools via `deleted_at` timestamp
 - **Schema**: `packages/db/src/schema/tools.ts`
-- **Migration**: `0006_create_tools.sql`
+- **Migrations**: `0006_create_tools.sql`, `0009_add_tools_updated_at_trigger.sql` (remediation)
 
 Key fields:
 - `id` (UUID) - Primary key with automatic generation
@@ -381,7 +381,7 @@ Key fields:
 - `definition` (text) - Complete YAML definition as text
 - `created_by` (UUID) - Foreign key to users(id) with CASCADE delete
 - `group_id` (UUID) - Foreign key to groups(id) with CASCADE delete (nullable for system-wide)
-- `created_at`, `updated_at`, `deleted_at` - Audit timestamps with soft delete support
+- `created_at`, `updated_at`, `deleted_at` - Audit timestamps with soft delete support (updated_at automatically maintained via trigger)
 
 Indexes:
 - `tools_group_id_idx` - Optimizes "get tools in group" queries
