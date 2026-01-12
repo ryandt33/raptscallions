@@ -21,6 +21,11 @@ export const envSchema = z
 
     // OAuth Redirect Base URL
     OAUTH_REDIRECT_BASE: z.string().url().default("http://localhost:3000"),
+
+    // Rate Limiting
+    RATE_LIMIT_API_MAX: z.coerce.number().int().min(1).default(100),
+    RATE_LIMIT_AUTH_MAX: z.coerce.number().int().min(1).default(5),
+    RATE_LIMIT_TIME_WINDOW: z.string().default("1 minute"),
   })
   .refine(
     (data) => {

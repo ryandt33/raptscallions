@@ -730,6 +730,96 @@ Group admins can manage descendant groups using PostgreSQL ltree paths:
 - `packages/auth/src/types.ts` - Permission types and Fastify augmentation
 - `apps/api/src/server.ts` - Middleware registration
 
+### Rate Limiting
+
+**Status:** ✅ Implemented (E02-T007)
+
+The API implements two-tier rate limiting using `@fastify/rate-limit` with Redis for distributed state:
+
+- **Package**: `@fastify/rate-limit` with `ioredis` backend
+- **Storage**: Redis for distributed rate limit counters (enables horizontal scaling)
+- **Strategy**: Tiered limits based on route type and user authentication
+- **Headers**: Standard `X-RateLimit-*` and `Retry-After` headers on all responses
+
+#### Rate Limit Tiers
+
+| Tier | Routes | Limit | Key Strategy | Purpose |
+|------|--------|-------|--------------|---------|
+| **Auth** | `/auth/*` | 5 req/min | IP address | Prevents brute-force attacks |
+| **API** | All other routes | 100 req/min | User ID (IP fallback) | Fair resource allocation |
+
+#### Key Generation
+
+- **Authenticated users**: `user:{userId}` - Allows shared IPs (schools, offices)
+- **Anonymous users**: `ip:{address}` - IP-based for unauthenticated requests
+- **Auth routes**: `auth:{address}` - Always IP-based for security
+
+#### Configuration
+
+Environment variables:
+
+```bash
+RATE_LIMIT_API_MAX=100          # Max requests per minute for API routes
+RATE_LIMIT_AUTH_MAX=5           # Max requests per minute for auth routes
+RATE_LIMIT_TIME_WINDOW="1 minute"  # Time window for rate limits
+```
+
+#### Error Response
+
+Rate limited requests return HTTP 429 with context-aware messaging:
+
+```json
+{
+  "statusCode": 429,
+  "error": "Too many requests, please try again later",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "details": {
+    "limit": 5,
+    "remaining": 0,
+    "resetAt": "2026-01-12T12:34:56Z",
+    "retryAfter": "42",
+    "message": "For security, login attempts are limited to 5 per minute. Please wait 42 seconds."
+  }
+}
+```
+
+#### Response Headers
+
+All responses include rate limit headers:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 87
+X-RateLimit-Reset: 1705067890
+Retry-After: 42  (only on 429 responses)
+```
+
+#### Custom Route Limits
+
+Routes can override default limits:
+
+```typescript
+app.post('/expensive-operation', {
+  config: {
+    rateLimit: {
+      max: 10,
+      timeWindow: '1 hour'
+    }
+  }
+}, handler);
+
+// Disable rate limiting (e.g., health checks)
+app.get('/health', {
+  config: { rateLimit: false }
+}, handler);
+```
+
+#### Files
+
+- `apps/api/src/middleware/rate-limit.middleware.ts` - Rate limit plugin and configuration
+- `packages/core/src/errors/rate-limit.error.ts` - RateLimitError class
+- `apps/api/src/config.ts` - Environment configuration
+
 ---
 
 ## AI Gateway Integration
