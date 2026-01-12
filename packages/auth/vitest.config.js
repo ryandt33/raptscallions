@@ -1,0 +1,9 @@
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
+export default mergeConfig(baseConfig, defineConfig({
+    test: {
+        name: "@raptscallions/auth",
+        include: ["__tests__/**/*.test.ts", "src/**/*.test.ts"],
+    },
+}));
+//# sourceMappingURL=vitest.config.js.map

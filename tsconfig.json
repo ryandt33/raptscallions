@@ -15,11 +15,16 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@raptscallions/*": ["packages/*/src"]
-    }
+    "composite": true
   },
-  "exclude": ["node_modules", "dist"]
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/db" },
+    { "path": "packages/telemetry" },
+    { "path": "packages/modules" },
+    { "path": "packages/ai" },
+    { "path": "packages/auth" },
+    { "path": "apps/api" }
+  ]
 }

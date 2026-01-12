@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "tsc --build",
     "clean": "pnpm -r clean && rm -rf node_modules",
     "prepare": "cp .github/hooks/pre-commit .git/hooks/pre-commit 2>/dev/null && chmod +x .git/hooks/pre-commit || true",
     "commit": "bash scripts/commit-msg-helper.sh",
