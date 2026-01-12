@@ -525,6 +525,78 @@ describe("UserService", () => {
 | Integration tests | Critical paths covered        |
 | E2E tests         | Happy paths + key error cases |
 
+### Fastify Integration Testing
+
+When testing Fastify applications, be aware of **plugin encapsulation**. Fastify plugins scope hooks and decorators by default.
+
+#### Plugin Encapsulation Issue
+
+Plugins using `addHook('onRequest')` or decorators only apply to routes within that plugin's scope:
+
+```typescript
+// ❌ BAD - hooks won't apply to routes in other plugins
+const myPlugin: FastifyPluginAsync = async (app) => {
+  app.addHook("onRequest", async (request) => { /* ... */ });
+};
+```
+
+**Solution**: Wrap plugins with `fastify-plugin` to skip encapsulation:
+
+```typescript
+// ✅ GOOD - hooks apply globally
+import fp from "fastify-plugin";
+
+const myPlugin: FastifyPluginAsync = async (app) => {
+  app.addHook("onRequest", async (request) => { /* ... */ });
+};
+
+export const sessionMiddleware = fp(myPlugin, { name: "sessionMiddleware" });
+```
+
+#### Dependency Injection for Testing
+
+Use dependency injection to make middleware testable without relying on `vi.mock()`:
+
+```typescript
+// In middleware file
+export interface SessionServiceLike {
+  sessionCookieName: string;
+  validate: (sessionId: string) => Promise<SessionValidationResult>;
+  createBlankSessionCookie: () => { name: string; value: string; attributes: Record<string, unknown> };
+}
+
+export interface SessionMiddlewareOptions {
+  sessionService?: SessionServiceLike;
+}
+
+const plugin: FastifyPluginAsync<SessionMiddlewareOptions> = async (app, opts = {}) => {
+  const sessionService = opts.sessionService ?? defaultSessionService;
+  // Use sessionService...
+};
+```
+
+In tests, inject mocks directly:
+
+```typescript
+const mockSessionService = {
+  sessionCookieName: "rapt_session",
+  validate: vi.fn(),
+  createBlankSessionCookie: vi.fn().mockReturnValue({
+    name: "rapt_session",
+    value: "",
+    attributes: {},
+  }),
+};
+
+await app.register(sessionMiddleware, {
+  sessionService: mockSessionService as SessionServiceLike,
+});
+```
+
+**Why DI over vi.mock()**: Vitest's `vi.mock()` can fail for Fastify integration tests because module singletons are created before mocks are applied. Dependency injection bypasses this by passing mocks at runtime.
+
+**Reference**: See `docs/kb/testing/fastify/plugin-encapsulation.md` for detailed patterns.
+
 ### Vitest Configuration
 
 The project uses Vitest with a three-tier configuration strategy:

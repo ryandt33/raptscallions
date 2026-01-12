@@ -1,7 +1,37 @@
 // apps/api/src/middleware/session.middleware.ts
 
 import { FastifyPluginAsync } from "fastify";
-import { sessionService } from "@raptscallions/auth";
+import fp from "fastify-plugin";
+import {
+  sessionService as defaultSessionService,
+  type Session,
+  type SessionUser,
+} from "@raptscallions/auth";
+
+/**
+ * Session validation result interface for dependency injection.
+ */
+export interface SessionValidationResult {
+  session: (Session & { fresh?: boolean }) | null;
+  user: SessionUser | null;
+}
+
+/**
+ * Session service interface for dependency injection in tests.
+ */
+export interface SessionServiceLike {
+  sessionCookieName: string;
+  sessionCookieAttributes: Record<string, unknown>;
+  validate: (sessionId: string) => Promise<SessionValidationResult>;
+  createBlankSessionCookie: () => { name: string; value: string; attributes: Record<string, unknown> };
+}
+
+/**
+ * Options for session middleware (supports dependency injection for testing).
+ */
+export interface SessionMiddlewareOptions {
+  sessionService?: SessionServiceLike;
+}
 
 /**
  * Session middleware for Fastify.
@@ -23,8 +53,13 @@ import { sessionService } from "@raptscallions/auth";
  *   throw new UnauthorizedError("Not authenticated");
  * }
  * ```
+ *
+ * @param opts - Optional configuration including injected sessionService for testing
  */
-export const sessionMiddleware: FastifyPluginAsync = async (app) => {
+const sessionMiddlewarePlugin: FastifyPluginAsync<SessionMiddlewareOptions> = async (app, opts = {}) => {
+  // Use injected sessionService or default
+  const sessionService = opts.sessionService ?? defaultSessionService;
+
   app.addHook("onRequest", async (request, reply) => {
     // Get session ID from cookie
     const sessionId = request.cookies[sessionService.sessionCookieName];
@@ -64,3 +99,9 @@ export const sessionMiddleware: FastifyPluginAsync = async (app) => {
     request.session = session;
   });
 };
+
+// Export wrapped with fastify-plugin to skip encapsulation
+// This makes the onRequest hook apply to ALL routes, not just routes in this plugin
+export const sessionMiddleware = fp(sessionMiddlewarePlugin, {
+  name: "sessionMiddleware",
+});

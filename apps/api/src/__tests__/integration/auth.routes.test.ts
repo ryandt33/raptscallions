@@ -10,7 +10,7 @@ import {
 import type { FastifyInstance } from "fastify";
 
 // Use vi.hoisted to ensure mock objects are available when vi.mock factories run
-const { mockDb, mockLucia, mockSessionService, rateLimitStore } = vi.hoisted(() => {
+const { mockDb, mockLucia, rateLimitStore } = vi.hoisted(() => {
   const mockDb = {
     query: {
       users: {
@@ -23,33 +23,21 @@ const { mockDb, mockLucia, mockSessionService, rateLimitStore } = vi.hoisted(() 
   const mockLucia = {
     createSession: vi.fn(),
     invalidateSession: vi.fn(),
+    invalidateUserSessions: vi.fn(),
     createSessionCookie: vi.fn(),
-    createBlankSessionCookie: vi.fn(),
-    validateSession: vi.fn(),
-    sessionCookieName: "rapt_session",
-  };
-
-  const mockSessionService = {
-    sessionCookieName: "rapt_session",
-    sessionCookieAttributes: {
-      secure: false,
-      httpOnly: true,
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-    },
-    validate: vi.fn(),
     createBlankSessionCookie: vi.fn().mockReturnValue({
       name: "rapt_session",
       value: "",
       attributes: {},
     }),
+    validateSession: vi.fn(),
+    sessionCookieName: "rapt_session",
   };
 
   // Rate limit store for mock Redis
   const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
-  return { mockDb, mockLucia, mockSessionService, rateLimitStore };
+  return { mockDb, mockLucia, rateLimitStore };
 });
 
 // Hoisted mocks - these are processed BEFORE any imports
@@ -57,13 +45,33 @@ vi.mock("@raptscallions/db", () => ({
   db: mockDb,
 }));
 
-vi.mock("@raptscallions/auth", () => ({
-  lucia: mockLucia,
-  sessionService: mockSessionService,
-  permissionMiddleware: async () => {
-    // No-op for auth route tests
-  },
-}));
+// Mock @raptscallions/auth to export mocked lucia
+// This is the key - we mock the auth package to use our mocked lucia
+vi.mock("@raptscallions/auth", () => {
+  // Create a mock SessionService that uses mockLucia
+  const sessionService = {
+    sessionCookieName: "rapt_session",
+    sessionCookieAttributes: {
+      secure: false,
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+    },
+    validate: (sessionId: string) => mockLucia.validateSession(sessionId),
+    create: (userId: string, context = "unknown") => mockLucia.createSession(userId, { context, last_activity_at: new Date() }),
+    invalidate: (sessionId: string) => mockLucia.invalidateSession(sessionId),
+    invalidateUserSessions: (userId: string) => mockLucia.invalidateUserSessions(userId),
+    createBlankSessionCookie: () => mockLucia.createBlankSessionCookie(),
+  };
+
+  return {
+    lucia: mockLucia,
+    sessionService,
+    permissionMiddleware: async () => {
+      // No-op for auth route tests
+    },
+  };
+});
 
 vi.mock("@node-rs/argon2", () => ({
   hash: vi.fn().mockResolvedValue("hashed-password"),
@@ -509,7 +517,7 @@ describe("Auth Routes Integration", () => {
 
       // Mock sessionService.validate to return a valid session
       // This is used by the session middleware to attach user/session to request
-      mockSessionService.validate.mockResolvedValue({
+      mockLucia.validateSession.mockResolvedValue({
         session: {
           id: sessionId,
           userId: userId,
@@ -573,7 +581,7 @@ describe("Auth Routes Integration", () => {
 
     it("should return 204 and clear cookie for invalid/expired session", async () => {
       // Arrange - session validation returns null (invalid/expired)
-      mockSessionService.validate.mockResolvedValue({
+      mockLucia.validateSession.mockResolvedValue({
         session: null,
         user: null,
       });
@@ -599,6 +607,153 @@ describe("Auth Routes Integration", () => {
         (c) => c.name === "rapt_session" && c.value === ""
       );
       expect(blankCookie).toBeDefined();
+    });
+  });
+
+  // AC4: Session Management Tests
+  describe("Session Management", () => {
+    describe("Session Creation", () => {
+      it("should create session with 30-day expiration on login", async () => {
+        // Arrange
+        const loginData = {
+          email: "test@example.com",
+          password: "password123",
+        };
+
+        const existingUser = {
+          id: "user-123",
+          email: loginData.email,
+          name: "Test User",
+          passwordHash: "hashed-password",
+          status: "active",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+        };
+
+        const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        mockDb.query.users.findFirst.mockResolvedValue(existingUser);
+        const { verify } = await import("@node-rs/argon2");
+        vi.mocked(verify).mockResolvedValue(true);
+        mockLucia.createSession.mockResolvedValue({
+          id: "session-123",
+          userId: existingUser.id,
+          expiresAt: thirtyDaysFromNow,
+        });
+        mockLucia.createSessionCookie.mockReturnValue({
+          name: "rapt_session",
+          value: "session-123",
+          attributes: { maxAge: 60 * 60 * 24 * 30 },
+        });
+
+        // Act
+        const response = await app.inject({
+          method: "POST",
+          url: "/auth/login",
+          payload: loginData,
+        });
+
+        // Assert
+        expect(response.statusCode).toBe(200);
+        expect(mockLucia.createSession).toHaveBeenCalledWith(
+          existingUser.id,
+          expect.any(Object)
+        );
+        const cookie = response.cookies.find((c) => c.name === "rapt_session");
+        expect(cookie?.maxAge).toBe(60 * 60 * 24 * 30); // 30 days in seconds
+      });
+    });
+
+    describe("Session Validation", () => {
+      it("should attach user and session to request for valid session", async () => {
+        // Arrange
+        const sessionId = "valid-session";
+        const userId = "user-123";
+
+        mockLucia.validateSession.mockResolvedValue({
+          session: {
+            id: sessionId,
+            userId: userId,
+            expiresAt: new Date(Date.now() + 1000000),
+            fresh: false,
+          },
+          user: {
+            id: userId,
+            email: "test@example.com",
+            name: "Test User",
+            status: "active",
+          },
+        });
+
+        // Act - attempt to access protected endpoint
+        const response = await app.inject({
+          method: "POST",
+          url: "/auth/logout", // Requires session
+          cookies: { rapt_session: sessionId },
+        });
+
+        // Assert - should succeed (not 401)
+        expect(response.statusCode).toBe(204);
+        expect(mockLucia.validateSession).toHaveBeenCalledWith(sessionId);
+      });
+
+      it("should clear cookie for expired session", async () => {
+        // Arrange
+        mockLucia.validateSession.mockResolvedValue({
+          session: null,
+          user: null,
+        });
+        mockLucia.createBlankSessionCookie.mockReturnValue({
+          name: "rapt_session",
+          value: "",
+          attributes: {},
+        });
+
+        // Act
+        const response = await app.inject({
+          method: "POST",
+          url: "/auth/logout",
+          cookies: { rapt_session: "expired-session" },
+        });
+
+        // Assert
+        expect(response.statusCode).toBe(204);
+        const blankCookie = response.cookies.find(
+          (c) => c.name === "rapt_session" && c.value === ""
+        );
+        expect(blankCookie).toBeDefined();
+      });
+    });
+
+    describe("Session Invalidation", () => {
+      it("should delete session from database on logout", async () => {
+        // Arrange
+        const sessionId = "session-to-delete";
+        const userId = "user-123";
+
+        mockLucia.validateSession.mockResolvedValue({
+          session: { id: sessionId, userId, expiresAt: new Date(), fresh: false },
+          user: { id: userId, email: "test@example.com", name: "Test", status: "active" },
+        });
+        mockLucia.invalidateSession.mockResolvedValue(undefined);
+        mockLucia.createBlankSessionCookie.mockReturnValue({
+          name: "rapt_session",
+          value: "",
+          attributes: {},
+        });
+
+        // Act
+        const response = await app.inject({
+          method: "POST",
+          url: "/auth/logout",
+          cookies: { rapt_session: sessionId },
+        });
+
+        // Assert
+        expect(response.statusCode).toBe(204);
+        expect(mockLucia.invalidateSession).toHaveBeenCalledWith(sessionId);
+      });
     });
   });
 });
