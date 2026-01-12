@@ -549,6 +549,79 @@ Session middleware (`apps/api/src/middleware/session.middleware.ts`):
 - Automatically extends fresh sessions (< 50% lifetime remaining)
 - Clears expired sessions and cookies
 
+#### Authentication Guards
+
+**Status:** ✅ Implemented (E02-T006)
+
+The API provides reusable authentication guards as Fastify preHandler decorators for common authorization patterns:
+
+| Guard | Purpose | Example |
+|-------|---------|---------|
+| `requireAuth` | Basic authentication check | `[app.requireAuth]` |
+| `requireActiveUser` | Authentication + active status check | `[app.requireActiveUser]` |
+| `requireRole` | Role-based authorization (any group) | `[app.requireAuth, app.requireRole('teacher')]` |
+| `requireGroupMembership` | Static group membership check | `[app.requireAuth, app.requireGroupMembership(groupId)]` |
+| `requireGroupFromParams` | Dynamic group membership from route params | `[app.requireAuth, app.requireGroupFromParams()]` |
+| `requireGroupRole` | Group-scoped role authorization | `[app.requireAuth, app.requireGroupFromParams(), app.requireGroupRole('teacher')]` |
+
+**Guard Characteristics:**
+- **Composable**: Multiple guards can be used in preHandler arrays
+- **Short-circuit**: Throw errors before route handler executes
+- **Type-safe**: Full TypeScript support with Fastify augmentation
+- **Debuggable**: Structured debug logging for troubleshooting
+- **Security**: Query database on every request (no caching = immediate permission updates)
+
+**Error Responses:**
+- `UnauthorizedError` (401) - Not authenticated
+- `ForbiddenError` (403) - Authenticated but insufficient permissions
+
+**Guard Patterns:**
+
+```typescript
+// Simple authentication check
+app.get('/me', {
+  preHandler: [app.requireAuth]
+}, async (request, reply) => {
+  return { user: request.user };
+});
+
+// Role-based authorization (global - any group)
+app.post('/admin/users', {
+  preHandler: [app.requireAuth, app.requireRole('system_admin', 'group_admin')]
+}, handler);
+
+// Dynamic group membership from route params
+app.get('/groups/:groupId/members', {
+  preHandler: [app.requireAuth, app.requireGroupFromParams()]
+}, handler);
+
+// Group-scoped role check (must have role IN THIS GROUP)
+app.post('/groups/:groupId/assignments', {
+  preHandler: [
+    app.requireAuth,
+    app.requireGroupFromParams(),
+    app.requireGroupRole('teacher', 'group_admin')
+  ]
+}, handler);
+```
+
+**Guard vs CASL Permissions:**
+
+Use guards for:
+- Simple role gates ("teachers only" endpoints)
+- Group membership gates ("must be in this group")
+- Binary checks (authenticated/not, member/not member)
+
+Use CASL (`requirePermission`) for:
+- Resource ownership checks (createdBy, ownership)
+- Attribute-based permissions
+- Complex conditional logic
+- Hierarchy-based permissions
+
+**Files:**
+- `apps/api/src/middleware/auth.middleware.ts` - All guard implementations and decorators
+- `apps/api/src/__tests__/middleware/auth.middleware.test.ts` - Unit tests (42 test cases)
+
 ### Authorization (CASL)
 
 **Status:** ✅ Implemented (E02-T005)

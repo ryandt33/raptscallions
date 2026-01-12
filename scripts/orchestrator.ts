@@ -44,6 +44,10 @@ interface TaskFrontmatter {
   test_files: string[];
   code_files: string[];
   pr_url: string;
+  // Re-review tracking: which reviews have passed (skip on re-review after rejection fix)
+  reviews_passed?: WorkflowState[];
+  // Which review rejected and needs re-running after fix
+  rejected_from?: WorkflowState;
 }
 
 interface Task extends TaskFrontmatter {
@@ -533,6 +537,47 @@ function shouldSkipUIReview(task: Task, state: WorkflowState): boolean {
   return false;
 }
 
+// Review states that can be skipped on re-review (after fix)
+const REVIEW_STATES: WorkflowState[] = ["UI_REVIEW", "CODE_REVIEW", "QA_REVIEW"];
+
+/**
+ * Mark a review as passed for a task.
+ * Called when a review state transitions successfully (not rejected).
+ */
+function markReviewPassed(task: Task, reviewState: WorkflowState): void {
+  if (!REVIEW_STATES.includes(reviewState)) return;
+
+  if (!task.reviews_passed) {
+    task.reviews_passed = [];
+  }
+  if (!task.reviews_passed.includes(reviewState)) {
+    task.reviews_passed.push(reviewState);
+  }
+}
+
+/**
+ * Mark a task as rejected from a review state.
+ * Sets up re-review tracking so we skip passed reviews after the fix.
+ */
+function markRejectedFrom(task: Task, reviewState: WorkflowState): void {
+  if (!REVIEW_STATES.includes(reviewState)) return;
+
+  task.rejected_from = reviewState;
+  // Remove this review from passed list since it rejected
+  if (task.reviews_passed) {
+    task.reviews_passed = task.reviews_passed.filter((r) => r !== reviewState);
+  }
+}
+
+/**
+ * Clear re-review tracking after successfully passing all reviews.
+ * Called when reaching a terminal review state (e.g., moving past QA).
+ */
+function clearReviewTracking(task: Task): void {
+  task.rejected_from = undefined;
+  task.reviews_passed = undefined;
+}
+
 function getNextState(
   currentState: WorkflowState,
   rejected: boolean = false,
@@ -540,25 +585,47 @@ function getNextState(
 ): WorkflowState | null {
   if (rejected) {
     // Rejection paths
-    // Note: Rejections go to TESTS_READY (not IMPLEMENTING) so the implement command runs
+    // Pre-implementation reviews go back to ANALYZING
     if (currentState === "UX_REVIEW") return "ANALYZING";
     if (currentState === "PLAN_REVIEW") return "ANALYZING";
-    if (currentState === "UI_REVIEW") return "TESTS_READY";
-    if (currentState === "CODE_REVIEW") return "TESTS_READY";
-    if (currentState === "QA_REVIEW") return "TESTS_READY";
+
+    // Post-implementation reviews go to IMPLEMENTING for fix
+    // The rejected_from field tracks which review to return to after fix
+    if (currentState === "UI_REVIEW") return "IMPLEMENTING";
+    if (currentState === "CODE_REVIEW") return "IMPLEMENTING";
+    if (currentState === "QA_REVIEW") return "IMPLEMENTING";
     if (currentState === "INTEGRATION_TESTING") return "INTEGRATION_FAILED";
   }
 
-  const nextState = STATE_TRANSITIONS[currentState];
+  let nextState = STATE_TRANSITIONS[currentState];
 
   // If task is backend-only, skip UI review states
   if (task && nextState && shouldSkipUIReview(task, nextState)) {
     // Skip to the state after the UI review
     if (nextState === "UX_REVIEW") {
-      return STATE_TRANSITIONS["UX_REVIEW"]; // Skip to PLAN_REVIEW
+      nextState = STATE_TRANSITIONS["UX_REVIEW"]; // Skip to PLAN_REVIEW
+    } else if (nextState === "UI_REVIEW") {
+      nextState = STATE_TRANSITIONS["UI_REVIEW"]; // Skip to CODE_REVIEW
     }
-    if (nextState === "UI_REVIEW") {
-      return STATE_TRANSITIONS["UI_REVIEW"]; // Skip to CODE_REVIEW
+  }
+
+  // Re-review path: skip already-passed reviews after a rejection fix
+  // When coming from IMPLEMENTED and we have a rejected_from marker,
+  // skip directly to the review that rejected (skipping passed reviews)
+  if (task && currentState === "IMPLEMENTED" && task.rejected_from) {
+    const reviewsToSkip = task.reviews_passed || [];
+
+    // If UI_REVIEW passed and we're headed there, skip to next
+    if (nextState === "UI_REVIEW" && reviewsToSkip.includes("UI_REVIEW")) {
+      nextState = "CODE_REVIEW";
+    }
+    // If CODE_REVIEW passed and we're headed there, skip to next
+    if (nextState === "CODE_REVIEW" && reviewsToSkip.includes("CODE_REVIEW")) {
+      nextState = "QA_REVIEW";
+    }
+    // If QA_REVIEW passed and we're headed there, skip to next
+    if (nextState === "QA_REVIEW" && reviewsToSkip.includes("QA_REVIEW")) {
+      nextState = "INTEGRATION_TESTING";
     }
   }
 
@@ -698,14 +765,44 @@ async function runWorkflowStep(
 
   // Check if agent updated the state
   if (updatedTask.workflow_state !== currentState) {
-    logSuccess(`${task.id}: ${currentState} → ${updatedTask.workflow_state}`);
-    return updatedTask.workflow_state !== "DONE"; // Continue if not done
+    const newState = updatedTask.workflow_state;
+
+    // Detect rejection: review state → IMPLEMENTING
+    if (
+      REVIEW_STATES.includes(currentState) &&
+      newState === "IMPLEMENTING"
+    ) {
+      logWarning(`${task.id}: Review rejected at ${currentState}`);
+      markRejectedFrom(updatedTask, currentState);
+      saveTask(updatedTask);
+    }
+    // Detect successful review: review state → next review or beyond
+    else if (REVIEW_STATES.includes(currentState) && newState !== "IMPLEMENTING") {
+      markReviewPassed(updatedTask, currentState);
+      // Clear tracking if we've passed all reviews (moving to INTEGRATION_TESTING or beyond)
+      if (newState === "INTEGRATION_TESTING" || newState === "DOCS_UPDATE" || newState === "DONE") {
+        clearReviewTracking(updatedTask);
+      }
+      saveTask(updatedTask);
+    }
+
+    logSuccess(`${task.id}: ${currentState} → ${newState}`);
+    return newState !== "DONE"; // Continue if not done
   }
 
   // Agent didn't update state - do it ourselves
   const nextState = getNextState(currentState, false, updatedTask);
   if (nextState) {
     logStep("TRANSITION", `${task.id}: ${currentState} → ${nextState}`);
+
+    // Track review passes for auto-transitions too
+    if (REVIEW_STATES.includes(currentState)) {
+      markReviewPassed(updatedTask, currentState);
+      if (nextState === "INTEGRATION_TESTING" || nextState === "DOCS_UPDATE" || nextState === "DONE") {
+        clearReviewTracking(updatedTask);
+      }
+    }
+
     updatedTask.workflow_state = nextState;
     updatedTask.assigned_agent = "";
     updatedTask.updated_at = new Date().toISOString();
