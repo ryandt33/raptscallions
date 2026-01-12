@@ -32,6 +32,10 @@ export default defineConfig({
         '**/*.test.ts',
         '**/scripts/**',
         'test-drizzle.js',
+        'integration-test-*.mjs',
+        // Barrel exports (re-exports only)
+        'packages/*/src/index.ts',
+        'apps/*/src/index.ts',
       ],
       thresholds: {
         lines: 80,

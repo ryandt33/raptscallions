@@ -114,6 +114,10 @@ states:
     requires_fresh_context: true  # New session, no prior context
     outputs:
       - ui_review
+    re_review_behavior: |
+      When rejected, task goes to IMPLEMENTING for fix.
+      After fix, previously passed reviews are skipped.
+      Uses reviews_passed and rejected_from fields in task frontmatter.
 
   - id: CODE_REVIEW
     description: Fresh reviewer examining code
@@ -124,7 +128,11 @@ states:
     requires_fresh_context: true  # New session, no prior context
     outputs:
       - review_comments
-    
+    re_review_behavior: |
+      When rejected, task goes to IMPLEMENTING for fix.
+      If UI_REVIEW already passed, it will be skipped on re-review.
+      Task goes directly back to CODE_REVIEW after fix.
+
   - id: QA_REVIEW
     description: QA validating against requirements (unit tests, build, typecheck)
     agent: qa
@@ -134,6 +142,10 @@ states:
     requires_fresh_context: true
     outputs:
       - qa_report
+    re_review_behavior: |
+      When rejected, task goes to IMPLEMENTING for fix.
+      If UI_REVIEW and CODE_REVIEW already passed, they are skipped.
+      Task goes directly back to QA_REVIEW after fix.
 
   - id: INTEGRATION_TESTING
     description: Running integration tests against real infrastructure (Docker)
@@ -351,7 +363,7 @@ failure_handling:
 # Explicit transition rules
 
 transitions:
-  # Rejection paths
+  # Rejection paths (pre-implementation reviews go back to analysis)
   - from: UX_REVIEW
     to: ANALYZING
     condition: rejected
@@ -360,20 +372,46 @@ transitions:
     to: ANALYZING
     condition: rejected
 
+  # Post-implementation review rejections go to IMPLEMENTING
+  # After fix, the orchestrator skips previously-passed reviews
   - from: UI_REVIEW
     to: IMPLEMENTING
     condition: rejected
+    notes: Sets rejected_from=UI_REVIEW, tracks reviews_passed
 
   - from: CODE_REVIEW
     to: IMPLEMENTING
     condition: rejected
+    notes: Sets rejected_from=CODE_REVIEW, skips UI_REVIEW if it passed
 
   - from: QA_REVIEW
     to: IMPLEMENTING
     condition: rejected
+    notes: Sets rejected_from=QA_REVIEW, skips UI_REVIEW and CODE_REVIEW if passed
 
 # Manual overrides (human can force any transition)
 manual_override: true
+
+# =============================================================================
+# RE-REVIEW BEHAVIOR
+# =============================================================================
+# When a post-implementation review rejects, the task goes back to IMPLEMENTING.
+# The orchestrator tracks:
+#   - reviews_passed: List of review states that have already passed
+#   - rejected_from: Which review state rejected the task
+#
+# After the fix is implemented:
+#   - IMPLEMENTED transitions skip reviews in reviews_passed
+#   - Task goes directly to rejected_from review
+#   - On successful pass, tracking is cleared
+#
+# Example flow:
+#   1. UI_REVIEW passes → reviews_passed: [UI_REVIEW]
+#   2. CODE_REVIEW rejects → rejected_from: CODE_REVIEW, goes to IMPLEMENTING
+#   3. Fix implemented → IMPLEMENTED
+#   4. Skips UI_REVIEW (already passed) → goes directly to CODE_REVIEW
+#   5. CODE_REVIEW passes → reviews_passed: [UI_REVIEW, CODE_REVIEW]
+#   6. QA_REVIEW continues normally
 
 
 # =============================================================================

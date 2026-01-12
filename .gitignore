@@ -32,3 +32,5 @@ coverage/
 
 # Misc
 .turbo/
+integration-test-guards.mjs
+integration-test-results.json

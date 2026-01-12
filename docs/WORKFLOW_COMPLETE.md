@@ -180,7 +180,7 @@ This prevents "testability hacks" and keeps implementation clean.
 **Outputs:**
 - Code review report: `backlog/docs/reviews/{EPIC-ID}/{TASK-ID}-code-review.md`
 - Verdict: APPROVED or REJECTED
-- If rejected: Returns to IMPLEMENTING
+- If rejected: Returns to IMPLEMENTING (with smart re-review, see below)
 
 ### Phase 9: QA Validation
 
@@ -198,7 +198,44 @@ This prevents "testability hacks" and keeps implementation clean.
 **Outputs:**
 - QA report: `backlog/docs/reviews/{EPIC-ID}/{TASK-ID}-qa-report.md`
 - Verdict: APPROVED or REJECTED
-- If rejected: Returns to IMPLEMENTING
+- If rejected: Returns to IMPLEMENTING (with smart re-review, see below)
+
+### Smart Re-Review Process
+
+When a post-implementation review (UI_REVIEW, CODE_REVIEW, or QA_REVIEW) rejects a task, the orchestrator uses a **smart re-review** system to avoid redundant reviews:
+
+**How It Works:**
+
+1. **Tracking Passed Reviews**: When a review passes, it's recorded in the task's `reviews_passed` field
+2. **Recording Rejection Source**: When rejected, `rejected_from` records which review rejected
+3. **Skipping Passed Reviews**: After the fix, previously-passed reviews are skipped
+
+**Example Flow:**
+```
+1. UI_REVIEW passes       → reviews_passed: [UI_REVIEW]
+2. CODE_REVIEW rejects    → rejected_from: CODE_REVIEW, state → IMPLEMENTING
+3. Developer fixes issue  → state → IMPLEMENTED
+4. Skips UI_REVIEW        → (already passed)
+5. Goes to CODE_REVIEW    → Re-runs the rejecting review
+6. CODE_REVIEW passes     → reviews_passed: [UI_REVIEW, CODE_REVIEW]
+7. QA_REVIEW continues    → Normal flow resumes
+```
+
+**Benefits:**
+- No redundant UI reviews when code review rejects
+- No redundant UI + code reviews when QA rejects
+- Faster iteration on fixes
+- Clear tracking of what needs re-review
+
+**Task Frontmatter Fields:**
+```yaml
+reviews_passed:
+  - UI_REVIEW
+  - CODE_REVIEW
+rejected_from: QA_REVIEW
+```
+
+These fields are automatically managed by the orchestrator and cleared when all reviews pass.
 
 ### Phase 10: Documentation Update
 
@@ -312,11 +349,14 @@ This prevents "testability hacks" and keeps implementation clean.
 │    ↓ /implement                                             │
 │  IMPLEMENTING → IMPLEMENTED                                 │
 │    ↓ /review-ui                                             │
-│  UI_REVIEW → CODE_REVIEW (or back to IMPLEMENTING)         │
+│  UI_REVIEW → CODE_REVIEW (or back to IMPLEMENTING*)        │
 │    ↓ /review-code                                           │
-│  QA_REVIEW (or back to IMPLEMENTING)                        │
+│  QA_REVIEW (or back to IMPLEMENTING*)                       │
 │    ↓ /qa                                                    │
-│  DOCS_UPDATE (or back to IMPLEMENTING)                      │
+│  DOCS_UPDATE (or back to IMPLEMENTING*)                     │
+│                                                              │
+│  * Smart Re-Review: After fix, skips previously-passed      │
+│    reviews and goes directly to the rejecting review        │
 │    ↓ /update-docs                                           │
 │  DONE                                                        │
 │                                                              │

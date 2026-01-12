@@ -6,7 +6,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       name: "@raptscallions/auth",
-      include: ["__tests__/**/*.test.ts", "src/**/*.test.ts"],
+      include: ["__tests__/**/*.test.ts", "src/**/*.test.ts", "src/__tests__/**/*.test.ts"],
     },
   })
 );
