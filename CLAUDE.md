@@ -42,10 +42,6 @@ The codebase is in early development (Foundation Infrastructure phase - Epic E01
 
 ```
 raptscallions/
-├── _bmad/                      # BMad Method framework
-│   ├── bmb/                    # BMad Builder (create agents/workflows)
-│   ├── bmm/                    # Business Management Module
-│   └── core/                   # Core framework
 ├── apps/
 │   ├── api/                    # Fastify API server
 │   │   └── src/
@@ -75,9 +71,7 @@ raptscallions/
     └── docs/
         ├── specs/              # Implementation specifications
         ├── reviews/            # Review artifacts
-        ├── planning-artifacts/ # BMM planning outputs
-        ├── implementation-artifacts/  # BMM implementation outputs
-        └── bmb-creations/      # Custom agents/workflows
+        └── .workflow/          # Workflow configuration
 ```
 
 ## Code Conventions
@@ -266,36 +260,6 @@ This project uses Backlog.md MCP for all task and project management activities.
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
-
-## BMad Method Integration
-
-This project includes the BMad Method (BMAD) framework for structured agent and workflow creation.
-
-### Directory Structure
-
-```
-_bmad/
-├── bmb/          # BMad Builder - create custom agents/workflows
-├── bmm/          # Business Management Module - PM, dev, review workflows
-└── core/         # Core framework (brainstorming, party-mode)
-```
-
-### When to Use BMad
-
-- **Planning new features**: `/bmad/bmm/workflows/create-product-brief`, `/bmad/bmm/workflows/prd`
-- **Architecture decisions**: `/bmad/bmm/workflows/create-architecture`
-- **Interactive research**: `/bmad/bmm/agents/analyst`
-- **Creating custom agents**: `/bmad/bmb/workflows/agent`
-
-### When to Use Project Commands
-
-- **Task execution**: `/analyze E01-T002`, `/implement E01-T002`
-- **Code review**: `/review-code E01-T002`
-- **QA validation**: `/qa E01-T002`
-
-### Full Documentation
-
-See `backlog/docs/BMAD_INTEGRATION.md` for complete integration guide.
 
 ## Epic Review Process
 

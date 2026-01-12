@@ -8,3 +8,4 @@ export {
   ForbiddenError,
   ConflictError,
 } from "./common.error.js";
+export { RateLimitError } from "./rate-limit.error.js";

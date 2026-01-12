@@ -10,7 +10,7 @@ import {
 import type { FastifyInstance } from "fastify";
 
 // Use vi.hoisted to ensure mock objects are available when vi.mock factories run
-const { mockDb, mockLucia, mockSessionService } = vi.hoisted(() => {
+const { mockDb, mockLucia, mockSessionService, rateLimitStore } = vi.hoisted(() => {
   const mockDb = {
     query: {
       users: {
@@ -46,7 +46,10 @@ const { mockDb, mockLucia, mockSessionService } = vi.hoisted(() => {
     }),
   };
 
-  return { mockDb, mockLucia, mockSessionService };
+  // Rate limit store for mock Redis
+  const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+  return { mockDb, mockLucia, mockSessionService, rateLimitStore };
 });
 
 // Hoisted mocks - these are processed BEFORE any imports
@@ -66,6 +69,53 @@ vi.mock("@node-rs/argon2", () => ({
   hash: vi.fn().mockResolvedValue("hashed-password"),
   verify: vi.fn(),
 }));
+
+// Mock ioredis with in-memory storage for rate limiting
+// @fastify/rate-limit uses a Lua script via defineCommand
+const createMockRedisInstance = () => {
+  const instance: Record<string, unknown> = {
+    on: vi.fn(),
+    quit: vi.fn(),
+    defineCommand: vi.fn((name: string) => {
+      if (name === "rateLimit") {
+        instance.rateLimit = (
+          key: string,
+          timeWindow: number,
+          max: number,
+          _ban: number,
+          _continueExceeding: string,
+          callback: (err: Error | null, result: [number, number, boolean] | null) => void
+        ) => {
+          try {
+            const now = Date.now();
+            const entry = rateLimitStore.get(key);
+
+            if (!entry || entry.resetAt < now) {
+              rateLimitStore.set(key, { count: 1, resetAt: now + timeWindow });
+              callback(null, [1, timeWindow, false]);
+            } else {
+              entry.count += 1;
+              rateLimitStore.set(key, entry);
+              const ttl = entry.resetAt - now;
+              callback(null, [entry.count, ttl > 0 ? ttl : 0, false]);
+            }
+          } catch (err) {
+            callback(err as Error, null);
+          }
+        };
+      }
+    }),
+  };
+  return instance;
+};
+
+vi.mock("ioredis", () => {
+  const MockRedis = vi.fn(() => createMockRedisInstance());
+  return {
+    default: MockRedis,
+    Redis: MockRedis,
+  };
+});
 
 describe("Auth Routes Integration", () => {
   let app: FastifyInstance;
@@ -92,6 +142,7 @@ describe("Auth Routes Integration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    rateLimitStore.clear(); // Reset rate limit counters between tests
   });
 
   describe("POST /auth/register", () => {

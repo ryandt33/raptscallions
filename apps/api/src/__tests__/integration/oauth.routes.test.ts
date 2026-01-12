@@ -10,6 +10,55 @@ import {
 } from "vitest";
 import type { FastifyInstance } from "fastify";
 
+// Rate limit store for mock Redis - needs to be accessible for reset in beforeEach
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+// Mock ioredis with in-memory storage for rate limiting
+const createMockRedisInstance = () => {
+  const instance: Record<string, unknown> = {
+    on: vi.fn(),
+    quit: vi.fn(),
+    defineCommand: vi.fn((name: string) => {
+      if (name === "rateLimit") {
+        instance.rateLimit = (
+          key: string,
+          timeWindow: number,
+          max: number,
+          _ban: number,
+          _continueExceeding: string,
+          callback: (err: Error | null, result: [number, number, boolean] | null) => void
+        ) => {
+          try {
+            const now = Date.now();
+            const entry = rateLimitStore.get(key);
+
+            if (!entry || entry.resetAt < now) {
+              rateLimitStore.set(key, { count: 1, resetAt: now + timeWindow });
+              callback(null, [1, timeWindow, false]);
+            } else {
+              entry.count += 1;
+              rateLimitStore.set(key, entry);
+              const ttl = entry.resetAt - now;
+              callback(null, [entry.count, ttl > 0 ? ttl : 0, false]);
+            }
+          } catch (err) {
+            callback(err as Error, null);
+          }
+        };
+      }
+    }),
+  };
+  return instance;
+};
+
+vi.mock("ioredis", () => {
+  const MockRedis = vi.fn(() => createMockRedisInstance());
+  return {
+    default: MockRedis,
+    Redis: MockRedis,
+  };
+});
+
 describe("OAuth Routes Integration", () => {
   let app: FastifyInstance;
   let mockDb: {
@@ -147,6 +196,7 @@ describe("OAuth Routes Integration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    rateLimitStore.clear(); // Reset rate limit counters between tests
   });
 
   describe("GET /auth/google", () => {

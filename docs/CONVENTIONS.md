@@ -190,7 +190,9 @@ export const ErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   NOT_FOUND: "NOT_FOUND",
   UNAUTHORIZED: "UNAUTHORIZED",
+  FORBIDDEN: "FORBIDDEN",
   CONFLICT: "CONFLICT",
+  RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -251,6 +253,19 @@ export class UnauthorizedError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(message, ErrorCode.CONFLICT, 409);
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message: string = "Forbidden") {
+    super(message, ErrorCode.FORBIDDEN, 403);
+  }
+}
+
+// packages/core/src/errors/rate-limit.error.ts
+export class RateLimitError extends AppError {
+  constructor(message: string = "Too many requests", details?: ErrorDetails) {
+    super(message, ErrorCode.RATE_LIMIT_EXCEEDED, 429, details);
   }
 }
 ```

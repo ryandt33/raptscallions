@@ -1,11 +1,71 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
 
+// Use vi.hoisted to ensure rate limit store is available when mock factory runs
+const { rateLimitStore } = vi.hoisted(() => {
+  const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+  return { rateLimitStore };
+});
+
+// Mock ioredis with in-memory storage for rate limiting
+// @fastify/rate-limit uses a Lua script via defineCommand
+const createMockRedisInstance = () => {
+  const instance: Record<string, unknown> = {
+    on: vi.fn(),
+    quit: vi.fn(),
+    defineCommand: vi.fn((name: string) => {
+      if (name === "rateLimit") {
+        instance.rateLimit = (
+          key: string,
+          timeWindow: number,
+          max: number,
+          _ban: number,
+          _continueExceeding: string,
+          callback: (
+            err: Error | null,
+            result: [number, number, boolean] | null
+          ) => void
+        ) => {
+          try {
+            const now = Date.now();
+            const entry = rateLimitStore.get(key);
+
+            if (!entry || entry.resetAt < now) {
+              rateLimitStore.set(key, { count: 1, resetAt: now + timeWindow });
+              callback(null, [1, timeWindow, false]);
+            } else {
+              entry.count += 1;
+              rateLimitStore.set(key, entry);
+              const ttl = entry.resetAt - now;
+              callback(null, [entry.count, ttl > 0 ? ttl : 0, false]);
+            }
+          } catch (err) {
+            callback(err as Error, null);
+          }
+        };
+      }
+    }),
+  };
+  return instance;
+};
+
+vi.mock("ioredis", () => {
+  const MockRedis = vi.fn(() => createMockRedisInstance());
+  return {
+    default: MockRedis,
+    Redis: MockRedis,
+  };
+});
+
 describe("Server Factory (server.ts)", () => {
   let app: FastifyInstance;
 
   beforeEach(() => {
     vi.resetModules();
+    vi.clearAllMocks();
+
+    // Clear rate limit store between tests
+    rateLimitStore.clear();
 
     // Set up required environment variables
     process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/testdb";
