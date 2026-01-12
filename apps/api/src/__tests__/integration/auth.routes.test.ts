@@ -1,0 +1,553 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from "vitest";
+import type { FastifyInstance } from "fastify";
+
+// Use vi.hoisted to ensure mock objects are available when vi.mock factories run
+const { mockDb, mockLucia, mockSessionService } = vi.hoisted(() => {
+  const mockDb = {
+    query: {
+      users: {
+        findFirst: vi.fn(),
+      },
+    },
+    insert: vi.fn(),
+  };
+
+  const mockLucia = {
+    createSession: vi.fn(),
+    invalidateSession: vi.fn(),
+    createSessionCookie: vi.fn(),
+    createBlankSessionCookie: vi.fn(),
+    validateSession: vi.fn(),
+    sessionCookieName: "rapt_session",
+  };
+
+  const mockSessionService = {
+    sessionCookieName: "rapt_session",
+    sessionCookieAttributes: {
+      secure: false,
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    },
+    validate: vi.fn(),
+    createBlankSessionCookie: vi.fn().mockReturnValue({
+      name: "rapt_session",
+      value: "",
+      attributes: {},
+    }),
+  };
+
+  return { mockDb, mockLucia, mockSessionService };
+});
+
+// Hoisted mocks - these are processed BEFORE any imports
+vi.mock("@raptscallions/db", () => ({
+  db: mockDb,
+}));
+
+vi.mock("@raptscallions/auth", () => ({
+  lucia: mockLucia,
+  sessionService: mockSessionService,
+  permissionMiddleware: async () => {
+    // No-op for auth route tests
+  },
+}));
+
+vi.mock("@node-rs/argon2", () => ({
+  hash: vi.fn().mockResolvedValue("hashed-password"),
+  verify: vi.fn(),
+}));
+
+describe("Auth Routes Integration", () => {
+  let app: FastifyInstance;
+
+  beforeAll(async () => {
+    // Reset module cache to ensure our mocks are used
+    vi.resetModules();
+
+    // Set up environment
+    process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/testdb";
+    process.env.REDIS_URL = "redis://localhost:6379";
+    process.env.CORS_ORIGINS = "http://localhost:5173";
+    process.env.SESSION_SECRET = "test-session-secret-at-least-32-chars-long";
+
+    // Create server - imports will use the mocked modules
+    const { createServer } = await import("../../server.js");
+    app = await createServer();
+  });
+
+  afterAll(async () => {
+    await app.close();
+    vi.clearAllMocks();
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("POST /auth/register", () => {
+    it("should register new user and return 201 with session cookie", async () => {
+      // Arrange
+      const newUser = {
+        email: "newuser@example.com",
+        name: "New User",
+        password: "password123",
+      };
+
+      const createdUser = {
+        id: "user-123",
+        email: newUser.email,
+        name: newUser.name,
+        passwordHash: "hashed-password",
+        status: "pending_verification",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue(undefined);
+      mockDb.insert.mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([createdUser]),
+        }),
+      });
+      mockLucia.createSession.mockResolvedValue({
+        id: "session-123",
+        userId: createdUser.id,
+        expiresAt: new Date(),
+      });
+      mockLucia.createSessionCookie.mockReturnValue({
+        name: "rapt_session",
+        value: "session-123",
+        attributes: {},
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: newUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(201);
+      const body = response.json();
+      expect(body.data).toEqual({
+        id: createdUser.id,
+        email: createdUser.email,
+        name: createdUser.name,
+      });
+      expect(response.cookies).toHaveLength(1);
+      expect(response.cookies[0]).toMatchObject({
+        name: "rapt_session",
+        value: "session-123",
+      });
+    });
+
+    it("should return 409 for duplicate email", async () => {
+      // Arrange
+      const duplicateUser = {
+        email: "existing@example.com",
+        name: "Test User",
+        password: "password123",
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue({
+        id: "existing-user",
+        email: duplicateUser.email,
+        name: "Existing User",
+        passwordHash: "hash",
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: duplicateUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(409);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toBe("CONFLICT");
+    });
+
+    it("should return 400 for invalid email", async () => {
+      // Arrange
+      const invalidUser = {
+        email: "not-an-email",
+        name: "Test User",
+        password: "password123",
+      };
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: invalidUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      // Fastify returns FST_ERR_VALIDATION, our error handler returns VALIDATION_ERROR
+      expect(body.code).toMatch(/VALIDATION|FST_ERR_VALIDATION/);
+    });
+
+    it("should return 400 for short password", async () => {
+      // Arrange
+      const invalidUser = {
+        email: "test@example.com",
+        name: "Test User",
+        password: "short",
+      };
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: invalidUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toMatch(/VALIDATION|FST_ERR_VALIDATION/);
+    });
+
+    it("should return 400 for missing name", async () => {
+      // Arrange
+      const invalidUser = {
+        email: "test@example.com",
+        password: "password123",
+      };
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: invalidUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toMatch(/VALIDATION|FST_ERR_VALIDATION/);
+    });
+
+    it("should return 400 for empty name", async () => {
+      // Arrange
+      const invalidUser = {
+        email: "test@example.com",
+        name: "",
+        password: "password123",
+      };
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: invalidUser,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toMatch(/VALIDATION|FST_ERR_VALIDATION/);
+    });
+  });
+
+  describe("POST /auth/login", () => {
+    it("should login user and set session cookie with 200", async () => {
+      // Arrange
+      const loginData = {
+        email: "test@example.com",
+        password: "password123",
+      };
+
+      const existingUser = {
+        id: "user-123",
+        email: loginData.email,
+        name: "Test User",
+        passwordHash: "hashed-password",
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue(existingUser);
+
+      // Import verify mock
+      const { verify } = await import("@node-rs/argon2");
+      vi.mocked(verify).mockResolvedValue(true);
+
+      mockLucia.createSession.mockResolvedValue({
+        id: "session-456",
+        userId: existingUser.id,
+        expiresAt: new Date(),
+      });
+      mockLucia.createSessionCookie.mockReturnValue({
+        name: "rapt_session",
+        value: "session-456",
+        attributes: {},
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: loginData,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data).toEqual({
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+      });
+      expect(response.cookies).toHaveLength(1);
+      expect(response.cookies[0]).toMatchObject({
+        name: "rapt_session",
+        value: "session-456",
+      });
+    });
+
+    it("should return 401 for invalid email", async () => {
+      // Arrange
+      const loginData = {
+        email: "nonexistent@example.com",
+        password: "password123",
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue(undefined);
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: loginData,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(401);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toBe("UNAUTHORIZED");
+    });
+
+    it("should return 401 for invalid password", async () => {
+      // Arrange
+      const loginData = {
+        email: "test@example.com",
+        password: "wrong-password",
+      };
+
+      const existingUser = {
+        id: "user-123",
+        email: loginData.email,
+        name: "Test User",
+        passwordHash: "hashed-password",
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue(existingUser);
+
+      // Import verify mock
+      const { verify } = await import("@node-rs/argon2");
+      vi.mocked(verify).mockResolvedValue(false);
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: loginData,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(401);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toBe("UNAUTHORIZED");
+    });
+
+    it("should return 401 for user without password hash (OAuth user)", async () => {
+      // Arrange
+      const loginData = {
+        email: "oauth@example.com",
+        password: "password123",
+      };
+
+      const oauthUser = {
+        id: "user-123",
+        email: loginData.email,
+        name: "OAuth User",
+        passwordHash: null, // OAuth user
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      };
+
+      mockDb.query.users.findFirst.mockResolvedValue(oauthUser);
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: loginData,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(401);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toBe("UNAUTHORIZED");
+    });
+
+    it("should return 400 for invalid email format", async () => {
+      // Arrange
+      const loginData = {
+        email: "not-an-email",
+        password: "password123",
+      };
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: loginData,
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.error).toBeDefined();
+      expect(body.code).toMatch(/VALIDATION|FST_ERR_VALIDATION/);
+    });
+  });
+
+  describe("POST /auth/logout", () => {
+    it("should logout user with valid session and clear cookie with 204", async () => {
+      // Arrange
+      const sessionId = "session-123";
+      const userId = "user-123";
+
+      // Mock sessionService.validate to return a valid session
+      // This is used by the session middleware to attach user/session to request
+      mockSessionService.validate.mockResolvedValue({
+        session: {
+          id: sessionId,
+          userId: userId,
+          expiresAt: new Date(),
+          fresh: false,
+        },
+        user: {
+          id: userId,
+          email: "test@example.com",
+          name: "Test User",
+          status: "active",
+        },
+      });
+      mockLucia.invalidateSession.mockResolvedValue(undefined);
+      mockLucia.createBlankSessionCookie.mockReturnValue({
+        name: "rapt_session",
+        value: "",
+        attributes: {},
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/logout",
+        cookies: {
+          rapt_session: sessionId,
+        },
+      });
+
+      // Assert
+      expect(response.statusCode).toBe(204);
+      // Check cookie is cleared (may have multiple cookies set)
+      const blankCookie = response.cookies.find(
+        (c) => c.name === "rapt_session" && c.value === ""
+      );
+      expect(blankCookie).toBeDefined();
+    });
+
+    it("should return 204 and clear cookie even without session cookie", async () => {
+      // Arrange - no session cookie sent
+      mockLucia.createBlankSessionCookie.mockReturnValue({
+        name: "rapt_session",
+        value: "",
+        attributes: {},
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/logout",
+      });
+
+      // Assert - logout succeeds even without session
+      // This is intentional UX: user can always "logout" to clear any stale state
+      expect(response.statusCode).toBe(204);
+      const blankCookie = response.cookies.find(
+        (c) => c.name === "rapt_session" && c.value === ""
+      );
+      expect(blankCookie).toBeDefined();
+    });
+
+    it("should return 204 and clear cookie for invalid/expired session", async () => {
+      // Arrange - session validation returns null (invalid/expired)
+      mockSessionService.validate.mockResolvedValue({
+        session: null,
+        user: null,
+      });
+      mockLucia.createBlankSessionCookie.mockReturnValue({
+        name: "rapt_session",
+        value: "",
+        attributes: {},
+      });
+
+      // Act
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/logout",
+        cookies: {
+          rapt_session: "invalid-session",
+        },
+      });
+
+      // Assert - logout succeeds even with invalid session
+      // Cookie is cleared so user gets a clean state
+      expect(response.statusCode).toBe(204);
+      const blankCookie = response.cookies.find(
+        (c) => c.name === "rapt_session" && c.value === ""
+      );
+      expect(blankCookie).toBeDefined();
+    });
+  });
+});

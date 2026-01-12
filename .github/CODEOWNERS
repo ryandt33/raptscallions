@@ -1,0 +1,69 @@
+# CODEOWNERS
+#
+# This file defines who should review PRs that modify specific parts of the codebase.
+# GitHub automatically requests reviews from these owners when a PR touches their areas.
+#
+# Format: <file-pattern> <@username-or-team>
+# More specific patterns override less specific ones.
+
+# Default owners for everything
+* @YOUR_USERNAME
+
+# Documentation
+/docs/ @YOUR_USERNAME
+*.md @YOUR_USERNAME
+
+# GitHub workflows and templates
+/.github/ @YOUR_USERNAME
+
+# Infrastructure and deployment
+/docker-compose.yml @YOUR_USERNAME
+/Dockerfile @YOUR_USERNAME
+/.dockerignore @YOUR_USERNAME
+
+# Backend - API
+/apps/api/ @YOUR_USERNAME
+
+# Backend - Worker
+/apps/worker/ @YOUR_USERNAME
+
+# Frontend
+/apps/web/ @YOUR_USERNAME
+
+# Packages - Core
+/packages/core/ @YOUR_USERNAME
+
+# Packages - Database
+/packages/db/ @YOUR_USERNAME
+
+# Packages - Auth
+/packages/auth/ @YOUR_USERNAME
+
+# Packages - Events
+/packages/events/ @YOUR_USERNAME
+
+# Packages - Modules
+/packages/modules/ @YOUR_USERNAME
+
+# Packages - Telemetry
+/packages/telemetry/ @YOUR_USERNAME
+
+# Task management
+/backlog/ @YOUR_USERNAME
+
+# CI/CD configurations
+/.github/workflows/ @YOUR_USERNAME
+
+# Claude Code settings
+/.claude/ @YOUR_USERNAME
+
+# Security-sensitive files
+/.env.example @YOUR_USERNAME
+/packages/auth/ @YOUR_USERNAME
+
+# Build configuration
+/tsconfig.json @YOUR_USERNAME
+/vitest.config.ts @YOUR_USERNAME
+/vitest.workspace.ts @YOUR_USERNAME
+/package.json @YOUR_USERNAME
+/pnpm-*.yaml @YOUR_USERNAME

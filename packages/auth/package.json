@@ -1,0 +1,46 @@
+{
+  "name": "@raptscallions/auth",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./oauth": {
+      "types": "./dist/oauth.d.ts",
+      "import": "./dist/oauth.js"
+    },
+    "./oauth-state": {
+      "types": "./dist/oauth-state.d.ts",
+      "import": "./dist/oauth-state.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@casl/ability": "^6.5.0",
+    "@lucia-auth/adapter-drizzle": "^1.1.0",
+    "@raptscallions/core": "workspace:*",
+    "@raptscallions/db": "workspace:*",
+    "arctic": "^3.7.0",
+    "drizzle-orm": "0.45.1",
+    "fastify-plugin": "^5.0.1",
+    "lucia": "^3.2.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "fastify": "^4.25.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  }
+}

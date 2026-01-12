@@ -1,0 +1,442 @@
+# Raptscallions Workflow Configuration
+# This file defines the task lifecycle, agent mappings, and automation rules
+
+version: "1.0"
+
+# =============================================================================
+# WORKFLOW STATES
+# =============================================================================
+# Tasks progress through these states. Each state has an assigned agent.
+# Transitions happen automatically unless a breakpoint is set.
+
+states:
+  # Breakdown Phase
+  - id: BACKLOG
+    description: High-level goal or feature to be broken down
+    agent: pm
+    next: BREAKING_DOWN
+
+  - id: BREAKING_DOWN
+    description: PM is breaking down into epics and tasks
+    agent: null  # Agent is running
+    next: DRAFT
+
+  # Planning Phase
+  - id: DRAFT
+    description: Task created but not yet analyzed
+    agent: null  # Human creates tasks or auto-transition from PM
+    next: ANALYZING
+    
+  - id: ANALYZING
+    description: Analyst is writing implementation spec
+    agent: analyst
+    next: ANALYZED
+    outputs:
+      - spec_file  # docs/tasks/{epic}/{task}/spec.md
+    
+  - id: ANALYZED
+    description: Spec complete, awaiting UX review
+    agent: null  # Auto-transition
+    next: UX_REVIEW
+
+  - id: UX_REVIEW
+    description: Designer reviewing spec for UX concerns
+    agent: designer
+    next: PLAN_REVIEW
+    can_reject: true
+    reject_to: ANALYZING
+    outputs:
+      - ux_notes  # Appended to spec file
+
+  - id: PLAN_REVIEW
+    description: Architect reviewing implementation plan
+    agent: architect
+    next: APPROVED
+    can_reject: true
+    reject_to: ANALYZING  # Send back with feedback
+    outputs:
+      - review_notes  # Appended to spec file
+    
+  - id: APPROVED
+    description: Plan approved, ready for test writing
+    agent: null  # Auto-transition
+    next: WRITING_TESTS
+
+  # Implementation Phase
+  - id: WRITING_TESTS
+    description: Developer writing tests (TDD - tests first)
+    agent: developer
+    next: TESTS_READY
+    outputs:
+      - test_files  # Actual test files in codebase
+    
+  - id: TESTS_READY
+    description: Tests written and failing (red phase)
+    agent: null  # Auto-transition
+    next: IMPLEMENTING
+    validation:
+      - tests_exist
+      - tests_fail  # All tests should fail initially
+
+  - id: TESTS_REVISION_NEEDED
+    description: Implementation revealed tests used incorrect API assumptions - needs test rewrite
+    agent: developer
+    next: TESTS_READY
+    outputs:
+      - test_files  # Revised test files
+    notes: |
+      This state is entered when the developer discovers during implementation
+      that tests were written with incorrect assumptions about a library's API.
+      Instead of hacking the implementation to satisfy bad tests, we send it
+      back to fix the tests first.
+
+  - id: IMPLEMENTING
+    description: Developer writing code to pass tests
+    agent: developer
+    next: IMPLEMENTED
+    outputs:
+      - code_files
+    validation:
+      - tests_pass  # All tests must pass
+    
+  - id: IMPLEMENTED
+    description: Code complete, tests passing
+    agent: null  # Auto-transition
+    next: UI_REVIEW
+
+  # Review Phase
+  - id: UI_REVIEW
+    description: Designer reviewing UI implementation
+    agent: designer
+    next: CODE_REVIEW
+    can_reject: true
+    reject_to: IMPLEMENTING
+    requires_fresh_context: true  # New session, no prior context
+    outputs:
+      - ui_review
+
+  - id: CODE_REVIEW
+    description: Fresh reviewer examining code
+    agent: reviewer
+    next: QA_REVIEW
+    can_reject: true
+    reject_to: IMPLEMENTING
+    requires_fresh_context: true  # New session, no prior context
+    outputs:
+      - review_comments
+    
+  - id: QA_REVIEW
+    description: QA validating against requirements (unit tests, build, typecheck)
+    agent: qa
+    next: INTEGRATION_TESTING
+    can_reject: true
+    reject_to: IMPLEMENTING
+    requires_fresh_context: true
+    outputs:
+      - qa_report
+
+  - id: INTEGRATION_TESTING
+    description: Running integration tests against real infrastructure (Docker)
+    agent: qa
+    next: DOCS_UPDATE
+    can_reject: true
+    reject_to: INTEGRATION_FAILED
+    requires_fresh_context: false
+    outputs:
+      - integration_report
+    notes: |
+      This state runs the actual application against real PostgreSQL and Redis
+      to verify that the implementation works in the real environment, not just
+      with mocks.
+
+  - id: INTEGRATION_FAILED
+    description: Integration tests failed - investigating root cause
+    agent: qa
+    next: null
+    can_reject: false
+    requires_fresh_context: false
+    outputs:
+      - failure_analysis
+    notes: |
+      When integration tests fail, the QA agent investigates the root cause:
+      - If tests assumed wrong behavior → TESTS_REVISION_NEEDED
+      - If implementation has runtime bugs → IMPLEMENTING
+      The agent must determine which path based on the failure evidence.
+
+  - id: DOCS_UPDATE
+    description: Tech writer updating documentation
+    agent: writer
+    next: DONE
+    outputs:
+      - doc_updates
+
+  # Complete
+  - id: DONE
+    description: Task complete, ready for merge
+    agent: null
+    terminal: true
+
+
+# =============================================================================
+# AGENTS
+# =============================================================================
+# Maps agents to their Claude Code configuration
+
+agents:
+  pm:
+    name: "Product Manager"
+    description: "Breaks down goals into epics and tasks"
+    claude_agent: "pm"  # References .claude/agents/pm.md
+    tools:
+      - Read
+      - Write
+      - Glob
+      - Grep
+    allowed_paths:
+      - "backlog/**"
+      - "docs/ARCHITECTURE.md"
+      - "docs/CONVENTIONS.md"
+      - "docs/references/**"
+
+  analyst:
+    name: "Analyst"
+    description: "Analyzes requirements, writes implementation specs"
+    claude_agent: "analyst"  # References .claude/agents/analyst.md
+    tools:
+      - Read
+      - Glob
+      - Grep
+      - Write
+    allowed_paths:
+      - "backlog/**"
+      - "docs/ARCHITECTURE.md"
+      - "docs/CONVENTIONS.md"
+      - "docs/references/**"
+      
+  designer:
+    name: "Designer"
+    description: "Reviews specs for UX and implementations for UI quality"
+    claude_agent: "designer"  # References .claude/agents/designer.md
+    tools:
+      - Read
+      - Glob
+      - Grep
+    allowed_paths:
+      - "backlog/**"
+      - "apps/web/**"
+      - "docs/references/**"
+    read_only: true
+    fresh_context: true  # For UI review phase
+
+  architect:
+    name: "Architect"
+    description: "Reviews plans for architectural fit"
+    claude_agent: "architect"
+    tools:
+      - Read
+      - Glob
+      - Grep
+    allowed_paths:
+      - "backlog/**"
+      - "docs/**"
+      - "packages/**"
+      - "apps/**"
+    read_only: true
+
+  developer:
+    name: "Developer"
+    description: "TDD practitioner - writes tests first, then code"
+    claude_agent: "developer"
+    tools:
+      - Read
+      - Write
+      - Edit
+      - Bash
+      - Glob
+      - Grep
+    allowed_paths:
+      - "packages/**"
+      - "apps/**"
+      - "docs/tasks/**"
+      
+  reviewer:
+    name: "Reviewer"
+    description: "Fresh-eyes code review"
+    claude_agent: "reviewer"
+    tools:
+      - Read
+      - Glob
+      - Grep
+      - Bash  # For running tests/lint
+    allowed_paths:
+      - "packages/**"
+      - "apps/**"
+      - "docs/tasks/**"
+    read_only: true
+    fresh_context: true  # No conversation history
+    
+  qa:
+    name: "QA"
+    description: "Validates implementation against requirements"
+    claude_agent: "qa"
+    tools:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    allowed_paths:
+      - "packages/**"
+      - "apps/**"
+      - "docs/tasks/**"
+    read_only: true
+    fresh_context: true
+    
+  writer:
+    name: "Tech Writer"
+    description: "Updates documentation"
+    claude_agent: "writer"
+    tools:
+      - Read
+      - Write
+      - Edit
+      - Glob
+      - Grep
+    allowed_paths:
+      - "docs/**"
+      - "packages/*/README.md"
+      - "apps/*/README.md"
+
+
+# =============================================================================
+# DEFAULT BREAKPOINTS
+# =============================================================================
+# States where the workflow pauses for human review by default.
+# Can be overridden per-task.
+
+default_breakpoints:
+  - PR_CREATED  # Pause after PR created for human review/merge
+  # - APPROVED  # Human confirms before coding starts (optional)
+
+
+# =============================================================================
+# FAILURE HANDLING
+# =============================================================================
+# What to do when an agent fails or a validation fails
+
+failure_handling:
+  max_retries: 2
+  
+  # On agent failure
+  on_agent_failure:
+    - log_error
+    - create_failure_report
+    - set_breakpoint  # Pause for human intervention
+    
+  # On validation failure (e.g., tests don't pass)
+  on_validation_failure:
+    - log_validation_error
+    - return_to_previous_state
+    - include_failure_context  # Agent sees what went wrong
+    
+  # On rejection (architect/reviewer rejects)
+  on_rejection:
+    - capture_rejection_reason
+    - return_to_reject_state
+    - include_rejection_feedback
+
+
+# =============================================================================
+# TRANSITIONS
+# =============================================================================
+# Explicit transition rules
+
+transitions:
+  # Rejection paths
+  - from: UX_REVIEW
+    to: ANALYZING
+    condition: rejected
+
+  - from: PLAN_REVIEW
+    to: ANALYZING
+    condition: rejected
+
+  - from: UI_REVIEW
+    to: IMPLEMENTING
+    condition: rejected
+
+  - from: CODE_REVIEW
+    to: IMPLEMENTING
+    condition: rejected
+
+  - from: QA_REVIEW
+    to: IMPLEMENTING
+    condition: rejected
+
+# Manual overrides (human can force any transition)
+manual_override: true
+
+
+# =============================================================================
+# NOTIFICATIONS
+# =============================================================================
+# How to notify about workflow events (future feature)
+
+notifications:
+  on_breakpoint:
+    - console_log
+    # - slack_webhook (future)
+    
+  on_failure:
+    - console_log
+    - create_issue  # GitHub issue (future)
+    
+  on_complete:
+    - console_log
+
+
+# =============================================================================
+# FILE CONVENTIONS
+# =============================================================================
+# Where workflow artifacts are stored (integrates with Backlog.md structure)
+
+file_conventions:
+  # Backlog.md manages task files
+  tasks_dir: "backlog/tasks"
+  completed_dir: "backlog/completed"
+  archive_dir: "backlog/archive/tasks"
+  decisions_dir: "backlog/decisions"
+  drafts_dir: "backlog/drafts"
+
+  # Project documentation in backlog
+  docs_dir: "backlog/docs"
+
+  # Workflow specs and reviews
+  spec_dir: "backlog/docs/specs"
+  spec_file: "{spec_dir}/{task_id}-spec.md"
+  review_file: "{spec_dir}/{task_id}-review.md"
+  qa_report: "{spec_dir}/{task_id}-qa.md"
+
+
+# =============================================================================
+# HOOKS
+# =============================================================================
+# Commands to run at various points
+
+hooks:
+  pre_transition:
+    # Run before any state transition
+    - command: "pnpm lint --quiet"
+      on_states: [IMPLEMENTED, CODE_REVIEW, QA_REVIEW]
+      
+    - command: "pnpm typecheck"
+      on_states: [IMPLEMENTED, CODE_REVIEW, QA_REVIEW]
+      
+  post_agent:
+    # Run after agent completes
+    - command: "pnpm test --run"
+      on_states: [TESTS_READY, IMPLEMENTED]
+      
+  on_complete:
+    # Run when task reaches DONE
+    - command: "git add -A"
+    - command: "git commit -m 'feat({epic_id}): {task_title}'"

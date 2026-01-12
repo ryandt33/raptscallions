@@ -1,0 +1,540 @@
+# Code Review: E03-T001 - Classes and class_members schemas
+
+**Reviewer:** reviewer agent (fresh-eyes review)
+**Date:** 2026-01-12
+**Task:** E03-T001 - Classes and class_members schemas
+**Verdict:** ⚠️ **MINOR ISSUES** - Returns to IMPLEMENTING for fixes
+
+---
+
+## Executive Summary
+
+The implementation of classes and class_members schemas is **functionally correct** with comprehensive test coverage (75 passing tests) and follows established Drizzle patterns from the codebase. The core schema definitions are well-documented and type-safe.
+
+**Critical Issues Found:**
+1. **BLOCKER:** Missing migration file `0005_create_classes.sql` (AC8 not met)
+2. **BLOCKER:** Missing relations in `users.ts` and `groups.ts` (AC9 partially met)
+
+**Strengths:**
+- Excellent documentation with JSDoc examples
+- Comprehensive test coverage (36 + 39 tests)
+- Proper use of Drizzle patterns (CASCADE delete, indexes, unique constraints)
+- Type-safe schema definitions with proper exports
+
+---
+
+## Test Results
+
+### ✅ Test Execution: PASSED
+```
+classes.test.ts: 36/36 tests passed (5ms)
+class-members.test.ts: 39/39 tests passed (5ms)
+```
+
+**Test Coverage Analysis:**
+- Type inference: ✅ Complete
+- Schema definition: ✅ Complete
+- Foreign keys: ✅ Validated
+- Type safety: ✅ Enforced
+- Edge cases: ✅ Comprehensive (co-teaching, multiple roles, large rosters)
+- Relations: ✅ Type checking tests included
+
+### ✅ Linting: N/A
+No linter configured yet for `@raptscallions/db` package.
+
+---
+
+## Acceptance Criteria Review
+
+| AC | Requirement | Status | Evidence |
+|----|-------------|--------|----------|
+| AC1 | classes table with id, group_id FK, name, settings (jsonb), timestamps | ✅ PASS | classes.ts:57-77 |
+| AC2 | class_members table with id, class_id FK, user_id FK, role enum | ✅ PASS | class-members.ts:104-127 |
+| AC3 | class_role enum: 'teacher', 'student' | ✅ PASS | class-members.ts:23 |
+| AC4 | Foreign keys with CASCADE delete | ✅ PASS | classes.ts:63, class-members.ts:110,113 |
+| AC5 | Unique constraint on (class_id, user_id) | ✅ PASS | class-members.ts:122-125 |
+| AC6 | Indexes on class_id and user_id for roster queries | ✅ PASS | class-members.ts:120-121 |
+| AC7 | TypeScript types exported (Class, NewClass, ClassMember, NewClassMember) | ✅ PASS | classes.ts:92,108; class-members.ts:144,160 |
+| AC8 | Migration file 0005_create_classes.sql | ❌ **FAIL** | **File missing** |
+| AC9 | Drizzle relations defined for bidirectional queries | ⚠️ **PARTIAL** | Relations in class-members.ts but NOT in users.ts/groups.ts |
+| AC10 | Tests verify schema constraints and relations | ✅ PASS | 75 tests total, all passing |
+
+**Result:** 8/10 acceptance criteria fully met, 2 blockers identified
+
+---
+
+## Code Review: classes.ts
+
+### ✅ Schema Definition (Lines 57-77)
+**Assessment:** Excellent implementation following established patterns.
+
+**Strengths:**
+- Proper use of Drizzle table definition with `pgTable`
+- Correct column types (UUID, VARCHAR(100), JSONB, TIMESTAMPTZ)
+- CASCADE delete on `group_id` foreign key ✅
+- Index on `group_id` for query optimization ✅
+- Soft delete support via `deleted_at` ✅
+- Default `'{}'` for JSONB settings field ✅
+
+**Observation:** Matches `groups.ts` pattern exactly (consistent codebase style)
+
+### ✅ Type Exports (Lines 92, 108)
+**Assessment:** Correct use of Drizzle type inference.
+
+```typescript
+export type Class = typeof classes.$inferSelect;      // ✅ For SELECT
+export type NewClass = typeof classes.$inferInsert;   // ✅ For INSERT
+```
+
+### ✅ Documentation (Lines 11-56)
+**Assessment:** Outstanding JSDoc documentation.
+
+**Strengths:**
+- Comprehensive description of purpose and features
+- Two practical examples (insert and query with relations)
+- Documents settings field extensibility
+- Clear explanation of soft delete behavior
+
+**Minor Suggestion:** Could reference migration file number in docs (but blocked by missing migration)
+
+### ✅ Test Compatibility (Lines 111-122)
+**Assessment:** Proper metadata accessor for `classes._.name` (used in tests).
+
+Matches pattern from `users.ts` and `groups.ts` ✅
+
+---
+
+## Code Review: class-members.ts
+
+### ✅ Enum Definition (Line 23)
+**Assessment:** Correct PostgreSQL enum definition.
+
+```typescript
+export const classRoleEnum = pgEnum("class_role", ["teacher", "student"]);
+```
+
+**Note:** Only 2 roles (simpler than group_members with 4 roles) - matches spec ✅
+
+### ✅ Schema Definition (Lines 104-127)
+**Assessment:** Excellent implementation with proper constraints.
+
+**Strengths:**
+- CASCADE delete on both foreign keys (class_id, user_id) ✅
+- Two indexes for roster queries (class_id, user_id) ✅
+- Named unique constraint `class_members_class_user_unique` ✅
+- No `updated_at` field (matches spec decision) ✅
+- No `deleted_at` field (hard delete only, matches spec) ✅
+
+**Observation:** Foreign key and index naming follows convention:
+- FKs: Auto-generated by Drizzle
+- Indexes: `{table}_{column}_idx`
+- Constraint: `{table}_{column1}_{column2}_unique`
+
+### ✅ Type Exports (Lines 144, 160)
+**Assessment:** Correct type inference.
+
+### ✅ Documentation (Lines 14-103)
+**Assessment:** Exceptional documentation quality.
+
+**Strengths:**
+- Extensive JSDoc explaining purpose, features, and cascade behavior
+- **Critical:** Documents role change pattern (UPDATE vs INSERT) with ✅/❌ examples (lines 44-59)
+- Three practical query examples (add member, get teachers, get schedule)
+- Clear explanation of unique constraint implications
+
+**This addresses the UX review concern about role changes!** ✅
+
+### ✅ Relations (Lines 192-229)
+**Assessment:** Relations defined correctly for `classMembers` and `classes`.
+
+```typescript
+export const classMembersRelations = relations(classMembers, ({ one }) => ({
+  class: one(classes, { ... }),
+  user: one(users, { ... }),
+}));
+
+export const classesRelations = relations(classes, ({ one, many }) => ({
+  group: one(groups, { ... }),
+  members: many(classMembers),
+}));
+```
+
+**Issue:** These relations are defined in `class-members.ts`, but the spec requires updating `users.ts` and `groups.ts` with bidirectional relations.
+
+---
+
+## Code Review: index.ts
+
+### ✅ Barrel Exports (Lines 18-22)
+**Assessment:** Correct exports added.
+
+```typescript
+export * from "./classes.js";
+export * from "./class-members.js";
+```
+
+Follows established pattern with `.js` extension (ESM compatibility) ✅
+
+---
+
+## ❌ BLOCKER 1: Missing Migration File
+
+### Issue
+**AC8 requires:** Migration file `0005_create_classes.sql`
+
+**Current state:** File does not exist in `packages/db/src/migrations/`
+
+**Impact:** Cannot apply schema changes to database. Implementation is incomplete.
+
+### Expected Contents (from spec)
+The migration should create:
+1. `class_role` enum type
+2. `classes` table
+3. `class_members` table
+4. Foreign key constraints (3 total)
+5. Indexes (3 total)
+6. Unique constraint on `(class_id, user_id)`
+
+**Spec provides complete SQL** (lines 338-393 in spec), but migration was never generated.
+
+### Recommended Fix
+```bash
+cd packages/db
+pnpm db:generate
+# Review generated 0005_create_classes.sql
+# Verify it matches spec expectations
+```
+
+**Alternative:** The spec includes hand-written SQL that could be used if Drizzle Kit fails.
+
+---
+
+## ⚠️ BLOCKER 2: Incomplete Relation Definitions
+
+### Issue
+**AC9 requires:** Bidirectional relations for `users.ts` and `groups.ts`
+
+**Current state:**
+- ✅ Relations defined in `class-members.ts` (lines 192-229)
+- ❌ `users.ts` missing `classMembers: many(classMembers)` relation
+- ❌ `groups.ts` missing `classes: many(classes)` relation
+
+**Impact:** Cannot query users with their class memberships or groups with their classes using Drizzle's relational query API.
+
+### Expected Updates
+
+**File: `packages/db/src/schema/users.ts`**
+```typescript
+import { classMembers } from "./class-members.js";
+
+export const usersRelations = relations(users, ({ many }) => ({
+  groupMembers: many(groupMembers),
+  classMembers: many(classMembers), // NEW
+}));
+```
+
+**File: `packages/db/src/schema/groups.ts`**
+```typescript
+import { classes } from "./classes.js";
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+  members: many(groupMembers),
+  classes: many(classes), // NEW
+}));
+```
+
+**Reference:** Spec lines 209-220 document this requirement.
+
+### Why This Matters
+Without these relations, queries like this won't work:
+```typescript
+// Get user with all class memberships (BROKEN without relation)
+const userData = await db.query.users.findFirst({
+  where: eq(users.id, userId),
+  with: {
+    classMembers: {  // ❌ TypeScript error: Property 'classMembers' does not exist
+      with: { class: true }
+    }
+  }
+});
+```
+
+---
+
+## Code Quality Assessment
+
+### ✅ Naming Conventions
+**Assessment:** Perfect adherence to codebase conventions.
+
+| Convention | Rule | Compliance |
+|------------|------|------------|
+| Table names | `snake_case` plural | ✅ `classes`, `class_members` |
+| Columns | `snake_case` | ✅ `group_id`, `created_at` |
+| TypeScript types | PascalCase | ✅ `Class`, `NewClass` |
+| Indexes | `{table}_{column}_idx` | ✅ `classes_group_id_idx` |
+| Enums | camelCase with Enum suffix | ✅ `classRoleEnum` |
+
+### ✅ Type Safety
+**Assessment:** Excellent TypeScript usage.
+
+- No `any` types found ✅
+- Proper use of Drizzle's `$inferSelect` and `$inferInsert` ✅
+- Enum values correctly typed as literal union ✅
+- JSONB typed as `unknown` (requires Zod parsing) - matches pattern ✅
+
+### ✅ Documentation Quality
+**Assessment:** Outstanding - exceeds typical standards.
+
+- 120+ lines of JSDoc across both files
+- Practical examples for common operations
+- Explains design decisions (why no `updated_at`, role change patterns)
+- Documents cascade delete behavior
+- References future integration points (CASL, audit logs)
+
+### ✅ Test Coverage
+**Assessment:** Comprehensive and well-organized.
+
+**classes.test.ts (36 tests):**
+- Type inference (6 tests)
+- NewClass type (5 tests)
+- Schema definition (9 tests)
+- Schema exports (1 test)
+- Foreign keys (2 tests)
+- Type safety (3 tests)
+- Settings field (5 tests)
+- Soft delete (2 tests)
+- Edge cases (7 tests)
+
+**class-members.test.ts (39 tests):**
+- Type inference (3 tests)
+- NewClassMember type (4 tests)
+- Role enum (4 tests)
+- Schema definition (7 tests)
+- Schema exports (2 tests)
+- Foreign keys (3 tests)
+- Type safety (3 tests)
+- Edge cases (11 tests)
+- Relations type checking (2 tests)
+
+**Strengths:**
+- AAA pattern consistently used ✅
+- Edge cases cover real-world scenarios:
+  - Co-teaching (multiple teachers)
+  - Users in multiple classes with different roles
+  - Large rosters (30+ students)
+  - Role change patterns
+  - Unique constraint validation
+- Tests verify both happy path and edge cases ✅
+
+**Minor Observation:** No integration tests with actual database (unit/type tests only). This is acceptable for schema-only task.
+
+### ✅ Pattern Consistency
+**Assessment:** Perfect consistency with existing schemas.
+
+Compared to `users.ts`, `groups.ts`, `group-members.ts`:
+- ✅ Same field naming conventions
+- ✅ Same timestamp field patterns (`created_at`, `updated_at`, `deleted_at`)
+- ✅ Same foreign key patterns (`references(() => table.id, { onDelete: 'cascade' })`)
+- ✅ Same index naming (`{table}_{column}_idx`)
+- ✅ Same type export patterns (`$inferSelect`, `$inferInsert`)
+- ✅ Same metadata accessor for tests (`Object.defineProperty`)
+
+**Observation:** Developer clearly studied existing patterns - zero style deviations.
+
+---
+
+## Security Assessment
+
+### ✅ SQL Injection Prevention
+**Assessment:** Safe - uses Drizzle query builder.
+
+No raw SQL in schema definitions ✅
+Parameterized queries enforced by Drizzle ✅
+
+### ✅ Cascade Delete Behavior
+**Assessment:** Correctly configured for referential integrity.
+
+**Scenario Analysis:**
+1. User deleted → All class memberships deleted ✅ (prevents orphaned memberships)
+2. Class deleted → All memberships deleted ✅ (roster cleared)
+3. Group deleted → Classes deleted → Memberships deleted ✅ (two-level cascade works in PostgreSQL)
+
+**Note:** Soft-deleting a group (setting `deleted_at`) does NOT trigger CASCADE. Service layer must filter these queries (documented in spec section 6.2).
+
+### ⚠️ Unique Constraint Implications
+**Assessment:** Correct implementation with good documentation.
+
+**Design Decision:** One role per user per class (enforced by DB constraint)
+
+**Pros:**
+- Prevents accidental duplicate enrollments ✅
+- Forces explicit role changes via UPDATE ✅
+
+**Cons:**
+- If user needs multiple roles in same class (future?), would require schema change
+- Constraint name `class_members_class_user_unique` is clear ✅
+
+**Mitigation:** Documentation in class-members.ts (lines 44-59) explains UPDATE pattern ✅
+
+---
+
+## Performance Assessment
+
+### ✅ Index Strategy
+**Assessment:** Optimal for expected query patterns.
+
+| Index | Purpose | Query Pattern | Frequency |
+|-------|---------|---------------|-----------|
+| `classes_group_id_idx` | Get classes in group | `WHERE group_id = ?` | HIGH |
+| `class_members_class_id_idx` | Get class roster | `WHERE class_id = ?` | VERY HIGH |
+| `class_members_user_id_idx` | Get user's classes | `WHERE user_id = ?` | HIGH |
+| `class_members_class_user_unique` | Enforce one role/user/class | INSERT/UPDATE | AUTO |
+
+**Query Complexity:** O(log N) + result size for all common queries ✅
+
+### ⚠️ Potential Concern: Large Rosters
+**Scenario:** Class with 100+ students, eager loading all members
+
+```typescript
+const classData = await db.query.classes.findFirst({
+  with: {
+    members: {
+      with: { user: true }  // 100+ JOINs?
+    }
+  }
+});
+```
+
+**Assessment:** Drizzle should optimize this with proper JOINs. If performance issues arise, service layer can implement pagination.
+
+**Recommendation from spec (section 13.1.7):** Paginate rosters > 50 students in service layer (E03-T003).
+
+---
+
+## Comparison to Specification
+
+### Schema Compliance
+**Result:** 100% compliant with spec requirements.
+
+✅ All fields match spec (classes.ts lines 59-72 vs spec section 2.2.2)
+✅ All constraints match spec (class-members.ts lines 119-126 vs spec section 2.2.3)
+✅ Enum values match spec (class-members.ts line 23 vs spec section 2.2.1)
+✅ No deviations from approved architecture review
+
+### Documentation Compliance
+**Result:** Exceeds spec requirements.
+
+Spec requested JSDoc for tables, enums, types ✅
+Implementation includes additional query examples and edge case documentation ✅
+
+### Test Compliance
+**Result:** Exceeds spec requirements.
+
+Spec required (section 4.1):
+- Type inference ✅
+- Schema definition ✅
+- Foreign keys ✅
+- Edge cases ✅
+
+Implementation includes additional tests for:
+- Settings field variations ✅
+- Soft delete scenarios ✅
+- Role change patterns ✅
+- Large roster handling ✅
+
+---
+
+## Issues Summary
+
+### 🔴 Critical (Blockers)
+1. **Missing migration file** (AC8)
+   - **Severity:** Critical
+   - **Impact:** Cannot deploy schema to database
+   - **Fix:** Generate with `pnpm db:generate` or use spec SQL
+   - **Effort:** 15 minutes
+
+2. **Incomplete relations in users.ts and groups.ts** (AC9)
+   - **Severity:** Critical
+   - **Impact:** Relational queries broken for users/groups
+   - **Fix:** Add `classMembers` and `classes` relations
+   - **Effort:** 10 minutes
+
+### 🟡 Medium (Recommendations)
+None identified.
+
+### 🟢 Low (Nice-to-Have)
+None identified.
+
+---
+
+## Recommendations
+
+### Must Fix Before Approval
+1. **Generate migration file:**
+   ```bash
+   cd packages/db
+   pnpm db:generate
+   ```
+   - Verify output matches spec section 7
+   - Test migration on local database with `pnpm db:push`
+
+2. **Update users.ts relations:**
+   ```typescript
+   import { classMembers } from "./class-members.js";
+
+   export const usersRelations = relations(users, ({ many }) => ({
+     groupMembers: many(groupMembers),
+     classMembers: many(classMembers), // ADD THIS
+   }));
+   ```
+
+3. **Update groups.ts relations:**
+   ```typescript
+   import { classes } from "./classes.js";
+
+   export const groupsRelations = relations(groups, ({ many }) => ({
+     members: many(groupMembers),
+     classes: many(classes), // ADD THIS
+   }));
+   ```
+
+4. **Verify tests still pass after changes:**
+   ```bash
+   pnpm test packages/db/src/__tests__/schema/classes.test.ts
+   pnpm test packages/db/src/__tests__/schema/class-members.test.ts
+   ```
+
+### Optional Enhancements (Post-Approval)
+None recommended - implementation is already high quality.
+
+---
+
+## Verdict
+
+**Status:** ⚠️ **RETURNS TO IMPLEMENTING**
+
+**Reason:** Two critical blockers prevent approval:
+1. Missing migration file (AC8 not met)
+2. Incomplete bidirectional relations (AC9 partially met)
+
+**Positive Assessment:**
+The schema implementation itself is **excellent** - well-documented, properly tested, type-safe, and follows all codebase patterns. The issues are completeness blockers, not quality issues.
+
+**Estimated Fix Time:** 30 minutes (generate migration + add 2 relations + re-test)
+
+**Next Steps:**
+1. Developer: Fix two blockers listed above
+2. Developer: Run full test suite and migration test
+3. Developer: Mark task as CODE_REVIEW again
+4. Reviewer: Quick re-review (should be fast approval)
+5. QA: Final validation (E03-T001)
+
+---
+
+## Sign-off
+
+**Reviewer:** reviewer agent
+**Date:** 2026-01-12 06:24 UTC
+**Workflow State Transition:** CODE_REVIEW → IMPLEMENTING
+
+**Note to Developer:** Outstanding work on the schema definitions and tests. The missing pieces are straightforward - just need the migration file and two relation additions. Looking forward to approving this on the next review!

@@ -1,0 +1,338 @@
+# Available Commands
+
+This directory contains all available slash commands that can be used with Claude Code in this project.
+
+## Task Workflow Commands
+
+These commands guide tasks through the development workflow:
+
+| Command | Agent | Description | When to Use |
+|---------|-------|-------------|-------------|
+| `/plan` | pm | Break down goals into epics and tasks | Starting a new phase or feature |
+| `/analyze` | analyst | Write implementation spec from task | After task creation (DRAFT → ANALYZING) |
+| `/review-ux` | designer | Review spec for UX concerns | After spec written (ANALYZED → UX_REVIEW) |
+| `/review-plan` | architect | Validate implementation plan | After UX review (UX_REVIEW → PLAN_REVIEW) |
+| `/write-tests` | developer | Write tests (TDD red phase) | After plan approval (APPROVED → WRITING_TESTS) |
+| `/implement` | developer | Implement code to pass tests | After tests written (TESTS_READY → IMPLEMENTING) |
+| `/review-ui` | designer | Review implemented UI | After implementation (IMPLEMENTED → UI_REVIEW) |
+| `/review-code` | reviewer | Fresh-eyes code review | After UI review (UI_REVIEW → CODE_REVIEW) |
+| `/qa` | qa | Run QA validation (unit tests, build) | After code review (CODE_REVIEW → QA_REVIEW) |
+| `/integration-test` | qa | Run integration tests against Docker | After QA (QA_REVIEW → INTEGRATION_TESTING) |
+| `/investigate-failure` | qa | Analyze integration failure root cause | After failure (INTEGRATION_FAILED) |
+| `/update-docs` | writer | Update documentation | After integration passes (INTEGRATION_TESTING → DOCS_UPDATE) |
+| `/commit-and-pr` | git-agent | Commit changes and create pull request | After docs updated (DOCS_UPDATE → PR_READY) |
+
+## Epic Management Commands
+
+Commands for managing epics and planning:
+
+| Command | Agent | Description | Usage |
+|---------|-------|-------------|-------|
+| `/roadmap` | pm | View or update project roadmap | `/roadmap` or `/roadmap plan-next` |
+| `/epic-review` | pm | Review completed epic, create follow-ups | `/epic-review E01 --create` |
+
+## Task Discovery Commands
+
+Commands for finding and tracking tasks:
+
+| Command | Agent | Description | Usage |
+|---------|-------|-------------|-------|
+| `/next-task` | - | Find next ready task | `/next-task` or `/next-task E01` |
+| `/task-status` | - | View task board or specific task | `/task-status` or `/task-status E01-T003` |
+
+## Command Details
+
+### Planning & Breakdown
+
+**`/plan [goal/feature description]`**
+- Creates epics and tasks from high-level goals
+- Defines dependencies and priorities
+- Writes task files with acceptance criteria
+- Example: `/plan "Add user authentication system"`
+
+### Analysis & Specs
+
+**`/analyze [task-id]`**
+- Reads task description and acceptance criteria
+- Explores codebase for context
+- Writes detailed implementation spec
+- Example: `/analyze E01-T003`
+
+### Design Reviews
+
+**`/review-ux [task-id]`**
+- Reviews spec from UX perspective
+- Checks for usability and accessibility
+- Can approve or reject with feedback
+- Example: `/review-ux E01-T005`
+
+**`/review-ui [task-id]`**
+- Reviews implemented UI/components
+- Validates design consistency
+- Checks accessibility compliance
+- Example: `/review-ui E01-T005`
+
+### Architecture Review
+
+**`/review-plan [task-id]`**
+- Validates implementation approach
+- Checks architectural consistency
+- Verifies patterns and best practices
+- Example: `/review-plan E01-T003`
+
+### Development
+
+**`/write-tests [task-id]`**
+- Writes tests first (TDD red phase)
+- Creates comprehensive test coverage
+- Follows AAA pattern
+- Example: `/write-tests E01-T003`
+
+**`/implement [task-id]`**
+- Implements code to pass tests
+- TDD green phase (make tests pass)
+- Refactors for quality
+- Example: `/implement E01-T003`
+
+### Code Quality
+
+**`/review-code [task-id]`**
+- Fresh-eyes code review
+- Checks conventions and best practices
+- Identifies issues by severity
+- Example: `/review-code E01-T003`
+
+**`/qa [task-id]`**
+- Runs unit tests, build, and typecheck
+- Validates against acceptance criteria
+- Verifies code quality before integration
+- Example: `/qa E01-T003`
+
+### Integration Testing
+
+**`/integration-test [task-id]`**
+- Spins up Docker infrastructure (Postgres, Redis, API)
+- Runs real HTTP requests against acceptance criteria
+- Validates implementation works in real environment
+- Example: `/integration-test E01-T003`
+
+**`/investigate-failure [task-id]`**
+- Analyzes why integration tests failed
+- Determines if tests or implementation are wrong
+- Routes to TESTS_REVISION_NEEDED or IMPLEMENTING
+- Example: `/investigate-failure E01-T003`
+
+### Documentation
+
+**`/update-docs [task-id]`**
+- Updates docs after implementation
+- Ensures consistency with code
+- Adds examples and usage notes
+- Example: `/update-docs E01-T003`
+
+### GitHub Integration
+
+**`/commit-and-pr [task-id]`**
+- Commits changes following conventions
+- Runs CI checks locally (`pnpm ci:check`)
+- Creates feature branch if needed
+- Creates pull request with template
+- Configures automerge (low/medium priority)
+- Example: `/commit-and-pr E01-T003`
+
+### Epic Management
+
+**`/roadmap`**
+- Shows current project roadmap
+- Displays epic progress
+- Example: `/roadmap`
+
+**`/roadmap plan-next`**
+- Plans the next unplanned epic
+- Creates tasks from roadmap goals
+- Example: `/roadmap plan-next`
+
+**`/epic-review [epic-id]`** ⭐ **NEW**
+- Reviews all completed tasks in epic
+- Analyzes all review documents
+- Extracts outstanding issues
+- Creates comprehensive report
+- Example: `/epic-review E01`
+
+**`/epic-review [epic-id] --create`**
+- Same as above, plus:
+- Automatically creates follow-up tasks
+- For critical and high-priority issues
+- Example: `/epic-review E01 --create --threshold high`
+
+**Epic Review Flags:**
+- `--create` - Automatically create follow-up tasks
+- `--threshold [critical|high|medium|low]` - Minimum severity for task creation (default: high)
+
+### Task Discovery
+
+**`/next-task`**
+- Shows all ready tasks
+- Sorted by priority
+- Shows blocked tasks
+- Example: `/next-task` or `/next-task E01`
+
+**`/task-status`**
+- Shows task board by state
+- Or details for specific task
+- Example: `/task-status` or `/task-status E01-T003`
+
+## Orchestrator Integration
+
+The orchestrator (`pnpm workflow:run`) automatically calls these commands in sequence:
+
+```
+Task State Flow:
+DRAFT → /analyze → ANALYZING → ANALYZED
+  → /review-ux → UX_REVIEW → PLAN_REVIEW
+  → /review-plan → APPROVED
+  → /write-tests → WRITING_TESTS → TESTS_READY
+  → /implement → IMPLEMENTING → IMPLEMENTED
+  → /review-ui → UI_REVIEW → CODE_REVIEW
+  → /review-code → QA_REVIEW
+  → /qa → INTEGRATION_TESTING
+  → /integration-test → DOCS_UPDATE
+  → /update-docs → PR_READY
+  → /commit-and-pr → PR_CREATED → DONE
+
+Integration Failure Flow:
+  /integration-test fails → INTEGRATION_FAILED
+  → /investigate-failure → analyzes root cause
+  → TESTS_REVISION_NEEDED (tests assumed wrong behavior)
+     OR IMPLEMENTING (implementation has bugs)
+
+Epic Completion Flow:
+All tasks DONE → /epic-review {epic} --create
+  → Follow-up tasks created
+  → Follow-up tasks processed
+  → [If continuous] /roadmap plan-next
+```
+
+## Usage Examples
+
+### Manual Task Workflow
+
+```bash
+# Start with a task in DRAFT state
+claude -p "/analyze E01-T003"
+
+# After spec is written
+claude -p "/review-ux E01-T003"
+
+# After UX approval
+claude -p "/review-plan E01-T003"
+
+# Continue through workflow...
+```
+
+### Automatic Workflow
+
+```bash
+# Run single task through entire workflow
+pnpm workflow:run E01-T003
+
+# Run all ready tasks
+pnpm workflow:run --auto
+
+# Run all tasks + epic review + next epic
+pnpm workflow:run --continuous
+```
+
+### Epic Review
+
+```bash
+# Review epic manually (report only)
+claude -p "/epic-review E01"
+
+# Review and create follow-up tasks
+claude -p "/epic-review E01 --create"
+
+# Create tasks for medium+ severity issues
+claude -p "/epic-review E01 --create --threshold medium"
+```
+
+### Planning
+
+```bash
+# View roadmap
+claude -p "/roadmap"
+
+# Plan next epic from roadmap
+claude -p "/roadmap plan-next"
+
+# Create custom epic/tasks
+claude -p "/plan 'Build real-time chat feature'"
+```
+
+## Agent Context
+
+Each command runs in a specific agent context with:
+
+- **Agent-specific instructions**: From `.claude/agents/{agent}.md`
+- **Full conversation history**: If running manually
+- **Fresh context option**: For review agents (no prior context bias)
+- **Specialized tools**: Read, Write, Glob, Grep, Bash (varies by agent)
+
+## Adding New Commands
+
+To add a new command:
+
+1. Create `.claude/commands/{command-name}.md`
+2. Include frontmatter with `description` and `allowed-tools`
+3. Document the command's purpose and process
+4. Add to `COMMAND_AGENTS` in `orchestrator.ts` if needed
+5. Update this README
+
+Example:
+
+```markdown
+---
+description: Brief command description
+allowed-tools:
+  - Read
+  - Write
+  - Glob
+---
+
+# Command Name
+
+[Command documentation...]
+```
+
+## Command Files
+
+All commands are defined in this directory:
+
+```
+.claude/commands/
+├── README.md              # This file
+├── plan.md               # Break down goals into tasks
+├── analyze.md            # Write implementation specs
+├── review-ux.md          # UX review of specs
+├── review-plan.md        # Architecture review
+├── write-tests.md        # TDD test writing
+├── implement.md          # Code implementation
+├── review-ui.md          # UI/design review
+├── review-code.md        # Code review
+├── qa.md                 # QA validation (unit tests, build)
+├── integration-test.md   # Integration tests against Docker
+├── investigate-failure.md # Analyze integration failures
+├── update-docs.md        # Documentation updates
+├── commit-and-pr.md      # Commit and create PR
+├── roadmap.md            # Roadmap management
+├── epic-review.md        # Epic review
+├── next-task.md          # Find next ready task
+└── task-status.md        # Task board and status
+```
+
+## Related Documentation
+
+- [EPIC_REVIEW.md](../../docs/EPIC_REVIEW.md) - Detailed epic review process
+- [../../scripts/orchestrator.ts](../../scripts/orchestrator.ts) - Workflow automation
+- [../.claude/agents/](../.claude/agents/) - Agent definitions
+- [CLAUDE.md](../../CLAUDE.md) - Project instructions

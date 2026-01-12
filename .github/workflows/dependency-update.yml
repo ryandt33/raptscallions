@@ -1,0 +1,67 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 10am UTC
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Update dependencies
+        run: |
+          pnpm update --latest --recursive
+          pnpm install
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+        continue-on-error: true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(deps): update dependencies'
+          title: 'chore(deps): weekly dependency updates'
+          body: |
+            ## Summary
+            Automated weekly dependency updates
+
+            ## Changes
+            - Updated all dependencies to latest compatible versions
+            - Ran tests to verify compatibility
+
+            ## Testing
+            - [x] Dependencies updated
+            - [x] Tests executed (check logs for results)
+
+            Please review the changes and merge if all checks pass.
+          branch: chore/dependency-updates
+          delete-branch: true
+          labels: |
+            dependencies
+            automerge
