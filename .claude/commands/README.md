@@ -9,6 +9,7 @@ These commands guide tasks through the development workflow:
 | Command | Agent | Description | When to Use |
 |---------|-------|-------------|-------------|
 | `/plan` | pm | Break down goals into epics and tasks | Starting a new phase or feature |
+| `/replan-task` | pm | Refactor poorly-written task to outcome-focused format | When task has too much implementation detail or is too large |
 | `/analyze` | analyst | Write implementation spec from task | After task creation (DRAFT → ANALYZING) |
 | `/review-ux` | designer | Review spec for UX concerns | After spec written (ANALYZED → UX_REVIEW) |
 | `/review-plan` | architect | Validate implementation plan | After UX review (UX_REVIEW → PLAN_REVIEW) |
@@ -47,8 +48,17 @@ Commands for finding and tracking tasks:
 **`/plan [goal/feature description]`**
 - Creates epics and tasks from high-level goals
 - Defines dependencies and priorities
-- Writes task files with acceptance criteria
+- Writes outcome-focused task files with acceptance criteria
 - Example: `/plan "Add user authentication system"`
+
+**`/replan-task [task-id]`** (Optional Quality Step)
+- Refactors tasks that contain too much implementation detail
+- Removes code from task descriptions and acceptance criteria
+- Splits oversized tasks into appropriately-scoped subtasks
+- Rewrites to outcome-focused format (WHAT + WHY instead of HOW)
+- Use when tasks have 15+ AC, contain TypeScript/SQL code, or prescribe implementation
+- Example: `/replan-task E05-T006`
+- Example: `/replan-task E03-T003 --split` (force split)
 
 ### Analysis & Specs
 
@@ -188,7 +198,7 @@ The orchestrator (`pnpm workflow:run`) automatically calls these commands in seq
 
 ```
 Task State Flow:
-DRAFT → /analyze → ANALYZING → ANALYZED
+DRAFT → [optional: /replan-task] → /analyze → ANALYZING → ANALYZED
   → /review-ux → UX_REVIEW → PLAN_REVIEW
   → /review-plan → APPROVED
   → /write-tests → WRITING_TESTS → TESTS_READY
@@ -213,6 +223,15 @@ All tasks DONE → /epic-review {epic} --create
   → [If continuous] /roadmap plan-next
 ```
 
+**Note on `/replan-task`:** This is an optional quality step that's not part of the automated workflow. Use it when:
+- Task contains TypeScript, SQL, or implementation code in description
+- Task has 15+ acceptance criteria (too large)
+- Task prescribes specific libraries, patterns, or approaches
+- Task mixes multiple domains (schema + API + UI)
+- Acceptance criteria describe code structure instead of behavior
+
+Run it before `/analyze` to give the analyst a clean, outcome-focused task to work from.
+
 ## Usage Examples
 
 ### Manual Task Workflow
@@ -220,6 +239,9 @@ All tasks DONE → /epic-review {epic} --create
 ```bash
 # Start with a task in DRAFT state
 claude -p "/analyze E01-T003"
+
+# (Optional) If task is poorly written, refactor it first:
+claude -p "/replan-task E01-T003"
 
 # After spec is written
 claude -p "/review-ux E01-T003"
@@ -267,6 +289,9 @@ claude -p "/roadmap plan-next"
 
 # Create custom epic/tasks
 claude -p "/plan 'Build real-time chat feature'"
+
+# Refactor a poorly-written task (optional quality step)
+claude -p "/replan-task E05-T006"
 ```
 
 ## Agent Context
@@ -312,6 +337,7 @@ All commands are defined in this directory:
 .claude/commands/
 ├── README.md              # This file
 ├── plan.md               # Break down goals into tasks
+├── replan-task.md        # Refactor poorly-written tasks
 ├── analyze.md            # Write implementation specs
 ├── review-ux.md          # UX review of specs
 ├── review-plan.md        # Architecture review
