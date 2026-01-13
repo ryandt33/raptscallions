@@ -1,0 +1,25 @@
+{
+  "stale": [
+    {
+      "doc": "/home/ryan/Documents/coding/claude-box/raptscallions/apps/docs/src/test-stale-doc.md",
+      "title": "Test Stale Document",
+      "lastVerified": "2026-01-01",
+      "relatedChanges": [
+        {
+          "file": "/home/ryan/Documents/coding/claude-box/raptscallions/package.json",
+          "lastModified": "2026-01-13",
+          "daysSinceVerified": 12
+        },
+        {
+          "file": "/home/ryan/Documents/coding/claude-box/raptscallions/README.md",
+          "lastModified": "2026-01-13",
+          "daysSinceVerified": 12
+        }
+      ]
+    }
+  ],
+  "fresh": 0,
+  "unchecked": 27,
+  "scannedAt": "2026-01-13T15:17:38.416Z",
+  "threshold": 0
+}
