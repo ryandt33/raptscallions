@@ -305,24 +305,45 @@ The KB follows a **domain-first structure** where documentation is organized by 
 - Use search (Cmd/Ctrl + K) for quick topic lookup
 - Content being populated in E06-T005+ tasks
 
+**Design System:**
+The KB uses the **Modern Agricultural design system** with a custom VitePress theme:
+- **Colors**: Deep forest greens (primary), sky blue (secondary), golden wheat (accent)
+- **Typography**: DM Sans (body), DM Serif Display (headings)
+- **Light/Dark Themes**: Automatic theme switching with accessible contrast ratios (WCAG 2.1 AA+)
+- **Theme Files**: `apps/docs/src/.vitepress/theme/` (index.ts, style.css, fonts.css)
+- **Design Docs**: See [apps/docs/src/contributing/design-system.md](apps/docs/src/contributing/design-system.md) for complete design system documentation
+
+**Authoring KB Pages:**
+When creating or updating KB documentation, follow the [KB Page Design Patterns](apps/docs/src/contributing/kb-page-design.md) guide. It provides comprehensive patterns for:
+- Page structure and frontmatter
+- Heading hierarchy
+- Code blocks and syntax highlighting
+- Custom containers (callouts)
+- Cross-referencing and internal links
+- VitePress-specific features
+
+This ensures all KB pages maintain consistent formatting and navigation.
+
 ## Task Management
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
 <CRITICAL_INSTRUCTION>
 
+### ⚠️ MCP SERVER WARNING
+
+**DO NOT USE BACKLOG.MD MCP SERVER TOOLS** — The Backlog.md MCP server is not properly implemented and should not be used. All task management must be done through direct file manipulation in the `backlog/` directory.
+
 ### BACKLOG WORKFLOW INSTRUCTIONS
 
-This project uses Backlog.md MCP for all task and project management activities.
+This project uses Backlog.md file structure for all task and project management activities.
 
 **CRITICAL GUIDANCE**
 
-- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
-- If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
-
-- **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
-- **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
-- **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
+- **Task files**: Manually create/edit markdown files in `backlog/tasks/{EPIC-ID}/{TASK-ID}.md`
+- **Specs**: Write implementation specs in `backlog/docs/specs/{EPIC-ID}/{TASK-ID}-spec.md`
+- **Reviews**: Place review artifacts in `backlog/docs/reviews/{EPIC-ID}/`
+- **DO NOT** attempt to use any `mcp__backlog__*` tools - they are not functional
 
 </CRITICAL_INSTRUCTION>
 

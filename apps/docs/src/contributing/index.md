@@ -70,6 +70,14 @@ description: How Lucia sessions are created, validated, and expired
 [Content here...]
 ```
 
+## KB Documentation Guidelines
+
+When writing documentation for this knowledge base:
+
+- **[KB Page Design Patterns](/contributing/kb-page-design)** — VitePress markdown patterns, code blocks, containers, and templates for consistent documentation
+
+This guide provides complete examples and a copy-paste template to help you create well-structured, accessible KB pages quickly.
+
 ## Quick Links
 
 - [GitHub Issues](https://github.com/ryandt33/raptscallions/issues)

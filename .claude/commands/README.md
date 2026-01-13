@@ -22,6 +22,7 @@ These commands guide tasks through the development workflow:
 | `/investigate-failure` | qa | Analyze integration failure root cause | After failure (INTEGRATION_FAILED) |
 | `/update-docs` | writer | Update documentation | After integration passes (INTEGRATION_TESTING → DOCS_UPDATE) |
 | `/commit-and-pr` | git-agent | Commit changes and create pull request | After docs updated (DOCS_UPDATE → PR_READY) |
+| `/align-design` | designer | Review/create design guides for UI alignment | Before project start or periodically |
 
 ## Epic Management Commands
 
@@ -81,6 +82,13 @@ Commands for finding and tracking tasks:
 - Validates design consistency
 - Checks accessibility compliance
 - Example: `/review-ui E01-T005`
+
+**`/align-design [--domain <name>] [--create] [--review-only]`** ⭐ **NEW**
+- Reviews existing design guides for completeness
+- Creates comprehensive design guides if missing
+- Ensures UI alignment and theming standards
+- Documents design system, components, accessibility
+- Example: `/align-design` or `/align-design --domain ui --create`
 
 ### Architecture Review
 
@@ -294,6 +302,22 @@ claude -p "/plan 'Build real-time chat feature'"
 claude -p "/replan-task E05-T006"
 ```
 
+### Design System Alignment
+
+```bash
+# Review existing design documentation
+claude -p "/align-design --review-only"
+
+# Create missing design guides for UI domain
+claude -p "/align-design --domain ui --create"
+
+# Full alignment check and creation
+claude -p "/align-design"
+
+# Focus on specific domain
+claude -p "/align-design --domain auth"
+```
+
 ## Agent Context
 
 Each command runs in a specific agent context with:
@@ -344,6 +368,7 @@ All commands are defined in this directory:
 ├── write-tests.md        # TDD test writing
 ├── implement.md          # Code implementation
 ├── review-ui.md          # UI/design review
+├── align-design.md       # Design guide alignment
 ├── review-code.md        # Code review
 ├── qa.md                 # QA validation (unit tests, build)
 ├── integration-test.md   # Integration tests against Docker

@@ -914,6 +914,15 @@ When documenting implemented features:
 - Link to related docs and source files
 - Include "Why" context for decisions
 
+**Page Design Patterns:**
+For detailed KB page authoring guidelines, see the [KB Page Design Patterns](/contributing/kb-page-design) guide in the knowledge base. It covers:
+- Frontmatter and title patterns
+- Heading hierarchy rules
+- Code block conventions (highlighting, line numbers, code groups)
+- Custom containers (tip, info, warning, danger)
+- Cross-referencing and navigation
+- VitePress-specific features
+
 **Code Examples:**
 ```typescript
 // ✅ Good - complete, runnable
