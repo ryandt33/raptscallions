@@ -268,17 +268,42 @@ pnpm docs:preview
 **Structure:**
 ```
 apps/docs/
-├── src/                 # Markdown documentation files
-│   └── index.md        # Homepage
+├── src/                       # Markdown documentation files
+│   ├── index.md              # Homepage
+│   ├── auth/                 # Authentication & authorization
+│   │   ├── index.md          # Domain overview
+│   │   ├── concepts/         # Core ideas and mental models
+│   │   ├── patterns/         # Reusable implementation patterns
+│   │   ├── decisions/        # Architecture decision records
+│   │   └── troubleshooting/  # Problem-solution guides
+│   ├── database/             # Database & ORM
+│   ├── api/                  # API design & patterns
+│   ├── ai/                   # AI gateway integration
+│   ├── testing/              # Testing patterns & conventions
+│   └── contributing/         # Contribution guidelines
 ├── .vitepress/
-│   └── config.ts       # VitePress configuration
+│   └── config.ts             # VitePress configuration
 └── package.json
 ```
 
+**Content Organization:**
+
+The KB follows a **domain-first structure** where documentation is organized by major codebase areas:
+
+| Domain | Covers | Content Types |
+|--------|--------|---------------|
+| **auth** | Authentication, authorization, sessions, permissions | concepts, patterns, decisions, troubleshooting |
+| **database** | PostgreSQL schemas, Drizzle ORM, migrations, entity relationships | concepts, patterns, decisions, troubleshooting |
+| **api** | Fastify route handlers, middleware, services, validation | concepts, patterns, decisions, troubleshooting |
+| **ai** | OpenRouter client, streaming, error handling | concepts, patterns, decisions, troubleshooting |
+| **testing** | Vitest setup, AAA pattern, mocking strategies | patterns, troubleshooting |
+| **contributing** | How to contribute code and documentation | (no subdirectories) |
+
 **When to Use:**
-- KB documentation will be organized by domain (architecture, patterns, troubleshooting)
-- Use for implementation-verified documentation (not planning/vision)
-- Content added in subsequent E06 tasks
+- Implementation-verified documentation (not planning/vision docs)
+- Browse by domain using sidebar navigation
+- Use search (Cmd/Ctrl + K) for quick topic lookup
+- Content being populated in E06-T005+ tasks
 
 ## Task Management
 
