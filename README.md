@@ -118,6 +118,7 @@ pnpm --filter @raptscallions/api start
 raptscallions/
 ├── apps/                    # Application workspaces
 │   ├── api/                 # Fastify API server ✅
+│   ├── docs/                # VitePress knowledge base ✅
 │   ├── worker/              # BullMQ job processor (coming soon)
 │   └── web/                 # React frontend (coming soon)
 ├── packages/                # Shared library workspaces
@@ -147,6 +148,9 @@ From the root directory:
 | `pnpm test:ui` | Open Vitest web UI |
 | `pnpm lint` | Run linting across all packages |
 | `pnpm clean` | Remove node_modules and dist from all packages |
+| `pnpm docs:dev` | Start VitePress docs dev server |
+| `pnpm docs:build` | Build VitePress docs for production |
+| `pnpm docs:preview` | Preview built docs locally |
 
 ## Testing
 
@@ -233,6 +237,27 @@ All packages in this monorepo use the `@raptscallions` scope:
 
 - [Architecture](docs/ARCHITECTURE.md) - System design and architecture decisions
 - [Conventions](docs/CONVENTIONS.md) - Code style and naming conventions
+- [Knowledge Base](apps/docs/) - Browsable documentation site (VitePress)
+
+### Running the Knowledge Base
+
+The project includes a VitePress-powered knowledge base at `apps/docs/`:
+
+```bash
+# Start development server (http://localhost:5173)
+pnpm docs:dev
+
+# Build for production
+pnpm docs:build
+
+# Preview production build
+pnpm docs:preview
+```
+
+The knowledge base provides:
+- **Search**: Built-in local search (Cmd/Ctrl + K)
+- **Dark/Light Theme**: Automatic theme switching
+- **Live Reload**: Instant updates during development
 
 ## Development
 

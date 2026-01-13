@@ -1,0 +1,7 @@
+# VitePress build outputs (created in src/.vitepress/)
+src/.vitepress/dist/
+src/.vitepress/cache/
+
+# TypeScript build outputs
+dist/
+*.tsbuildinfo

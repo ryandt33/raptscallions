@@ -44,6 +44,14 @@ epics:
     priority: 4
     depends_on_epics: [E02, E03]
 
+  E06:
+    title: "Knowledge Base & Documentation Infrastructure"
+    description: "VitePress KB, domain-first organization, staleness detection"
+    phase: 3
+    estimated_weeks: 2
+    priority: 5
+    depends_on_epics: [E01]
+
 # =============================================================================
 # TASKS
 # =============================================================================
@@ -290,6 +298,80 @@ tasks:
     depends_on: [E04-T007]
     estimated_hours: 6
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # EPIC 06: Knowledge Base & Documentation Infrastructure
+  # ─────────────────────────────────────────────────────────────────────────
+
+  E06-T001:
+    title: "VitePress setup and configuration"
+    epic: E06
+    priority: critical
+    depends_on: []
+    estimated_hours: 4
+
+  E06-T002:
+    title: "KB folder structure and navigation"
+    epic: E06
+    priority: critical
+    depends_on: [E06-T001]
+    estimated_hours: 4
+
+  E06-T003:
+    title: "Staleness tracking schema and detection logic"
+    epic: E06
+    priority: high
+    depends_on: []
+    estimated_hours: 5
+
+  E06-T004:
+    title: "CI integration for docs validation"
+    epic: E06
+    priority: high
+    depends_on: [E06-T001, E06-T003]
+    estimated_hours: 4
+
+  E06-T005:
+    title: "Document implemented auth system"
+    epic: E06
+    priority: high
+    depends_on: [E06-T002]
+    estimated_hours: 6
+
+  E06-T006:
+    title: "Document implemented database entities"
+    epic: E06
+    priority: high
+    depends_on: [E06-T002]
+    estimated_hours: 6
+
+  E06-T007:
+    title: "Document implemented AI gateway"
+    epic: E06
+    priority: medium
+    depends_on: [E06-T002]
+    estimated_hours: 4
+
+  E06-T008:
+    title: "Cross-linking conventions and contribution guide"
+    epic: E06
+    priority: medium
+    depends_on: [E06-T005]
+    estimated_hours: 4
+
+  E06-T009:
+    title: "Document testing patterns and conventions"
+    epic: E06
+    priority: high
+    depends_on: [E06-T002]
+    estimated_hours: 6
+
+  E06-T010:
+    title: "Document API patterns and conventions"
+    epic: E06
+    priority: high
+    depends_on: [E06-T002]
+    estimated_hours: 6
+
 # =============================================================================
 # DEPENDENCY GRAPH SUMMARY
 # =============================================================================
@@ -323,3 +405,15 @@ tasks:
 #   ├── E04-T006: SSE streaming (depends on T005)
 #   ├── E04-T007: Chat API routes (depends on T006)
 #   └── E04-T008: Integration tests (depends on T007)
+#
+# E06: Knowledge Base & Documentation Infrastructure (depends on E01)
+#   ├── E06-T001: VitePress setup
+#   ├── E06-T002: KB folder structure (depends on T001)
+#   ├── E06-T003: Staleness tracking
+#   ├── E06-T004: CI integration (depends on T001, T003)
+#   ├── E06-T005: Document auth system (depends on T002)
+#   ├── E06-T006: Document database entities (depends on T002)
+#   ├── E06-T007: Document AI gateway (depends on T002)
+#   ├── E06-T008: Cross-linking conventions (depends on T005)
+#   ├── E06-T009: Document testing patterns (depends on T002)
+#   └── E06-T010: Document API patterns (depends on T002)

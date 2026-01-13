@@ -25,6 +25,7 @@
     { "path": "packages/modules" },
     { "path": "packages/ai" },
     { "path": "packages/auth" },
-    { "path": "apps/api" }
+    { "path": "apps/api" },
+    { "path": "apps/docs" }
   ]
 }
