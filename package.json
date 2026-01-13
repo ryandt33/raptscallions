@@ -24,6 +24,7 @@
     "docs:dev": "pnpm --filter @raptscallions/docs dev",
     "docs:build": "pnpm --filter @raptscallions/docs build",
     "docs:preview": "pnpm --filter @raptscallions/docs preview",
+    "docs:check-stale": "cd apps/docs && tsx scripts/check-staleness.ts",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",

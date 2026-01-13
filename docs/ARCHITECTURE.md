@@ -1126,6 +1126,9 @@ Each domain contains:
 - **decisions/** - Architecture decision records (ADRs)
 - **troubleshooting/** - Problem-solution guides
 
+**Authoring KB Pages:**
+Follow the [KB Page Design Patterns](../apps/docs/src/contributing/kb-page-design.md) guide for consistent page structure, heading hierarchy, code blocks, custom containers, and VitePress features.
+
 Run locally: `pnpm docs:dev`
 
 ### Reference Documentation (Historical)

@@ -1,0 +1,325 @@
+/* apps/docs/.vitepress/theme/style.css */
+
+/**
+ * Raptscallions Knowledge Base Theme
+ * Modern Agricultural Design System
+ *
+ * Sections:
+ * 1. Typography
+ * 2. Light Theme Colors
+ * 3. Dark Theme Colors
+ * 4. Component Styling
+ * 5. Custom Enhancements
+ */
+
+/* ========================================
+   1. TYPOGRAPHY
+   ======================================== */
+
+:root {
+  /* Font Families */
+  --vp-font-family-base: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --vp-font-family-mono: Monaco, Consolas, "Courier New", monospace;
+
+  /* Custom heading font (not a VitePress default, used in custom CSS) */
+  --raptscallions-font-display: "DM Serif Display", Georgia, serif;
+
+  /* Font Sizes - VitePress defaults are good, but we can adjust if needed */
+  /* --vp-font-size-root: 16px; */
+  /* --vp-font-size-md: 15px; */
+}
+
+/* Apply display font to headings */
+h1, h2, h3, h4, h5, h6,
+.VPHero .name,
+.VPFeature .title {
+  font-family: var(--raptscallions-font-display);
+  font-weight: 400; /* DM Serif Display is elegant at normal weight */
+}
+
+/* ========================================
+   2. LIGHT THEME COLORS
+   ======================================== */
+
+:root {
+  /* Brand Colors - Green Palette */
+  --vp-c-brand-1: #16a34a;  /* Green-600 - Primary brand (darker for better contrast) */
+  --vp-c-brand-2: #15803d;  /* Green-700 - Hover states */
+  --vp-c-brand-3: #14532d;  /* Green-900 - Active states */
+  --vp-c-brand-soft: #dcfce7; /* Green-100 - Soft backgrounds */
+
+  /* Backgrounds - Warm Neutrals */
+  --vp-c-bg: #fafaf9;        /* Stone-50 - Main background */
+  --vp-c-bg-soft: #f5f5f4;   /* Stone-100 - Card backgrounds */
+  --vp-c-bg-alt: #ffffff;    /* White - Elevated surfaces */
+  --vp-c-bg-elv: #ffffff;    /* White - Elevated surfaces (same as alt) */
+
+  /* Text Colors */
+  --vp-c-text-1: #1c1917;    /* Stone-900 - Primary text */
+  --vp-c-text-2: #57534e;    /* Stone-600 - Secondary text */
+  --vp-c-text-3: #a8a29e;    /* Stone-400 - Tertiary text */
+
+  /* Borders and Dividers */
+  --vp-c-divider: #e7e5e4;   /* Stone-200 - Divider lines */
+  --vp-c-border: #e7e5e4;    /* Stone-200 - Border color */
+
+  /* Accent Colors */
+  --vp-c-info: #0ea5e9;      /* Sky Blue - Info badges */
+  --vp-c-warning: #f59e0b;   /* Amber - Warning badges */
+  --vp-c-danger: #ef4444;    /* Red - Error states */
+  --vp-c-tip: #22c55e;       /* Green - Tips and success */
+
+  /* Secondary Brand - Sky Blue (for links, code) */
+  --vp-c-link: #0ea5e9;      /* Blue-500 - Links */
+  --vp-c-link-hover: #0284c7; /* Blue-600 - Link hover */
+
+  /* Sidebar */
+  --vp-c-sidebar-bg: #fafaf9; /* Stone-50 - Matches main bg */
+  --vp-sidebar-bg-color: #fafaf9;
+
+  /* Code Blocks */
+  --vp-code-bg: #f5f5f4;     /* Stone-100 - Inline code background */
+  --vp-code-color: #15803d;  /* Green-700 - Inline code text */
+
+  /* Custom Shadows */
+  --raptscallions-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --raptscallions-shadow-md: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+/* ========================================
+   3. DARK THEME COLORS
+   ======================================== */
+
+.dark {
+  /* Brand Colors - Lighter greens for contrast */
+  --vp-c-brand-1: #4ade80;  /* Green-400 - Primary (lighter) */
+  --vp-c-brand-2: #22c55e;  /* Green-500 - Hover */
+  --vp-c-brand-3: #16a34a;  /* Green-600 - Active */
+  --vp-c-brand-soft: #14532d; /* Green-900 - Soft backgrounds (dark) */
+
+  /* Backgrounds - Warm Brown-Blacks (Option B: Moderate Warmth) */
+  --vp-c-bg: #120f0c;        /* Rich Brown-Black - Main background */
+  --vp-c-bg-soft: #211d18;   /* Rich Brown-900 - Card backgrounds */
+  --vp-c-bg-alt: #2f2a24;    /* Rich Brown-800 - Elevated surfaces */
+  --vp-c-bg-elv: #2f2a24;    /* Rich Brown-800 - Elevated surfaces */
+
+  /* Text Colors - Light grays */
+  --vp-c-text-1: #f5f5f4;    /* Stone-100 - Primary text */
+  --vp-c-text-2: #a8a29e;    /* Stone-400 - Secondary text */
+  --vp-c-text-3: #78716c;    /* Stone-500 - Tertiary text */
+
+  /* Borders and Dividers */
+  --vp-c-divider: #2f2a24;   /* Rich Brown-800 - Divider lines */
+  --vp-c-border: #3a3430;    /* Rich Brown-700 - Border color */
+
+  /* Accent Colors (adjust for dark mode) */
+  --vp-c-info: #38bdf8;      /* Sky Blue-400 - Lighter for contrast */
+  --vp-c-warning: #fbbf24;   /* Amber-400 - Lighter */
+  --vp-c-danger: #f87171;    /* Red-400 - Lighter */
+  --vp-c-tip: #4ade80;       /* Green-400 - Lighter */
+
+  /* Links - Lighter blue for visibility */
+  --vp-c-link: #38bdf8;      /* Blue-400 */
+  --vp-c-link-hover: #7dd3fc; /* Blue-300 */
+
+  /* Sidebar */
+  --vp-c-sidebar-bg: #120f0c; /* Rich Brown-Black - Matches main bg */
+  --vp-sidebar-bg-color: #120f0c;
+
+  /* Code Blocks */
+  --vp-code-bg: #211d18;     /* Rich Brown-900 - Inline code background */
+  --vp-code-color: #4ade80;  /* Green-400 - Inline code text (lighter) */
+
+  /* Custom Shadows */
+  --raptscallions-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --raptscallions-shadow-md: 0 4px 12px rgba(74, 222, 128, 0.1);
+}
+
+/* ========================================
+   4. COMPONENT STYLING
+   ======================================== */
+
+/* Hero Section - Agricultural Gradient */
+.VPHero {
+  background: #16a34a; /* Fallback solid color */
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 50%, #4ade80 100%);
+  border-radius: 16px;
+  padding: 4rem 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+/* Add dark overlay for better text contrast */
+.VPHero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.VPHero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.VPHero .name,
+.VPHero .text {
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.VPHero .tagline {
+  color: #f0fdf4; /* Green-50 - lighter for better contrast */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Sidebar Navigation - Rounded Cards */
+.VPSidebar .group {
+  margin-bottom: 1rem;
+}
+
+.VPSidebarItem.level-0 {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.VPSidebarItem.level-0:hover {
+  background: var(--vp-c-bg-alt);
+  box-shadow: var(--raptscallions-shadow-sm);
+}
+
+.VPSidebarItem.level-0.is-active {
+  background: var(--vp-c-brand-soft);
+  box-shadow: var(--raptscallions-shadow-sm);
+}
+
+/* Navigation Bar */
+.VPNavBar {
+  border-bottom: 1px solid var(--vp-c-divider);
+  backdrop-filter: blur(8px);
+  background: rgba(250, 250, 249, 0.9);
+}
+
+.dark .VPNavBar {
+  background: rgba(12, 10, 9, 0.9);
+}
+
+/* Buttons - Rounded Style */
+.VPButton {
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.VPButton.brand {
+  background: #16a34a; /* Fallback solid color */
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.VPButton.brand:hover {
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
+  transform: translateY(-2px);
+}
+
+/* Code Blocks - Improved Styling */
+.vp-code-group,
+div[class*='language-'] {
+  border-radius: 12px;
+  box-shadow: var(--raptscallions-shadow-sm);
+}
+
+/* Cards (Feature Cards, Doc Cards) */
+.VPFeature {
+  border-radius: 16px;
+  border: 1px solid var(--vp-c-border);
+  box-shadow: var(--raptscallions-shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: var(--raptscallions-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   5. CUSTOM ENHANCEMENTS
+   ======================================== */
+
+/* Logo/Brand Area */
+.VPNavBarTitle .title {
+  font-family: var(--raptscallions-font-display);
+  font-weight: 600;
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .VPNavBarTitle .title {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Badges - Agricultural Style */
+.vp-badge {
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.vp-badge.tip {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.dark .vp-badge.tip {
+  background: #14532d;
+  color: #4ade80;
+}
+
+/* Search Box */
+.DocSearch-Button {
+  border-radius: 12px;
+  box-shadow: var(--raptscallions-shadow-sm);
+}
+
+/* Footer */
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
+  padding: 2rem 0;
+}
+
+/* Scrollbar Styling (WebKit browsers) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-c-bg-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-brand-1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-brand-2);
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}

@@ -151,6 +151,7 @@ From the root directory:
 | `pnpm docs:dev` | Start VitePress docs dev server |
 | `pnpm docs:build` | Build VitePress docs for production |
 | `pnpm docs:preview` | Preview built docs locally |
+| `pnpm docs:check-stale` | Check for stale documentation |
 
 ## Testing
 
@@ -258,6 +259,24 @@ The knowledge base provides:
 - **Search**: Built-in local search (Cmd/Ctrl + K)
 - **Dark/Light Theme**: Automatic theme switching
 - **Live Reload**: Instant updates during development
+- **Staleness Detection**: Automated checking for outdated documentation
+
+### Checking Documentation Staleness
+
+The KB includes automated staleness detection to identify documentation that may be out of sync with code changes:
+
+```bash
+# Check for stale documentation
+pnpm docs:check-stale
+
+# Check with custom threshold (days)
+pnpm docs:check-stale --threshold 14
+
+# Generate JSON report only
+pnpm docs:check-stale --format json --output ./reports/staleness.json
+```
+
+Documentation pages can declare related code files in their frontmatter to enable staleness tracking. See [KB Page Design Patterns](apps/docs/src/contributing/kb-page-design.md) for details on using `related_code` and `last_verified` fields.
 
 ## Development
 

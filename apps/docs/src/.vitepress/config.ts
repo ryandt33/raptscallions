@@ -5,14 +5,18 @@ export default defineConfig({
   title: 'Raptscallions KB',
   description: 'Knowledge base for Raptscallions platform architecture, patterns, and decisions',
 
-  // Source directory
-  srcDir: './src',
-
   // Clean URLs (no .html extension)
   cleanUrls: true,
 
   // Last updated timestamp from git
   lastUpdated: true,
+
+  // Head configuration for font preconnect
+  head: [
+    // Preconnect to Google Fonts CDN for faster font loading
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }]
+  ],
 
   // Theme configuration
   themeConfig: {
@@ -187,7 +191,9 @@ export default defineConfig({
       {
         text: 'Contributing',
         items: [
-          { text: 'Overview', link: '/contributing/' }
+          { text: 'Overview', link: '/contributing/' },
+          { text: 'KB Page Design', link: '/contributing/kb-page-design' },
+          { text: 'Design System', link: '/contributing/design-system' }
         ]
       }
     ],
