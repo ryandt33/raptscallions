@@ -23,6 +23,7 @@ These commands guide tasks through the development workflow:
 | `/update-docs` | writer | Update documentation | After integration passes (INTEGRATION_TESTING → DOCS_UPDATE) |
 | `/commit-and-pr` | git-agent | Commit changes and create pull request | After docs updated (DOCS_UPDATE → PR_READY) |
 | `/align-design` | designer | Review/create design guides for UI alignment | Before project start or periodically |
+| `/document` | writer + reviewer | Write and review KB documentation | For documentation tasks (E06-T005+) |
 
 ## Epic Management Commands
 
@@ -147,6 +148,14 @@ Commands for finding and tracking tasks:
 - Ensures consistency with code
 - Adds examples and usage notes
 - Example: `/update-docs E01-T003`
+
+**`/document [task-id]`** ⭐ **NEW**
+- Two-phase workflow for KB documentation tasks
+- Phase 1: Writer researches and writes documentation
+- Phase 2: Reviewer verifies accuracy and completeness
+- Automatic revision loop until approved
+- Use for E06 KB documentation tasks (E06-T005+)
+- Example: `/document E06-T010`
 
 ### GitHub Integration
 
@@ -318,6 +327,25 @@ claude -p "/align-design"
 claude -p "/align-design --domain auth"
 ```
 
+### Documentation Tasks
+
+```bash
+# Run KB documentation workflow (write + review)
+claude -p "/document E06-T010"
+
+# Writer phase:
+# - Researches code and specs
+# - Writes KB documentation pages
+# - Updates task to DOC_REVIEW
+
+# Reviewer phase:
+# - Verifies accuracy and completeness
+# - Checks pattern adherence
+# - Either approves or requests changes
+
+# If changes requested, automatically loops back to writer
+```
+
 ## Agent Context
 
 Each command runs in a specific agent context with:
@@ -374,6 +402,7 @@ All commands are defined in this directory:
 ├── integration-test.md   # Integration tests against Docker
 ├── investigate-failure.md # Analyze integration failures
 ├── update-docs.md        # Documentation updates
+├── document.md           # KB documentation workflow
 ├── commit-and-pr.md      # Commit and create PR
 ├── roadmap.md            # Roadmap management
 ├── epic-review.md        # Epic review
