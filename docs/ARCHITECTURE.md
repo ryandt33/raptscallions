@@ -42,6 +42,7 @@ Raptscallions is an open-source AI education platform designed for:
 | **Routing**       | TanStack Router | Latest  | Type-safe file-based routing   |
 | **Data Fetching** | TanStack Query  | 5.x     | Server state management        |
 | **UI Components** | shadcn/ui       | Latest  | With Tailwind CSS              |
+| **Documentation** | VitePress       | 1.5+    | Static site generator for KB   |
 | **AI Gateway**    | OpenRouter      | —       | Unified model access           |
 
 ---
@@ -58,6 +59,12 @@ raptscallions/
 │   │   │   ├── services/       # Business logic
 │   │   │   └── utils/
 │   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   ├── docs/                   # VitePress knowledge base
+│   │   ├── src/                # Markdown documentation files
+│   │   ├── .vitepress/
+│   │   │   └── config.ts       # VitePress configuration
 │   │   └── package.json
 │   │
 │   ├── worker/                 # BullMQ job processor

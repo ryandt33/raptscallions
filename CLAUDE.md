@@ -36,6 +36,7 @@ The codebase is in early development (Foundation Infrastructure phase - Epic E01
 | **Routing**       | TanStack Router | Latest  | Type-safe file-based routing   |
 | **Data Fetching** | TanStack Query  | 5.x     | Server state management        |
 | **UI Components** | shadcn/ui       | Latest  | With Tailwind CSS              |
+| **Documentation** | VitePress       | 1.5+    | Static site generator for KB   |
 | **AI Gateway**    | OpenRouter      | —       | Unified model access           |
 
 ## Monorepo Structure
@@ -48,6 +49,9 @@ raptscallions/
 │   │       ├── routes/         # Route handlers by domain
 │   │       ├── middleware/     # Request processing
 │   │       └── services/       # Business logic
+│   ├── docs/                   # VitePress knowledge base
+│   │   ├── src/                # Markdown documentation files
+│   │   └── .vitepress/         # VitePress configuration
 │   ├── worker/                 # BullMQ job processor
 │   └── web/                    # React frontend (Vite)
 │       └── src/
@@ -237,6 +241,44 @@ Located in `docs/references/initial_planning/` — these documents explain **wha
 - `IMPLEMENTATION_DESIGN.md` — Theme system and UI specifications
 
 **Important**: These are vision/planning documents for understanding the platform's goals. For actual implementation decisions (technology choices, code patterns, API design), always defer to the canonical docs (`ARCHITECTURE.md` and `CONVENTIONS.md`) and task specs in `backlog/docs/specs/`.
+
+### Knowledge Base (VitePress)
+
+Located at `apps/docs/` — a VitePress-powered documentation site providing a browsable, searchable interface for all documentation.
+
+**Features:**
+- **Local Search**: Built-in search with Cmd/Ctrl + K
+- **Dark/Light Theme**: Automatic theme switching
+- **Hot Reload**: Instant updates during development
+- **Clean URLs**: No `.html` extensions
+- **Last Updated**: Git-based timestamps on pages
+
+**Running the KB:**
+```bash
+# Development server (http://localhost:5173)
+pnpm docs:dev
+
+# Build for production
+pnpm docs:build
+
+# Preview production build
+pnpm docs:preview
+```
+
+**Structure:**
+```
+apps/docs/
+├── src/                 # Markdown documentation files
+│   └── index.md        # Homepage
+├── .vitepress/
+│   └── config.ts       # VitePress configuration
+└── package.json
+```
+
+**When to Use:**
+- KB documentation will be organized by domain (architecture, patterns, troubleshooting)
+- Use for implementation-verified documentation (not planning/vision)
+- Content added in subsequent E06 tasks
 
 ## Task Management
 
