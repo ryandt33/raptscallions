@@ -865,6 +865,10 @@ When documenting implemented features:
    ---
    title: Session Lifecycle
    description: How Lucia sessions are created, validated, and expired
+   related_code:
+     - packages/auth/src/session.service.ts
+     - apps/api/src/middleware/session.middleware.ts
+   last_verified: 2026-01-14
    ---
 
    # Session Lifecycle
@@ -881,6 +885,8 @@ When documenting implemented features:
 
    The session middleware validates on every request...
    ```
+
+   **Optional staleness tracking:** If the documentation describes specific code implementations, add `related_code` and `last_verified` frontmatter fields to enable automated staleness detection. See [KB Page Design Patterns](/contributing/kb-page-design#staleness-tracking-optional) for details.
 
 5. **Update sidebar navigation:**
    Edit `apps/docs/.vitepress/config.ts` and add link to sidebar:

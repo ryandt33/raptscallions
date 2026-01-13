@@ -43,6 +43,45 @@ description: How Lucia sessions are created, validated, and expired
 - `lastUpdated: false` — Hide "Last Updated" timestamp
 - `outline: [2, 3]` — Control which headings appear in right TOC (default: [2, 3])
 
+**Staleness Tracking (Optional):**
+
+For documentation pages that describe code implementations, you can enable automated staleness detection by adding:
+
+- `related_code: string[]` — Array of code file paths or glob patterns (relative to repo root) that this documentation describes
+- `last_verified: string` — ISO 8601 date (YYYY-MM-DD) when this documentation was last verified against the related code
+
+**Example with staleness tracking:**
+
+```yaml
+---
+title: Session Lifecycle
+description: How Lucia sessions are created, validated, and expired
+related_code:
+  - packages/auth/src/session.service.ts
+  - apps/api/src/middleware/session.middleware.ts
+  - packages/auth/**/*.ts
+last_verified: 2026-01-12
+---
+```
+
+These fields enable automated staleness detection via the `pnpm docs:check-stale` command. The system compares `last_verified` dates with code file modification dates to flag potentially outdated documentation.
+
+**Glob pattern support:**
+- Single file: `packages/auth/src/session.service.ts`
+- Wildcard: `apps/api/src/middleware/*.middleware.ts`
+- Deep match: `packages/auth/**/*.ts` (all TypeScript files in auth package)
+
+**Validation rules:**
+- `related_code` must be an array of strings (file paths or glob patterns)
+- `last_verified` must be valid ISO 8601 date in YYYY-MM-DD format
+- Both fields are optional
+- If either is missing, the doc is counted as "unchecked" (staleness cannot be determined)
+- Paths are relative to repository root (no leading `/`)
+
+::: tip When to Use Staleness Tracking
+Use staleness tracking for pages that document specific code implementations (patterns, API references, architecture decisions). Don't use it for conceptual guides, tutorials, or reference documents that don't tie to specific code files.
+:::
+
 **Rules:**
 - H1 (`#`) should match frontmatter title exactly
 - Title should be Title Case
