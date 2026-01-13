@@ -137,7 +137,7 @@ raptscallions/
 ├── docs/                       # Documentation
 │   ├── ARCHITECTURE.md         # This file
 │   ├── CONVENTIONS.md          # Code style guide
-│   └── tasks/                  # Task management
+│   └── references/             # Historical planning docs
 │
 ├── pnpm-workspace.yaml
 ├── package.json
@@ -1100,14 +1100,47 @@ services:
 
 ## Related Documentation
 
+### Canonical Documentation
+
+| Document                         | Purpose                      | Location |
+| -------------------------------- | ---------------------------- | -------- |
+| `CONVENTIONS.md`                 | Code style, naming, patterns | `docs/` |
+| **Knowledge Base (VitePress)**   | Implementation-verified docs | `apps/docs/` |
+
+### Knowledge Base Structure
+
+The VitePress knowledge base (`apps/docs/`) provides browsable, searchable documentation organized by domain:
+
+| Domain | Covers | Access |
+|--------|--------|--------|
+| **auth** | Authentication, authorization, sessions, permissions | [/auth/](/auth/) |
+| **database** | PostgreSQL schemas, Drizzle ORM, migrations | [/database/](/database/) |
+| **api** | Fastify route handlers, middleware, services | [/api/](/api/) |
+| **ai** | OpenRouter client, streaming, error handling | [/ai/](/ai/) |
+| **testing** | Vitest setup, AAA pattern, mocking strategies | [/testing/](/testing/) |
+| **contributing** | How to contribute code and documentation | [/contributing/](/contributing/) |
+
+Each domain contains:
+- **concepts/** - Core ideas and mental models
+- **patterns/** - Reusable implementation patterns
+- **decisions/** - Architecture decision records (ADRs)
+- **troubleshooting/** - Problem-solution guides
+
+Run locally: `pnpm docs:dev`
+
+### Reference Documentation (Historical)
+
+Vision and planning documents in `docs/references/initial_planning/`:
+
 | Document                         | Purpose                      |
 | -------------------------------- | ---------------------------- |
-| `CONVENTIONS.md`                 | Code style, naming, patterns |
-| `Auth_spec`                      | Detailed auth implementation |
-| `Module_system_implementation`   | Module system deep dive      |
-| `Chat_implementation_design_doc` | Chat runtime details         |
-| `Simplified_auth_and_events`     | Events, queues, real-time    |
-| `Theme_configuration`            | Theming system               |
+| `DESIGN_BRIEF.md`                | Platform vision and goals    |
+| `BACKEND_CORE_DESIGN.md`         | Backend vision               |
+| `AUTH_AND_EVENTS.md`             | Auth and event system vision |
+| `MODULE_SYSTEM_IMPLEMENTATION.md`| Module system vision         |
+| `CHAT_IMPLEMENTATION.md`         | Chat runtime vision          |
+
+**Note**: Reference docs explain the "why" and vision. For implementation decisions, use ARCHITECTURE.md, CONVENTIONS.md, and the Knowledge Base.
 
 ---
 

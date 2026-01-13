@@ -46,3 +46,23 @@ Use the search bar (Cmd/Ctrl + K) to find topics quickly, or browse by domain us
 ### Contributing
 
 Documentation contributions are welcome. See the main repository for contribution guidelines.
+
+## Browse by Domain
+
+### [Authentication & Authorization](/auth/)
+Lucia sessions, CASL permissions, OAuth providers, guards, and rate limiting.
+
+### [Database & ORM](/database/)
+PostgreSQL schemas, Drizzle ORM patterns, migrations, and entity relationships.
+
+### [API Design & Patterns](/api/)
+Fastify route handlers, middleware, services, validation, and error handling.
+
+### [AI Gateway Integration](/ai/)
+OpenRouter client, streaming, error handling, and usage patterns.
+
+### [Testing](/testing/)
+Vitest setup, AAA pattern, mocking strategies, Fastify integration testing.
+
+### [Contributing](/contributing/)
+How to contribute code, documentation, and improvements.

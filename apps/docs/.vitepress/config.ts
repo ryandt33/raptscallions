@@ -21,8 +21,176 @@ export default defineConfig({
       { text: 'Home', link: '/' }
     ],
 
-    // Sidebar navigation (placeholder - will be expanded in E06-T002)
-    sidebar: [],
+    // Sidebar navigation
+    sidebar: [
+      {
+        text: 'Authentication & Authorization',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/auth/' },
+          {
+            text: 'Concepts',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/auth/concepts/' }
+            ]
+          },
+          {
+            text: 'Patterns',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/auth/patterns/' }
+            ]
+          },
+          {
+            text: 'Decisions',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/auth/decisions/' }
+            ]
+          },
+          {
+            text: 'Troubleshooting',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/auth/troubleshooting/' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'Database & ORM',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/database/' },
+          {
+            text: 'Concepts',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/database/concepts/' }
+            ]
+          },
+          {
+            text: 'Patterns',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/database/patterns/' }
+            ]
+          },
+          {
+            text: 'Decisions',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/database/decisions/' }
+            ]
+          },
+          {
+            text: 'Troubleshooting',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/database/troubleshooting/' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'API Design & Patterns',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/api/' },
+          {
+            text: 'Concepts',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/api/concepts/' }
+            ]
+          },
+          {
+            text: 'Patterns',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/api/patterns/' }
+            ]
+          },
+          {
+            text: 'Decisions',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/api/decisions/' }
+            ]
+          },
+          {
+            text: 'Troubleshooting',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/api/troubleshooting/' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'AI Gateway Integration',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/ai/' },
+          {
+            text: 'Concepts',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/ai/concepts/' }
+            ]
+          },
+          {
+            text: 'Patterns',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/ai/patterns/' }
+            ]
+          },
+          {
+            text: 'Decisions',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/ai/decisions/' }
+            ]
+          },
+          {
+            text: 'Troubleshooting',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/ai/troubleshooting/' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'Testing',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/testing/' },
+          {
+            text: 'Patterns',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/testing/patterns/' }
+            ]
+          },
+          {
+            text: 'Troubleshooting',
+            collapsed: true,
+            items: [
+              { text: 'Coming Soon', link: '/testing/troubleshooting/' }
+            ]
+          }
+        ]
+      },
+      {
+        text: 'Contributing',
+        items: [
+          { text: 'Overview', link: '/contributing/' }
+        ]
+      }
+    ],
 
     // Social links
     socialLinks: [

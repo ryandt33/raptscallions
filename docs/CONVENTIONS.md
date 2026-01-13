@@ -830,4 +830,118 @@ export const config = envSchema.parse(process.env);
 
 ---
 
+## Documentation
+
+### Knowledge Base (VitePress)
+
+The project uses VitePress for browsable, searchable documentation at `apps/docs/`.
+
+#### Adding Documentation
+
+When documenting implemented features:
+
+1. **Choose the domain folder:**
+   - `auth/` - Authentication, authorization, sessions, permissions
+   - `database/` - PostgreSQL schemas, Drizzle ORM, migrations
+   - `api/` - Fastify route handlers, middleware, services
+   - `ai/` - OpenRouter client, streaming, error handling
+   - `testing/` - Vitest patterns, mocking strategies
+   - `contributing/` - Contribution guidelines
+
+2. **Choose the content type:**
+   - `concepts/` - Core ideas and mental models (e.g., "Session Lifecycle")
+   - `patterns/` - Reusable implementation patterns (e.g., "Guard Middleware Composition")
+   - `decisions/` - Architecture decision records (e.g., "Why Fastify over Express")
+   - `troubleshooting/` - Problem-solution guides (e.g., "Session Cookies Not Set")
+
+3. **Create the markdown file:**
+   ```bash
+   # Use kebab-case for file names
+   touch apps/docs/src/auth/concepts/session-lifecycle.md
+   ```
+
+4. **Add frontmatter and content:**
+   ```markdown
+   ---
+   title: Session Lifecycle
+   description: How Lucia sessions are created, validated, and expired
+   ---
+
+   # Session Lifecycle
+
+   Lucia sessions follow a cookie-based lifecycle with automatic extension...
+
+   ## Creation
+
+   Sessions are created when users authenticate via:
+   - Email/password login (`POST /auth/login`)
+   - OAuth callback (`GET /auth/google/callback`, etc.)
+
+   ## Validation
+
+   The session middleware validates on every request...
+   ```
+
+5. **Update sidebar navigation:**
+   Edit `apps/docs/.vitepress/config.ts` and add link to sidebar:
+   ```typescript
+   {
+     text: 'Concepts',
+     collapsed: true,
+     items: [
+       { text: 'Session Lifecycle', link: '/auth/concepts/session-lifecycle' }
+     ]
+   }
+   ```
+
+6. **Test locally:**
+   ```bash
+   pnpm docs:dev
+   # Open http://localhost:5173 and verify page renders
+   ```
+
+#### Documentation Standards
+
+**Naming:**
+- **Files**: kebab-case (`session-lifecycle.md`)
+- **Titles**: Title Case in frontmatter (`Session Lifecycle`)
+- **Max depth**: 3 levels (domain/type/article)
+
+**Content:**
+- Write for developers who haven't seen the code
+- Be concise but complete
+- Use runnable code examples
+- Link to related docs and source files
+- Include "Why" context for decisions
+
+**Code Examples:**
+```typescript
+// ✅ Good - complete, runnable
+import { UserService } from '@raptscallions/api';
+
+const userService = new UserService(db);
+const user = await userService.getById('123');
+
+// ❌ Bad - incomplete, assumes context
+userService.getById('123'); // returns user
+```
+
+#### Building and Deployment
+
+```bash
+# Development server
+pnpm docs:dev
+
+# Build for production
+pnpm docs:build
+
+# Preview production build
+pnpm docs:preview
+
+# Type check
+pnpm typecheck
+```
+
+---
+
 _End of Conventions Document_
