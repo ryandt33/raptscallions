@@ -420,23 +420,29 @@ Relations:
 
 ### Chat Sessions
 
-**Status:** ✅ Implemented (E04-T001, E04-T009)
+**Status:** ✅ Implemented (E04-T001, E04-T009, E04-T010)
 
 Multi-turn conversation sessions between users and tools:
 
 - **State Lifecycle**: Sessions progress through states: `active` (default) → `completed`
 - **Soft Delete**: Sessions support soft delete via `deleted_at` timestamp
 - **Session Metadata**: User-editable title and last activity tracking
+- **Fork Support**: Sessions can be forked from any message to create branching conversation paths
+  - Orphan-safe: forks survive parent deletion via `SET NULL` FK behavior
+  - Circular reference prevention via CHECK constraint
+  - See [Chat Schema KB docs](/database/concepts/chat-schema#fork-support-e04-t010) for details
 - **Message History**: Each session contains ordered messages (see Messages below)
 - **Tool Binding**: Sessions are bound to a specific tool and user
 - **Timestamps**: Track start time, end time, last activity, and soft delete
 - **Foreign Key Behavior**:
   - `tool_id`: RESTRICT delete (prevents deletion of tools with active sessions)
   - `user_id`: CASCADE delete (removes sessions when user is deleted)
+  - `parent_session_id`: SET NULL delete (forks become orphans, preserving user work)
 - **Schema**: `packages/db/src/schema/chat-sessions.ts`
 - **Migrations**:
   - `0008_create_chat_sessions_messages.sql` (initial schema)
   - `0010_enhance_chat_sessions.sql` (removed paused state, added soft delete and metadata fields)
+  - `0011_add_chat_forking.sql` (added fork support with parent_session_id and fork_from_seq)
 
 Key fields:
 
@@ -444,6 +450,8 @@ Key fields:
 - `tool_id` (UUID) - Foreign key to tools(id) with RESTRICT delete
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
 - `state` (session_state enum) - Session lifecycle: `active` or `completed` (default: `active`)
+- `parent_session_id` (UUID) - Self-reference to parent session (nullable, SET NULL on delete) - E04-T010
+- `fork_from_seq` (integer) - Message sequence number where fork occurred (nullable) - E04-T010
 - `title` (varchar 200) - User-editable session name (nullable) - e.g. "Math homework help - Jan 14"
 - `started_at` (timestamptz) - When session was created
 - `ended_at` (timestamptz) - When session was completed (nullable)
@@ -456,6 +464,8 @@ Indexes:
 - `chat_sessions_user_id_idx` - Optimizes "get user's sessions" queries
 - `chat_sessions_state_idx` - Optimizes filtering by session state
 - `chat_sessions_deleted_at_idx` - Optimizes soft-delete queries (`WHERE deleted_at IS NULL`)
+- `chat_sessions_parent_session_id_idx` - Optimizes fork tree queries (E04-T010)
+- `chat_sessions_orphaned_forks_idx` - Partial index for orphaned fork queries (E04-T010)
 
 Relations:
 

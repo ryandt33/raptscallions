@@ -6,6 +6,7 @@ related_code:
   - packages/db/src/schema/messages.ts
   - packages/db/src/migrations/0008_create_chat_sessions_messages.sql
   - packages/db/src/migrations/0010_enhance_chat_sessions.sql
+  - packages/db/src/migrations/0011_add_chat_forking.sql
   - packages/core/src/schemas/message-meta.schema.ts
 last_verified: 2026-01-14
 implements_task: E04-T001
@@ -47,7 +48,16 @@ export const chatSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     state: sessionStateEnum("state").notNull().default("active"),
+
+    // Fork support (E04-T010)
+    parentSessionId: uuid("parent_session_id")
+      .references((): any => chatSessions.id, { onDelete: "set null" }),
+    forkFromSeq: integer("fork_from_seq"),
+
+    // Session metadata
     title: varchar("title", { length: 200 }),
+
+    // Timestamps
     startedAt: timestamp("started_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -60,6 +70,9 @@ export const chatSessions = pgTable(
     userIdIdx: index("chat_sessions_user_id_idx").on(table.userId),
     stateIdx: index("chat_sessions_state_idx").on(table.state),
     deletedAtIdx: index("chat_sessions_deleted_at_idx").on(table.deletedAt),
+    // E04-T010: Fork support indexes
+    parentSessionIdIdx: index("chat_sessions_parent_session_id_idx")
+      .on(table.parentSessionId),
   })
 );
 ```
@@ -72,6 +85,8 @@ export const chatSessions = pgTable(
 | `toolId` | UUID | Foreign key to tools table | RESTRICT delete prevents orphaned sessions |
 | `userId` | UUID | Foreign key to users table | CASCADE delete for GDPR compliance |
 | `state` | Enum | Session lifecycle state | `active` or `completed` |
+| `parentSessionId` | UUID | Foreign key to chat_sessions (self-reference) | SET NULL delete for orphan-safe forks |
+| `forkFromSeq` | integer | Message sequence where fork occurred | Nullable, only set for forked sessions |
 | `title` | varchar(200) | User-facing session name | Nullable, e.g. "Math homework - Jan 14" |
 | `startedAt` | timestamptz | When session was created | Auto-populated |
 | `endedAt` | timestamptz | When session was completed | Nullable until completion |
@@ -104,6 +119,12 @@ The "paused" state was removed in E04-T009 per YAGNI principle. It was speculati
 - When a user is deleted, their chat sessions are automatically removed
 - Follows GDPR compliance patterns (right to be forgotten)
 - Consistent with existing user deletion behavior
+
+**parent_session_id: SET NULL delete** (E04-T010)
+- When a parent session is deleted, forked sessions remain intact
+- `parentSessionId` is set to NULL, creating an "orphaned fork"
+- Preserves user work even if original conversation is deleted
+- Critical for educational contexts where forks explore different approaches
 
 ### Soft Delete Pattern
 
@@ -159,6 +180,93 @@ const recentSessions = await db.query.chatSessions.findMany({
 });
 ```
 
+### Fork Support (E04-T010)
+
+Chat sessions support forking to create branching conversation paths. Users can fork a session from any message, creating a new session that starts with a copy of the conversation up to that point.
+
+**Schema Fields:**
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `parentSessionId` | UUID (nullable) | References the session this was forked from |
+| `forkFromSeq` | integer (nullable) | Message sequence number in parent where fork occurred |
+
+**Key Features:**
+
+- **Orphan-safe design**: Forks use `ON DELETE SET NULL` for parent reference
+- **Circular reference prevention**: CHECK constraint prevents self-reference
+- **Independent sessions**: Forked sessions are fully independent after creation
+- **Fork tree queries**: Indexed for efficient "find all forks" queries
+
+**Creating a forked session:**
+
+```typescript
+// Fork from message seq 5 in parent session
+const forkedSession: NewChatSession = {
+  toolId: parentSession.toolId,
+  userId: parentSession.userId,
+  parentSessionId: parentSession.id,
+  forkFromSeq: 5,
+  title: `${parentSession.title} (fork)`,
+  state: "active",
+};
+
+await db.insert(chatSessions).values(forkedSession);
+
+// Copy messages 1-5 from parent to forked session
+const parentMessages = await db.query.messages.findMany({
+  where: and(
+    eq(messages.sessionId, parentSession.id),
+    lte(messages.seq, 5)
+  ),
+  orderBy: asc(messages.seq),
+});
+
+// Insert copied messages into forked session
+await db.insert(messages).values(
+  parentMessages.map((msg) => ({
+    sessionId: forkedSession.id,
+    role: msg.role,
+    content: msg.content,
+    seq: msg.seq,
+    meta: msg.meta,
+  }))
+);
+```
+
+**Querying forks:**
+
+```typescript
+// Find all forks of a session
+const forks = await db.query.chatSessions.findMany({
+  where: eq(chatSessions.parentSessionId, sessionId),
+  orderBy: desc(chatSessions.startedAt),
+});
+
+// Find orphaned forks (parent was deleted)
+const orphanedForks = await db.query.chatSessions.findMany({
+  where: and(
+    isNull(chatSessions.parentSessionId),
+    isNotNull(chatSessions.forkFromSeq)
+  ),
+});
+```
+
+**Foreign Key Behavior:**
+
+When a parent session is deleted:
+- `parentSessionId` is automatically set to NULL
+- Forked session remains intact as a standalone conversation
+- `forkFromSeq` is preserved for audit trail
+
+::: tip Preserving User Work
+The SET NULL behavior ensures that users never lose their forked conversations, even if they delete the original session. This is critical for educational contexts where students may fork conversations to explore different approaches.
+:::
+
+::: warning Circular Reference Protection
+The CHECK constraint `chat_sessions_no_self_fork` prevents a session from referencing itself as a parent. This provides defense in depth against circular references at the database level.
+:::
+
 ### Indexes
 
 | Index | Columns | Purpose |
@@ -167,6 +275,8 @@ const recentSessions = await db.query.chatSessions.findMany({
 | `chat_sessions_user_id_idx` | `user_id` | Optimizes "get user's sessions" queries |
 | `chat_sessions_state_idx` | `state` | Optimizes filtering by session state |
 | `chat_sessions_deleted_at_idx` | `deleted_at` | Optimizes soft-delete queries (`WHERE deleted_at IS NULL`) |
+| `chat_sessions_parent_session_id_idx` | `parent_session_id` | Optimizes fork tree queries ("find all forks of session X") |
+| `chat_sessions_orphaned_forks_idx` | `fork_from_seq` (partial) | Optimizes orphaned fork queries (WHERE parent_session_id IS NULL AND fork_from_seq IS NOT NULL) |
 
 ## Messages Table
 
@@ -363,6 +473,22 @@ PostgreSQL does not support `ALTER TYPE ... DROP VALUE`. The migration uses a re
 5. Drop old enum
 :::
 
+### Fork Support (E04-T010)
+
+Migration: `0011_add_chat_forking.sql`
+
+Changes:
+- Added `parent_session_id` field (UUID self-reference)
+- Added `fork_from_seq` field (integer)
+- Added foreign key constraint with `ON DELETE SET NULL` behavior
+- Added `chat_sessions_parent_session_id_idx` for fork tree queries
+- Added `chat_sessions_no_self_fork` CHECK constraint to prevent circular references
+- Added partial index `chat_sessions_orphaned_forks_idx` for orphaned fork queries
+
+::: tip Partial Index Optimization
+The orphaned forks index uses a `WHERE` clause to only index rows where `parent_session_id IS NULL AND fork_from_seq IS NOT NULL`. This creates a smaller, more efficient index specifically for the "find orphaned forks" query pattern.
+:::
+
 ## Query Patterns
 
 ### Get Active Sessions for User
@@ -443,3 +569,4 @@ await db.update(chatSessions)
 
 - **E04-T001** (2026-01-12): Initial chat sessions and messages schema implementation
 - **E04-T009** (2026-01-14): Schema enhancements (removed paused state, added soft delete, session metadata, Zod validation for meta field)
+- **E04-T010** (2026-01-14): Fork support (parent_session_id, fork_from_seq, SET NULL FK behavior, CHECK constraint, partial index for orphaned forks)

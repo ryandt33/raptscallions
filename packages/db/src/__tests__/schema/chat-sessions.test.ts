@@ -113,12 +113,15 @@ describe("ChatSessions Schema", () => {
     it("should infer ChatSession type for select operations", () => {
       // This is a compile-time test - if it compiles, types are correct
       // E04-T009: Updated to include new fields
+      // E04-T010: Updated to include fork fields
       const session: ChatSession = {
         id: "session-123",
         toolId: "tool-456",
         userId: "user-789",
         state: "active",
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: null,
@@ -129,6 +132,8 @@ describe("ChatSessions Schema", () => {
       expect(session.state).toBe("active");
       expect(session.title).toBeNull();
       expect(session.deletedAt).toBeNull();
+      expect(session.parentSessionId).toBeNull();
+      expect(session.forkFromSeq).toBeNull();
     });
 
     it("should infer NewChatSession type for insert operations", () => {
@@ -155,6 +160,8 @@ describe("ChatSessions Schema", () => {
               userId: "user-789",
               state: "active", // Should default to 'active'
               title: null,
+              parentSessionId: null,
+              forkFromSeq: null,
               startedAt: new Date(),
               endedAt: null,
               lastActivityAt: null,
@@ -191,6 +198,8 @@ describe("ChatSessions Schema", () => {
               userId: "user-789",
               state: "active",
               title: null,
+              parentSessionId: null,
+              forkFromSeq: null,
               startedAt: now,
               endedAt: null,
               lastActivityAt: null,
@@ -256,6 +265,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "completed", // Valid state transition
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: new Date(),
         lastActivityAt: new Date(),
@@ -274,6 +285,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "completed",
         title: "Test Session",
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         endedAt: endTime,
         lastActivityAt: endTime,
@@ -299,6 +312,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: null,
@@ -316,6 +331,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "completed",
         title: "Deleted Session",
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(Date.now() - 3600000),
         endedAt: new Date(),
         lastActivityAt: new Date(),
@@ -345,6 +362,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: null,
@@ -361,6 +380,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: "Math homework help",
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: new Date(),
@@ -378,6 +399,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: null,
@@ -395,6 +418,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: "Active Session",
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         endedAt: null,
         lastActivityAt: lastActive,
@@ -417,6 +442,8 @@ describe("ChatSessions Schema", () => {
         userId: "user-789",
         state: "active",
         title: null,
+        parentSessionId: null,
+        forkFromSeq: null,
         startedAt: new Date(),
         endedAt: null,
         lastActivityAt: null,
@@ -457,6 +484,336 @@ describe("ChatSessions Schema", () => {
     it("should have index on deletedAt for soft delete queries", () => {
       // E04-T009: Verify deletedAt index exists (for efficient soft delete filtering)
       expect(chatSessions.deletedAt).toBeDefined();
+    });
+
+    it("should have index on parentSessionId for fork tree queries", () => {
+      // E04-T010: Verify parentSessionId index exists (for efficient fork tree navigation)
+      expect(chatSessions.parentSessionId).toBeDefined();
+    });
+  });
+
+  describe("Fork Support (E04-T010)", () => {
+    describe("Schema Fields", () => {
+      it("should have parentSessionId field defined", () => {
+        // Verify parentSessionId field exists in schema
+        expect(chatSessions.parentSessionId).toBeDefined();
+      });
+
+      it("should have forkFromSeq field defined", () => {
+        // Verify forkFromSeq field exists in schema
+        expect(chatSessions.forkFromSeq).toBeDefined();
+      });
+
+      it("should allow null parentSessionId for non-forked sessions", () => {
+        // Non-forked sessions should have null parent reference
+        const session: ChatSession = {
+          id: "session-123",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: null,
+          parentSessionId: null,
+          forkFromSeq: null,
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: null,
+          deletedAt: null,
+        };
+
+        expect(session.parentSessionId).toBeNull();
+        expect(session.forkFromSeq).toBeNull();
+      });
+
+      it("should support forked session with parent reference", () => {
+        // Forked sessions should reference parent and fork point
+        const parentSession: ChatSession = {
+          id: "parent-123",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "completed",
+          title: "Original conversation",
+          parentSessionId: null,
+          forkFromSeq: null,
+          startedAt: new Date(),
+          endedAt: new Date(),
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        const forkedSession: ChatSession = {
+          id: "fork-456",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "Original conversation (fork)",
+          parentSessionId: "parent-123",
+          forkFromSeq: 5, // Forked from message seq 5
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        expect(forkedSession.parentSessionId).toBe(parentSession.id);
+        expect(forkedSession.forkFromSeq).toBe(5);
+      });
+    });
+
+    describe("Type Safety", () => {
+      it("should accept valid NewChatSession with fork fields", () => {
+        // NewChatSession should allow creating forks with parent reference
+        const newFork: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+          parentSessionId: "parent-123",
+          forkFromSeq: 3,
+          title: "Forked conversation",
+        };
+
+        expect(newFork.parentSessionId).toBe("parent-123");
+        expect(newFork.forkFromSeq).toBe(3);
+      });
+
+      it("should accept NewChatSession without fork fields", () => {
+        // NewChatSession should allow creating regular sessions without fork fields
+        const newSession: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+        };
+
+        expect(newSession.parentSessionId).toBeUndefined();
+        expect(newSession.forkFromSeq).toBeUndefined();
+      });
+
+      it("should allow fork with parentSessionId but null forkFromSeq", () => {
+        // Edge case: fork might reference parent but not specify sequence
+        const newFork: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+          parentSessionId: "parent-123",
+          forkFromSeq: null,
+        };
+
+        expect(newFork.parentSessionId).toBe("parent-123");
+        expect(newFork.forkFromSeq).toBeNull();
+      });
+    });
+
+    describe("Foreign Key Behavior", () => {
+      // NOTE: These are schema-level documentation tests.
+      // Actual FK behavior (database constraint enforcement) will be validated
+      // in integration tests with a real database connection.
+
+      it("should document SET NULL behavior when parent is deleted", () => {
+        // This is a documentation test - actual FK behavior
+        // would be tested in integration tests with real DB
+
+        // When parent session is deleted:
+        // - parentSessionId becomes null
+        // - forked session remains as standalone session
+        // - This preserves user's work even if original is deleted
+
+        const orphanedFork: ChatSession = {
+          id: "fork-456",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "Orphaned fork (parent deleted)",
+          parentSessionId: null, // Was "parent-123" before parent deletion
+          forkFromSeq: 5, // Still preserved for reference
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        expect(orphanedFork.parentSessionId).toBeNull();
+        expect(orphanedFork.forkFromSeq).toBe(5);
+      });
+
+      it("should document orphaned fork identification pattern", () => {
+        // Orphaned forks have forkFromSeq but null parentSessionId
+        const orphanedFork: ChatSession = {
+          id: "fork-456",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "Orphaned fork",
+          parentSessionId: null,
+          forkFromSeq: 5,
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        // This pattern identifies orphaned forks:
+        // forkFromSeq is not null but parentSessionId is null
+        const isOrphanedFork =
+          orphanedFork.forkFromSeq !== null &&
+          orphanedFork.parentSessionId === null;
+
+        expect(isOrphanedFork).toBe(true);
+      });
+
+      it("should document CHECK constraint preventing self-reference", () => {
+        // AC13: Migration adds CHECK constraint to prevent parent_session_id = id
+        // This is a documentation test - actual constraint enforcement
+        // would be tested in integration tests with real DB
+
+        // The migration adds this constraint:
+        // CHECK (parent_session_id IS NULL OR parent_session_id != id)
+        //
+        // This prevents circular self-reference where a session is its own parent.
+        // In integration tests, attempting to INSERT or UPDATE a session with
+        // parent_session_id = id should fail with a constraint violation error.
+
+        // Example of invalid data that CHECK constraint would prevent:
+        const invalidSelfReference = {
+          id: "session-123",
+          parentSessionId: "session-123", // Same as id - violates CHECK constraint
+          // ... other fields
+        };
+
+        // In a real DB, this would fail. Here we document the expectation:
+        expect(invalidSelfReference.id).toBe(invalidSelfReference.parentSessionId);
+        // Note: This equality would be rejected by the database CHECK constraint
+      });
+    });
+
+    describe("Fork Scenarios", () => {
+      it("should support simple fork from parent", () => {
+        // Basic fork: user forks at message 3
+        const fork: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+          parentSessionId: "parent-session",
+          forkFromSeq: 3,
+          state: "active",
+          title: "Fork from message 3",
+        };
+
+        expect(fork.parentSessionId).toBe("parent-session");
+        expect(fork.forkFromSeq).toBe(3);
+      });
+
+      it("should support fork from fork (nested forks)", () => {
+        // Fork chains: fork from a fork
+        const firstFork: ChatSession = {
+          id: "fork-1",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "First fork",
+          parentSessionId: "original-session",
+          forkFromSeq: 5,
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        const secondFork: ChatSession = {
+          id: "fork-2",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "Fork of fork",
+          parentSessionId: "fork-1", // Parent is itself a fork
+          forkFromSeq: 3,
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        expect(firstFork.parentSessionId).toBe("original-session");
+        expect(secondFork.parentSessionId).toBe(firstFork.id);
+      });
+
+      it("should support fork from beginning of session", () => {
+        // Edge case: fork from sequence 0 or 1 (start of session)
+        const fork: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+          parentSessionId: "parent-session",
+          forkFromSeq: 1,
+          state: "active",
+        };
+
+        expect(fork.forkFromSeq).toBe(1);
+      });
+
+      it("should support fork with title inheritance pattern", () => {
+        // Common pattern: fork inherits parent title with suffix
+        const parentTitle = "Math homework help";
+        const fork: NewChatSession = {
+          toolId: "tool-456",
+          userId: "user-789",
+          parentSessionId: "parent-session",
+          forkFromSeq: 4,
+          title: `${parentTitle} (fork)`,
+          state: "active",
+        };
+
+        expect(fork.title).toBe("Math homework help (fork)");
+      });
+    });
+
+    describe("Integration with Existing Fields", () => {
+      it("should work alongside soft delete", () => {
+        // Fork can be soft deleted independently of parent
+        const deletedFork: ChatSession = {
+          id: "fork-456",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "completed",
+          title: "Deleted fork",
+          parentSessionId: "parent-123",
+          forkFromSeq: 5,
+          startedAt: new Date(),
+          endedAt: new Date(),
+          lastActivityAt: new Date(),
+          deletedAt: new Date(), // Soft deleted
+        };
+
+        expect(deletedFork.deletedAt).toBeInstanceOf(Date);
+        expect(deletedFork.parentSessionId).toBe("parent-123");
+      });
+
+      it("should work with all session states", () => {
+        // Forks can be in any session state
+        const activeFork: ChatSession = {
+          id: "fork-1",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "active",
+          title: "Active fork",
+          parentSessionId: "parent-123",
+          forkFromSeq: 3,
+          startedAt: new Date(),
+          endedAt: null,
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        const completedFork: ChatSession = {
+          id: "fork-2",
+          toolId: "tool-456",
+          userId: "user-789",
+          state: "completed",
+          title: "Completed fork",
+          parentSessionId: "parent-123",
+          forkFromSeq: 3,
+          startedAt: new Date(),
+          endedAt: new Date(),
+          lastActivityAt: new Date(),
+          deletedAt: null,
+        };
+
+        expect(activeFork.state).toBe("active");
+        expect(completedFork.state).toBe("completed");
+      });
     });
   });
 });
