@@ -1,35 +1,30 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { existsSync } from 'node:fs';
 import {
   getFileLastModified,
   getGitRepoRoot,
   isGitAvailable,
   batchGetFileLastModified,
+  _internal,
 } from '../../lib/git-helper';
 
-// Mock Node.js modules
-vi.mock('node:child_process');
-vi.mock('node:util');
+// Mock Node.js fs module
 vi.mock('node:fs');
 
 describe('git-helper', () => {
-  let mockExecFileAsync: ReturnType<typeof vi.fn>;
+  let mockExecFilePromise: Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Create a mock async function for execFile
-    mockExecFileAsync = vi.fn();
-
-    // Mock promisify to return our mock async function
-    vi.mocked(promisify).mockReturnValue(mockExecFileAsync as never);
+    // Create a mock function and replace _internal.execFilePromise
+    mockExecFilePromise = vi.fn();
+    vi.spyOn(_internal, 'execFilePromise').mockImplementation(mockExecFilePromise);
   });
 
   describe('isGitAvailable', () => {
     it('should return true when git is available', async () => {
-      mockExecFileAsync.mockResolvedValue({
+      mockExecFilePromise.mockResolvedValue({
         stdout: 'git version 2.39.0',
         stderr: '',
       });
@@ -39,7 +34,7 @@ describe('git-helper', () => {
     });
 
     it('should return false when git is not available', async () => {
-      mockExecFileAsync.mockRejectedValue(new Error('Command not found'));
+      mockExecFilePromise.mockRejectedValue(new Error('Command not found'));
 
       const result = await isGitAvailable();
       expect(result).toBe(false);
@@ -48,7 +43,7 @@ describe('git-helper', () => {
 
   describe('getGitRepoRoot', () => {
     it('should return repo root when in git repository', async () => {
-      mockExecFileAsync.mockResolvedValue({
+      mockExecFilePromise.mockResolvedValue({
         stdout: '/path/to/repo\n',
         stderr: '',
       });
@@ -58,7 +53,7 @@ describe('git-helper', () => {
     });
 
     it('should return null when not in git repository', async () => {
-      mockExecFileAsync.mockRejectedValue(new Error('Not a git repository'));
+      mockExecFilePromise.mockRejectedValue(new Error('Not a git repository'));
 
       const result = await getGitRepoRoot();
       expect(result).toBeNull();
@@ -67,8 +62,8 @@ describe('git-helper', () => {
 
   describe('getFileLastModified', () => {
     beforeEach(() => {
-      // Mock execFileAsync to return different values based on git command
-      mockExecFileAsync.mockImplementation((cmd, args) => {
+      // Mock execFilePromise to return different values based on git command
+      mockExecFilePromise.mockImplementation((cmd, args) => {
         if (Array.isArray(args) && args[0] === 'rev-parse') {
           return Promise.resolve({ stdout: '/repo/root\n', stderr: '' });
         } else if (Array.isArray(args) && args[0] === 'log') {
@@ -95,7 +90,7 @@ describe('git-helper', () => {
 
     it('should return null when file has no git history', async () => {
       vi.mocked(existsSync).mockReturnValue(true);
-      mockExecFileAsync.mockImplementation((cmd, args) => {
+      mockExecFilePromise.mockImplementation((cmd, args) => {
         if (Array.isArray(args) && args[0] === 'rev-parse') {
           return Promise.resolve({ stdout: '/repo/root\n', stderr: '' });
         } else if (Array.isArray(args) && args[0] === 'log') {
@@ -114,7 +109,7 @@ describe('git-helper', () => {
       await getFileLastModified('/repo/root/file.ts', false);
 
       // Verify that %ci (commit date) was used
-      expect(mockExecFileAsync).toHaveBeenCalledWith(
+      expect(mockExecFilePromise).toHaveBeenCalledWith(
         'git',
         expect.arrayContaining(['--format=%ci']),
         expect.anything()
@@ -127,7 +122,7 @@ describe('git-helper', () => {
       await getFileLastModified('/repo/root/file.ts', true);
 
       // Verify that %ai (author date) was used
-      expect(mockExecFileAsync).toHaveBeenCalledWith(
+      expect(mockExecFilePromise).toHaveBeenCalledWith(
         'git',
         expect.arrayContaining(['--format=%ai']),
         expect.anything()
@@ -136,7 +131,7 @@ describe('git-helper', () => {
 
     it('should handle invalid date from git', async () => {
       vi.mocked(existsSync).mockReturnValue(true);
-      mockExecFileAsync.mockImplementation((cmd, args) => {
+      mockExecFilePromise.mockImplementation((cmd, args) => {
         if (Array.isArray(args) && args[0] === 'rev-parse') {
           return Promise.resolve({ stdout: '/repo/root\n', stderr: '' });
         } else if (Array.isArray(args) && args[0] === 'log') {
@@ -151,7 +146,7 @@ describe('git-helper', () => {
 
     it('should return null when not in git repository', async () => {
       vi.mocked(existsSync).mockReturnValue(true);
-      mockExecFileAsync.mockImplementation((cmd, args) => {
+      mockExecFilePromise.mockImplementation((cmd, args) => {
         if (Array.isArray(args) && args[0] === 'rev-parse') {
           return Promise.reject(new Error('Not a git repository'));
         }
@@ -166,7 +161,7 @@ describe('git-helper', () => {
   describe('batchGetFileLastModified', () => {
     beforeEach(() => {
       vi.mocked(existsSync).mockReturnValue(true);
-      mockExecFileAsync.mockImplementation((cmd, args) => {
+      mockExecFilePromise.mockImplementation((cmd, args) => {
         if (Array.isArray(args) && args[0] === 'rev-parse') {
           return Promise.resolve({ stdout: '/repo/root\n', stderr: '' });
         } else if (Array.isArray(args) && args[0] === 'log') {
@@ -217,7 +212,7 @@ describe('git-helper', () => {
 
       // With concurrency of 10, 25 files should result in 3 batches
       // We can't easily test the exact concurrency, but we can verify all files were processed
-      expect(mockExecFileAsync).toHaveBeenCalled();
+      expect(mockExecFilePromise).toHaveBeenCalled();
     });
 
     it('should return empty map for empty input', async () => {
@@ -232,7 +227,7 @@ describe('git-helper', () => {
       await batchGetFileLastModified(files, true);
 
       // Verify that author date was requested
-      expect(mockExecFileAsync).toHaveBeenCalledWith(
+      expect(mockExecFilePromise).toHaveBeenCalledWith(
         'git',
         expect.arrayContaining(['--format=%ai']),
         expect.anything()

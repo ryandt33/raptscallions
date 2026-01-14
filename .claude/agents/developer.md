@@ -166,14 +166,17 @@ Before writing ANY implementation code:
 5. **Run typecheck** - `pnpm typecheck` must pass
 6. **Refactor** if needed while keeping tests green
 
-## 🚫 Handling Test-API Mismatches 🚫
+## 🚫 Handling Bad Tests 🚫
 
 **CRITICAL REJECTION RULE:**
 
-If you discover that **the tests were written with incorrect assumptions about a library's actual API**, you MUST reject the tests back to the test writer. DO NOT implement hacks to satisfy bad tests.
+You MUST reject tests and send them back for revision when they would force you to write bad code. There are TWO categories of bad tests:
 
-**What qualifies as a test-API mismatch:**
+### Category 1: Test-API Mismatches
 
+Tests written with incorrect assumptions about a library's actual API.
+
+**Signs:**
 - Tests expect methods/properties that don't exist in the library
 - Tests use APIs that are documented differently in the library
 - You would need to add wrapper code just to make tests pass
@@ -181,57 +184,85 @@ If you discover that **the tests were written with incorrect assumptions about a
 - The "minimum code to pass" is more than the actual feature requires
 - You find yourself writing `Object.assign`, custom getters, or tricks to add test-only properties
 
-**Rejection Process:**
+### Category 2: Test Coherence Issues
+
+Tests that are technically valid (use real APIs, compile correctly) but are internally contradictory or don't reflect the spec.
+
+**Signs of contradictory tests:**
+- You're adding conditions like `if (A && B && !C)` that have no basis in requirements
+- Test case 1 passes without X, but test case 4 fails without X under slightly different conditions
+- You can't explain WHY the logic works, only that it makes tests pass
+- Later tests were added without reconciling with earlier tests
+
+**Signs of spec mismatch:**
+- You're implementing behavior not mentioned in any AC
+- The spec says "always require X" but tests only require X in specific scenarios
+- You can't trace test assertions back to spec requirements
+
+**Example of bad implementation forced by contradictory tests:**
+```typescript
+// ❌ This logic exists only to satisfy contradictory tests
+// Why these three conditions together? No spec justification.
+if (hasFetchDepth && hasTimeout && !stalenessStep) {
+  errors.push('Missing artifact');
+}
+
+// ✅ What clean implementation would be (per spec)
+if (!artifactStep) {
+  errors.push('Missing artifact upload step');
+}
+```
+
+### The Golden Rule
+
+**If you find yourself writing logic that:**
+1. You cannot justify from the spec
+2. You cannot explain without saying "because the tests expect it"
+3. Creates coupling between unrelated concerns
+4. Would fail code review for being "magic" or "unexplainable"
+
+**→ Reject the tests. Do NOT implement.**
+
+### Rejection Process
 
 1. **Do NOT write any implementation code**
 2. **Set `workflow_state: TESTS_REVISION_NEEDED`** in task frontmatter
 3. **Add History entry** with timestamp and detailed explanation:
    ```
-   | 2026-01-12 | TESTS_REVISION_NEEDED | developer | Tests use non-existent Drizzle API - `table._` property doesn't exist in drizzle-orm |
+   | 2026-01-14 | TESTS_REVISION_NEEDED | developer | Tests are internally contradictory - cannot implement clean logic |
    ```
 4. **Add detailed feedback in Reviews section:**
 
    ````markdown
    ### Test Revision Required (Developer)
 
-   **Date:** 2026-01-12
-   **Reason:** Test-API Mismatch
+   **Date:** 2026-01-14
+   **Reason:** [Test-API Mismatch | Test Coherence Issues]
 
    **Problem:**
-   Tests in `src/__tests__/schema/types.test.ts` expect `users._` property to exist, but Drizzle ORM tables don't have a `_` property. This appears to be a misunderstanding of the Drizzle API.
+   [Describe the issue - either incorrect API usage or contradictory tests]
 
    **Evidence:**
+   [For API mismatch: what library actually provides]
+   [For coherence issues: which tests contradict, with line numbers]
 
-   - Checked drizzle-orm@0.45.1 types - no `_` property on table objects
-   - Checked Drizzle docs - no mention of `_` accessor
-   - Tests expect: `expect(users._).toBeDefined()`
-   - Reality: Tables only export columns directly
+   **What the spec requires:**
+   [Quote relevant ACs]
 
-   **What the library actually provides:**
-
+   **What I'd have to implement to satisfy tests:**
    ```typescript
-   import { users } from "./schema";
-   // ✓ Available: users.id, users.email, users.name (column definitions)
-   // ✗ Not available: users._
+   // Show the ugly code
    ```
+
+   **What clean implementation would be:**
+   ```typescript
+   // Show what it should look like
+   ```
+
+   **Request:**
+   [For API mismatch: rewrite tests to use actual library API]
+   [For coherence issues: reconcile test cases so requirements are consistent]
    ````
-
-   **Suggested test approach:**
-   Test the actual API that Drizzle provides:
-
-   - Test that column definitions exist and have correct types
-   - Test that tables can be queried
-   - Test that schema exports work
-
-   **Do not:**
-
-   - Add fake `_` property to satisfy bad tests
-   - Create wrapper objects with test-only accessors
-   - Implement "testability hacks"
-
-   ```
-
-   ```
 
 5. **Save task and exit** - do not proceed with implementation
 
@@ -240,18 +271,20 @@ If you discover that **the tests were written with incorrect assumptions about a
 - Orchestrator sees `TESTS_REVISION_NEEDED` state
 - Calls `/write-tests` again with the developer agent
 - Agent reads the feedback in Reviews section
-- Agent rewrites tests using correct library APIs
+- Agent rewrites/reconciles tests
 - Task returns to `TESTS_READY` state
 - Implementation can now proceed correctly
 
 **Example rejection message:**
 
 ```markdown
-Tests cannot be implemented as written. They expect `users._` property which doesn't exist in Drizzle ORM v0.45.1.
+Tests cannot be implemented as written. Test cases are internally contradictory:
+- Lines 19-43 expect workflow valid WITHOUT artifact step
+- Lines 411-439 expect workflow invalid WITHOUT artifact step (under similar conditions)
 
-I've set the task to TESTS_REVISION_NEEDED and added detailed feedback in the Reviews section about what Drizzle actually provides.
+To satisfy both, I'd need to implement bizarre conditional logic with no spec basis.
 
-Tests need to be rewritten to use Drizzle's real API before implementation can proceed.
+I've set the task to TESTS_REVISION_NEEDED with detailed feedback. Tests need to be reconciled so requirements are consistent before implementation can proceed.
 ```
 
 ## Code Standards

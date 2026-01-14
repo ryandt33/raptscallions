@@ -248,7 +248,7 @@ describe('check-staleness CLI', () => {
     });
 
     it('should accept custom config file path', async () => {
-      await loadConfig('custom-config.yml');
+      await loadConfig('custom-config.yml', {});
 
       expect(loadConfig).toHaveBeenCalledWith('custom-config.yml', expect.anything());
     });

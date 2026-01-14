@@ -66,7 +66,18 @@ RaptScallions uses GitHub Actions for CI/CD with the following goals:
 - Verifies all packages build successfully
 - Uploads build artifacts
 
-#### 6. All Checks Passed
+#### 6. Docs Validation
+
+- Builds VitePress documentation site
+- Detects broken internal links (blocking)
+- Runs staleness check against related code (warning only)
+- Uploads build artifacts and staleness report
+- Uses path filtering (only runs when docs or related code changes)
+- Uses full git checkout (`fetch-depth: 0`) for staleness detection
+
+For detailed documentation on CI validation behavior, see the [CI Documentation Validation](/contributing/ci-validation) KB page.
+
+#### 7. All Checks Passed
 
 - Summary job that depends on all others
 - Used as required status check for merging
