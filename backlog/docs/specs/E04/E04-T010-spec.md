@@ -256,12 +256,34 @@ CREATE INDEX "chat_sessions_parent_session_id_idx"
 --> statement-breakpoint
 
 -- ============================================================================
+-- STEP 4: Add CHECK constraint to prevent self-reference (AC13)
+-- Prevents parent_session_id from pointing to itself (circular reference)
+-- ============================================================================
+
+ALTER TABLE "chat_sessions"
+  ADD CONSTRAINT "chat_sessions_no_self_fork"
+  CHECK (parent_session_id IS NULL OR parent_session_id != id);
+--> statement-breakpoint
+
+-- ============================================================================
+-- STEP 5: Add partial index for orphaned forks query optimization (AC14)
+-- Optimizes queries for "find all orphaned forks"
+-- ============================================================================
+
+CREATE INDEX "chat_sessions_orphaned_forks_idx"
+  ON "chat_sessions" ("fork_from_seq")
+  WHERE parent_session_id IS NULL AND fork_from_seq IS NOT NULL;
+--> statement-breakpoint
+
+-- ============================================================================
 -- NOTES
 -- ============================================================================
 -- 1. Both fields are nullable - most sessions are not forks
 -- 2. SET NULL on delete preserves forked sessions as standalone conversations
 -- 3. fork_from_seq is informational only - service layer handles message copying
 -- 4. Index supports queries like "find all forks of session X"
+-- 5. CHECK constraint provides defense in depth against circular references
+-- 6. Partial index efficiently supports orphaned fork queries
 ```
 
 ### 4. Query Patterns
@@ -516,6 +538,8 @@ Tests requiring actual database:
 | AC10 | Fork creation tests | Tests for creating forks with valid data | Tests pass |
 | AC11 | Orphan behavior tests | Tests for parent deletion behavior | Tests pass |
 | AC12 | Tree query tests | Tests for fork tree structure | Tests pass |
+| AC13 | CHECK constraint for self-reference | Add constraint to prevent parent_session_id = id | Constraint in migration, prevents self-fork |
+| AC14 | Partial index for orphaned forks | Add index for orphan query optimization | Index in migration, query performance |
 
 ---
 
@@ -669,6 +693,8 @@ None. All requirements are clear and specification is complete.
 - [ ] Add columns for parent_session_id and fork_from_seq
 - [ ] Add foreign key constraint with SET NULL
 - [ ] Add index on parent_session_id
+- [ ] Add CHECK constraint to prevent self-reference (AC13)
+- [ ] Add partial index for orphaned forks query (AC14)
 - [ ] Add detailed comments explaining fork behavior
 
 ### Step 4: Update Tests
@@ -700,4 +726,471 @@ None. All requirements are clear and specification is complete.
 
 ---
 
+## Documentation Requirements
+
+**IMPORTANT:** When knowledge base documentation is written for the chat forking feature (in future documentation tasks), it MUST include a dedicated section covering:
+
+### UI Implementation Requirements
+
+Specific guidance for implementing fork user interface:
+- **Orphaned Fork Indicators** - Visual badges/icons and messaging for orphaned forks ("Forked from deleted conversation")
+- **Fork Creation Prompts** - UI prompts asking "Why are you creating this fork?" with helpful defaults
+- **Fork Tree Navigation** - Breadcrumb trails showing lineage, parent/child navigation patterns
+- **Soft-Delete vs. Hard-Delete** - Distinguishing deleted parents (restorable) from orphaned forks (parent gone)
+- **Deep Fork Chains** - Collapse/expand patterns, depth indicators, "flatten" utilities
+- **Fork Comparison** - Side-by-side diff views comparing fork vs. parent at divergence point
+- **Accessibility** - Screen reader announcements, keyboard navigation, high-contrast indicators
+
+### Business Logic Requirements
+
+Service layer implementation patterns:
+- **Fork Validation Rules** - Depth limits (soft limit at 10), self-reference prevention, message sequence validation
+- **Message Copying Strategies** - Approaches for copying parent messages up to fork point
+- **Permission Checks** - CASL patterns for fork operations (who can fork whose sessions)
+- **Orphaned Fork Queries** - Efficient queries for finding and managing orphaned forks
+- **Fork Metadata Auto-Generation** - Patterns for auto-generating fork titles ("Original (fork 1)")
+- **Analytics Tracking** - Tracking fork depth, frequency, user patterns for product insights
+
+### Reference
+
+See the **UX Review** section in this specification for complete requirements, edge cases, and detailed recommendations. The UX review provides comprehensive analysis of:
+- User mental models and flow analysis
+- Data integrity and trust considerations
+- Edge case handling (6 scenarios analyzed)
+- Accessibility requirements
+- Consistency with existing patterns (soft delete interaction)
+
+This documentation will ensure future UI and service layer implementations properly handle the UX concerns identified during planning.
+
+---
+
 **End of Specification**
+
+---
+
+## UX Review
+
+**Reviewer:** designer
+**Date:** 2026-01-14
+**Verdict:** APPROVED_WITH_RECOMMENDATIONS
+
+### Executive Summary
+
+The fork schema design provides a **solid foundation** for a powerful branching conversation feature. The data model supports the core UX requirements: preserving original work, allowing exploration of alternatives, and maintaining context about fork relationships.
+
+**Schema Strengths:**
+- Non-destructive forking preserves user confidence
+- Orphan-safe design protects student/teacher work
+- Fork point tracking enables meaningful UI context
+- Query-efficient structure supports responsive UI
+
+**UX Risks Identified:**
+- Orphaned forks could confuse users if UI doesn't clarify state
+- Deep fork trees may be cognitively overwhelming
+- Missing metadata fields limit UI's ability to explain fork purpose
+- Soft delete + forking interaction needs careful UX handling
+
+This schema is **approved for implementation** with strong recommendations for future UI tasks to address the UX concerns identified below.
+
+---
+
+### Mental Model Analysis
+
+#### Fork Metaphor Clarity
+
+**Strength:** The "fork" concept aligns well with user mental models from:
+- Git branching (familiar to teachers who code)
+- "What if" scenarios in educational contexts
+- Undo/redo patterns in creative software
+
+**Concern:** The schema doesn't capture *why* someone forked. When a user returns to a session list with 5 forks, they won't remember which fork was "trying a different approach" vs. "recovering from a mistake" vs. "demonstrating to students."
+
+**Recommendation for Future UI Tasks:**
+- Add optional `fork_reason` or `fork_description` field in future schema enhancement
+- UI should prompt "Why are you creating this fork?" with helpful defaults:
+  - "Explore a different approach"
+  - "Start over from this point"
+  - "Demonstrate alternative solution"
+  - Custom text input
+
+---
+
+### User Flow Analysis
+
+#### Creating a Fork
+
+**Happy Path (Well-Supported):**
+1. User identifies pivot point in conversation (message seq)
+2. Clicks "Fork from here"
+3. New session created with full parent context
+4. User continues conversation in new direction
+
+**Schema Support:** Excellent - `fork_from_seq` preserves exact fork point, `parent_session_id` enables context retrieval.
+
+**Potential UX Friction:**
+- **Message Context Copying:** Schema defers "how messages are copied" to service layer. UI needs to clearly communicate: "This fork starts with messages 1-5 from the parent session."
+- **Initial State Visibility:** When fork opens, user should immediately understand they're in a fork (not the original). Schema supports this via `parent_session_id`, but UI must surface it prominently.
+
+#### Navigating Fork Relationships
+
+**User Needs:**
+- "Show me all branches from this conversation"
+- "Go back to the original conversation"
+- "Compare this fork with the original"
+- "See where I forked from"
+
+**Schema Support:**
+- Relations enable querying parent and children (GOOD)
+- `fork_from_seq` allows UI to highlight fork divergence point (EXCELLENT)
+- Query patterns support lineage traversal (GOOD)
+
+**Missing Schema Support:**
+- No timestamp for when fork was created (uses `started_at`, which is fine)
+- No way to mark a fork as "preferred" or "archived" (future enhancement)
+
+**Recommendation:** Schema is sufficient. Future UI should implement:
+- Visual fork tree/graph in session list
+- Breadcrumb navigation showing lineage
+- Diff view comparing fork vs. parent at divergence point
+
+#### Orphaned Forks (Parent Deletion)
+
+**Critical UX Decision:** SET NULL on parent deletion
+
+**Strengths:**
+- Preserves student work when teacher deletes original
+- Non-destructive approach builds user trust
+- Maintains fork history via `fork_from_seq`
+
+**UX Challenges:**
+- **Confusing State:** User sees `fork_from_seq: 5` but `parent_session_id: null`. What does this mean to them?
+- **Lost Context:** Parent messages are gone. Fork's context becomes incomplete.
+- **UI Clarity:** Must communicate "This was forked from a conversation that no longer exists."
+
+**Recommendations for Future UI:**
+1. **Visual Indicator:** Show orphaned forks with clear badge/icon:
+   - "Forked from deleted conversation"
+   - Include original fork date for context
+2. **Soft Delete Integration:** When user soft-deletes a parent session:
+   - Warn: "This session has 3 forks. They will lose their connection to this parent."
+   - Option: "Delete parent but keep forks" vs. "Delete all (parent + forks)"
+3. **Orphan Query:** UI should have "Show orphaned forks" filter to help users clean up
+
+---
+
+### Data Integrity and User Trust
+
+#### Scenario: Teacher Demonstrates Forking to Class
+
+**Use Case:** Teacher shows multiple problem-solving approaches by forking a session three times.
+
+**Schema Support:**
+- Teacher can fork → fork → fork (no depth limit)
+- All forks reference parent via `parent_session_id`
+- Students can see fork tree if permissions allow
+
+**UX Concern:**
+- **Cognitive Overload:** Without titles/descriptions, fork tree becomes "Session 1, Session 2, Session 3..."
+- **Missing Metadata:** Schema has `title` field (good), but no "fork_number" or "fork_label" to help UI auto-generate helpful names
+
+**Recommendation:**
+- Service layer should auto-generate titles: `{parent.title} (fork 1)`, `{parent.title} (fork 2)`
+- Spec already shows this pattern in `createFork()` example (line 325-327) - EXCELLENT!
+- UI should make title editable immediately after fork creation
+
+#### Scenario: Student Makes Mistake, Wants to Fork Back
+
+**Use Case:** Student tries approach A (fails), forks to try approach B, then wants to return to approach A to revise.
+
+**Schema Support:**
+- Both branches preserved as independent sessions
+- Student can navigate between forks via parent relationship
+- History is non-destructive
+
+**UX Concern:**
+- **Re-forking from a Fork:** Schema allows it (no constraint). Is this intuitive?
+- **Fork vs. Session Ambiguity:** Are forks just "normal sessions with a parent" or a special category?
+
+**Recommendation:**
+- Schema treats forks as normal sessions (correct decision - keeps model simple)
+- UI should visually distinguish forks from root sessions in session list
+- Allow "fork from fork" but show lineage clearly (breadcrumb trail)
+
+---
+
+### Edge Case UX Review
+
+The spec identifies 6 edge cases. Here's the UX perspective on each:
+
+#### 1. Circular Fork References (Self-Reference)
+
+**Schema Handling:** Service layer validates `parentSessionId !== sessionId`
+
+**UX Impact:** Low - users won't naturally attempt this. Error message should be clear if it happens due to bug.
+
+**Recommendation:** Error message should be user-friendly: "A session cannot be forked from itself" (not "Circular reference detected").
+
+#### 2. Fork from Non-Existent Message Sequence
+
+**Schema Handling:** Service layer validates `forkFromSeq <= maxSeq`
+
+**UX Impact:** Medium - could happen if UI shows stale message count or has race condition.
+
+**UX Risk:** User clicks "Fork from here" on message 10, but in the time between page load and click, parent session was trimmed to 5 messages (unlikely but possible with concurrent edits).
+
+**Recommendation:**
+- UI should fetch current max seq before allowing fork
+- Error message: "This message is no longer available. Please refresh and try again."
+- Alternative approach (from spec line 548): Allow fork from end if seq exceeds. This is MORE user-friendly (principle of least surprise).
+
+**Verdict:** Spec's alternative approach is better UX. **Recommendation: Default to "fork from end" rather than erroring.**
+
+#### 3. Deep Fork Chains
+
+**Schema Handling:** No limit, but spec suggests optional 10-level depth limit.
+
+**UX Impact:** High - deep trees are cognitively overwhelming.
+
+**Real-World Scenario:**
+- Teacher forks for demo → Student forks to try → Student forks again → Student forks again...
+- Lineage: Root → Fork 1 → Fork 2 → Fork 3 → Fork 4 → ...
+
+**Recommendation:**
+- **Schema:** Keep unlimited (don't artificially constrain)
+- **Service Layer:** Log warning at depth 5, soft error at depth 10
+- **UI:** Collapse deep trees by default, show "5 levels deep" indicator, provide "flatten" action to copy current state as new root session
+
+**Verdict:** Schema is correct. UI must handle gracefully.
+
+#### 4. Orphaned Forks (Parent Deleted)
+
+Already covered in "User Flow Analysis" section above. Key point: **UI must make orphan state visible and understandable.**
+
+#### 5. Fork Across Different Tools
+
+**Schema Handling:** Spec says service layer enforces `fork.toolId = parent.toolId`
+
+**UX Impact:** High - forking to a different tool would be very confusing.
+
+**Scenario:** User in "Math Tutor" session forks, suddenly in "Science Tutor" session with same history? Nonsensical.
+
+**Recommendation:** Spec is correct. Always inherit `toolId`. UI should never offer option to change tool when forking.
+
+**Verdict:** Correct design decision.
+
+#### 6. Permissions on Forking
+
+**Schema Handling:** CASL permission check at service layer
+
+**UX Scenarios:**
+1. **Student forks own session:** Allowed (should always work)
+2. **Teacher forks student session (for demo):** Should be allowed
+3. **Student forks teacher's session:** Depends on sharing permissions
+
+**UX Concern:** What happens to fork ownership? Does the fork inherit parent's `userId` or use the forking user's `userId`?
+
+**Schema Review (line 323):**
+```typescript
+userId,  // The user creating the fork (not parent's userId)
+```
+
+**Verdict:** Correct - fork is owned by user who creates it. This prevents permission escalation (student forks teacher session → student owns fork → student can edit).
+
+**UI Recommendation:**
+- When teacher forks student session, UI should show: "You are creating a copy of [Student Name]'s session"
+- When student forks shared teacher session, UI should show: "Creating your own version of [Teacher Name]'s session"
+
+---
+
+### Accessibility Considerations
+
+#### Screen Reader Support (Future UI)
+
+**Requirements:**
+- Fork relationships must be announced: "This session was forked from [Parent Title] at message 5"
+- Fork tree navigation must be keyboard-accessible
+- Visual fork graph must have text alternative: "Fork tree: 1 parent session with 3 child forks"
+
+**Schema Support:** Excellent - all data needed for a11y descriptions is present.
+
+#### Keyboard Navigation
+
+**Requirements:**
+- "Fork from here" action must be keyboard-accessible on each message
+- Navigate up/down fork tree with keyboard shortcuts
+- Expand/collapse fork tree branches with Enter/Space
+
+**Schema Support:** Schema is navigation-agnostic (good). UI implementation must handle.
+
+#### Visual Accessibility
+
+**Requirements:**
+- Fork relationships should not rely solely on color
+- Use icons, labels, indentation for fork hierarchy
+- High contrast for orphaned fork indicators
+
+**Schema Support:** N/A (schema doesn't constrain UI). No concerns.
+
+---
+
+### Consistency with Existing Patterns
+
+#### Soft Delete Interaction
+
+**Existing Pattern:** Sessions have `deleted_at` for soft delete (E04-T009).
+
+**Fork Interaction Question:** What happens when:
+1. User soft-deletes parent session (deleted_at set)
+2. Forks still reference parent via `parent_session_id`
+3. User tries to load fork and navigate to parent
+
+**Expected Behavior:**
+- Parent session is "deleted" but `parent_session_id` is still set (not null)
+- Query with `isNull(deletedAt)` would hide parent
+- Fork's parent appears "missing" even though it exists in DB
+
+**UX Implication:**
+- Similar to orphaned fork, but different cause
+- User might think parent was "permanently deleted" when it's actually in trash
+
+**Recommendation:**
+- UI should distinguish:
+  - **Orphaned Fork:** `parent_session_id: null` → "Parent was deleted"
+  - **Deleted Parent:** `parent_session_id: <uuid>` but parent has `deleted_at` → "Parent is in trash"
+- UI should offer "Restore parent from trash" action in second case
+
+**Schema Impact:** None needed. Spec should note this interaction in edge cases.
+
+**Action:** Add this as Edge Case #7 in spec or document in service layer.
+
+---
+
+### Recommendations for Future Implementation
+
+#### High Priority (Should Address)
+
+1. **Fork Reason/Description Field**
+   - Add optional `fork_description` field to capture user intent
+   - Helps users remember why they created each fork
+   - Could be added in future schema enhancement task
+
+2. **Soft Delete + Fork Interaction Documentation**
+   - Document behavior when parent is soft-deleted vs. hard-deleted
+   - Service layer should provide `getParentSession({ includeDeleted: true })` option
+   - UI should distinguish deleted vs. missing parents
+
+3. **Fork Depth Soft Limit**
+   - Implement 10-level soft limit in service layer (as spec suggests)
+   - Log analytics when users hit depth 5+ (indicates use case we should study)
+   - UI should provide "flatten fork chain" utility
+
+#### Medium Priority (Nice to Have)
+
+4. **Fork Metadata**
+   - Add `fork_count` to parent session (denormalized for performance)
+   - Add `fork_depth` to track position in lineage (denormalized)
+   - Enables UI to show "This session has 3 forks" without query
+
+5. **Fork State Indicators**
+   - Optional `fork_status` enum: "active" | "archived" | "merged"
+   - Allows users to mark forks they've explored and abandoned
+   - Reduces clutter in fork tree UI
+
+6. **Fork Comparison Support**
+   - Schema already supports this via message queries
+   - Future UI task should implement side-by-side fork comparison
+   - Show divergence point highlighting
+
+#### Low Priority (Future Enhancements)
+
+7. **Fork Merging**
+   - Advanced feature: allow users to merge insights from fork back into parent
+   - Would require message copying/appending logic
+   - Schema supports this (can query messages from both sessions)
+
+8. **Fork Templates**
+   - Allow teachers to create "template forks" that students can use as starting points
+   - Schema supports via permissions on parent session
+   - Purely service layer + UI work
+
+---
+
+### Schema-Level Recommendations
+
+#### Recommended Addition: CHECK Constraint for Self-Reference
+
+**Current:** Spec mentions service layer validation for circular references.
+
+**Recommendation:** Add database-level CHECK constraint for safety:
+
+```sql
+ALTER TABLE "chat_sessions"
+  ADD CONSTRAINT "chat_sessions_no_self_fork"
+  CHECK (parent_session_id IS NULL OR parent_session_id != id);
+```
+
+**Rationale:**
+- Defense in depth (validates even if service layer has bug)
+- Prevents data corruption
+- Clear error at DB level
+
+**Verdict:** Should add to migration.
+
+#### Recommended Addition: Partial Index for Orphans
+
+**Current:** Index on `parent_session_id` for fork tree queries.
+
+**Recommendation:** Add partial index for orphaned forks query:
+
+```sql
+CREATE INDEX "chat_sessions_orphaned_forks_idx"
+  ON "chat_sessions" (fork_from_seq)
+  WHERE parent_session_id IS NULL AND fork_from_seq IS NOT NULL;
+```
+
+**Rationale:**
+- Optimizes the orphaned fork query (spec line 600-605)
+- Small index (only orphaned forks)
+- Supports "show me all orphaned forks" UI feature
+
+**Verdict:** Optional but recommended for query performance.
+
+---
+
+### Verdict Reasoning
+
+**APPROVED_WITH_RECOMMENDATIONS** because:
+
+**Strengths (Approval Justification):**
+1. Schema supports all core fork UX patterns (create, navigate, preserve)
+2. Non-destructive design builds user trust
+3. Orphan-safe approach protects work in multi-user scenarios
+4. Query patterns enable responsive, intuitive UI
+5. Edge cases are well-identified and handled
+6. Type safety and validation support error prevention
+
+**Recommendations (Not Blocking):**
+1. Future UI tasks MUST address orphaned fork visibility
+2. Consider adding fork description/reason in future enhancement
+3. Document soft-delete + fork interaction for service layer
+4. Add CHECK constraint for self-reference prevention
+5. Implement depth soft limit in service layer (not schema)
+
+**No Blocking Issues Identified.** The schema provides a solid foundation for implementing fork UX in future tasks. The recommendations above will improve the user experience but are not prerequisites for approving this schema design.
+
+---
+
+### Next Steps for Future UI Implementation
+
+When UI tasks for forking are created, they should reference this review and address:
+
+1. **Visual Fork Tree/Graph** - Show relationships clearly
+2. **Fork Navigation** - Breadcrumb trail, "go to parent" action
+3. **Orphan State Communication** - Clear indicators for orphaned forks
+4. **Fork Creation UX** - Prompt for description, show context being copied
+5. **Accessibility** - Screen reader announcements, keyboard navigation
+6. **Soft Delete Integration** - Distinguish deleted vs. missing parents
+7. **Deep Tree Handling** - Collapse, expand, flatten actions
+8. **Comparison View** - Side-by-side fork vs. parent diff
+
+**Schema is APPROVED.** UX concerns are noted for future implementation.

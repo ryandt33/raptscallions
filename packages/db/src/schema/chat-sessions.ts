@@ -3,6 +3,7 @@ import {
   pgTable,
   uuid,
   varchar,
+  integer,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -27,6 +28,12 @@ export const sessionStateEnum = pgEnum("session_state", [
  * Chat sessions represent ongoing conversations between a user and a tool.
  * Each session maintains state and contains an ordered history of messages.
  *
+ * Fork Support (E04-T010):
+ * - Sessions can be forked to create branching conversation paths
+ * - parent_session_id references the session this was forked from
+ * - fork_from_seq indicates the message sequence in parent where fork occurred
+ * - Forks are independent sessions that survive parent deletion (orphan-safe)
+ *
  * Lifecycle:
  * - Created with state 'active' when user starts chat
  * - Moved to 'completed' when user ends or session expires
@@ -38,6 +45,7 @@ export const sessionStateEnum = pgEnum("session_state", [
  * Foreign key behavior:
  * - tool_id: RESTRICT delete (cannot delete tools with active sessions)
  * - user_id: CASCADE delete (remove sessions when user is deleted)
+ * - parent_session_id: SET NULL delete (forks become orphans if parent deleted)
  *
  * @example
  * ```typescript
@@ -61,6 +69,12 @@ export const chatSessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     state: sessionStateEnum("state").notNull().default("active"),
 
+    // Fork support (E04-T010)
+    // Note: Self-reference requires explicit type annotation to avoid TS circular reference error
+    parentSessionId: uuid("parent_session_id")
+      .references((): any => chatSessions.id, { onDelete: "set null" }),
+    forkFromSeq: integer("fork_from_seq"),
+
     // Session metadata (E04-T009)
     title: varchar("title", { length: 200 }),
 
@@ -78,6 +92,9 @@ export const chatSessions = pgTable(
     stateIdx: index("chat_sessions_state_idx").on(table.state),
     // Index for efficient soft-delete queries
     deletedAtIdx: index("chat_sessions_deleted_at_idx").on(table.deletedAt),
+    // E04-T010: Index for fork tree queries
+    parentSessionIdIdx: index("chat_sessions_parent_session_id_idx")
+      .on(table.parentSessionId),
   })
 );
 

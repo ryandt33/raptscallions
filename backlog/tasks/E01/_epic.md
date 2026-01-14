@@ -14,16 +14,18 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 
 ## Tasks
 
-| ID       | Title                           | Status | Depends On         |
-| -------- | ------------------------------- | ------ | ------------------ |
-| E01-T001 | Initialize pnpm monorepo        | DRAFT  | -                  |
-| E01-T002 | Setup packages/core with Zod    | DRAFT  | E01-T001           |
-| E01-T003 | Setup packages/db with Drizzle  | DRAFT  | E01-T001           |
-| E01-T004 | Create users schema             | DRAFT  | E01-T003           |
-| E01-T005 | Create groups schema with ltree | DRAFT  | E01-T003, E01-T004 |
-| E01-T006 | Create group_members schema     | DRAFT  | E01-T004, E01-T005 |
-| E01-T007 | Setup packages/telemetry (stub) | DRAFT  | E01-T001           |
-| E01-T008 | Configure Vitest for monorepo   | DRAFT  | E01-T001           |
+| ID       | Title                              | Status | Depends On         |
+| -------- | ---------------------------------- | ------ | ------------------ |
+| E01-T001 | Initialize pnpm monorepo           | DRAFT  | -                  |
+| E01-T002 | Setup packages/core with Zod       | DRAFT  | E01-T001           |
+| E01-T003 | Setup packages/db with Drizzle     | DRAFT  | E01-T001           |
+| E01-T004 | Create users schema                | DRAFT  | E01-T003           |
+| E01-T005 | Create groups schema with ltree    | DRAFT  | E01-T003, E01-T004 |
+| E01-T006 | Create group_members schema        | DRAFT  | E01-T004, E01-T005 |
+| E01-T007 | Setup packages/telemetry (stub)    | DRAFT  | E01-T001           |
+| E01-T008 | Configure Vitest for monorepo      | DRAFT  | E01-T001           |
+| E01-T009 | Fix Database Migration Workflow    | TODO   | E01-T001, E01-T003 |
+| E01-T010 | Configure ESLint for Monorepo      | TODO   | E01-T001, E01-T008 |
 
 ## Completion Criteria
 
@@ -35,7 +37,10 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 - [ ] ltree extension configured for hierarchical groups
 - [ ] Database migrations generated and testable
 - [ ] Vitest configured and runnable across all packages
+- [ ] ESLint configured and runnable across all packages
 - [ ] All packages buildable with `pnpm build`
+- [ ] All packages lintable with `pnpm lint`
+- [ ] Database migrations apply correctly in Docker environment
 
 ## Architecture Notes
 
