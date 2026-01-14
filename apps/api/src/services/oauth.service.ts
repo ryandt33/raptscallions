@@ -1,8 +1,3 @@
-import type { FastifyRequest, FastifyReply } from "fastify";
-import { eq } from "drizzle-orm";
-import type { Database } from "@raptscallions/db";
-import { users } from "@raptscallions/db/schema";
-import type { User } from "@raptscallions/db/schema";
 import {
   lucia,
   sessionService,
@@ -18,13 +13,18 @@ import {
 import {
   googleUserProfileSchema,
   microsoftUserProfileSchema,
-} from "@raptscallions/core";
+ UnauthorizedError, AppError } from "@raptscallions/core";
+import { users } from "@raptscallions/db/schema";
+import { logger } from "@raptscallions/telemetry";
+import { eq } from "drizzle-orm";
+
 import type {
   GoogleUserProfile,
   MicrosoftUserProfile,
 } from "@raptscallions/core";
-import { UnauthorizedError, AppError } from "@raptscallions/core";
-import { logger } from "@raptscallions/telemetry";
+import type { Database } from "@raptscallions/db";
+import type { User } from "@raptscallions/db/schema";
+import type { FastifyRequest, FastifyReply } from "fastify";
 
 /**
  * Initiate Google OAuth flow with PKCE

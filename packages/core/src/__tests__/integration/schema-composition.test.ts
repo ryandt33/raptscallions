@@ -1,15 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import {
-  userBaseSchema,
-  createUserSchema,
-  updateUserSchema,
-} from "../../schemas/user.schema.js";
+
 import {
   groupBaseSchema,
   createGroupSchema,
   updateGroupSchema,
 } from "../../schemas/group.schema.js";
+import {
+  userBaseSchema,
+  createUserSchema,
+  updateUserSchema,
+} from "../../schemas/user.schema.js";
 import { createMockUser, createMockGroup } from "../factories.js";
 
 describe("Schema Composition Integration", () => {
@@ -268,6 +269,7 @@ describe("Schema Composition Integration", () => {
   describe("Type inference with composed schemas", () => {
     it("should maintain correct type inference with schema composition", () => {
       // Arrange - composed schema
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Used in typeof for type inference
       const userWithProfile = userBaseSchema.extend({
         profile: z.object({
           bio: z.string().optional(),
@@ -276,10 +278,10 @@ describe("Schema Composition Integration", () => {
         }).optional(),
       });
 
-      type UserWithProfile = z.infer<typeof userWithProfile>;
+      type _UserWithProfile = z.infer<typeof userWithProfile>;
 
       // Act - this is a compile-time test
-      const user: UserWithProfile = {
+      const user: _UserWithProfile = {
         email: "test@example.com",
         name: "Test User",
         profile: {

@@ -4,8 +4,9 @@
  * Following TDD red phase - these tests will fail until implementation is complete
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import OpenAI, { APIError, APIConnectionError, APITimeoutError, APIUserAbortError } from 'openai';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { OpenRouterClient } from '../client.js';
 import {
   RateLimitError,
@@ -15,8 +16,10 @@ import {
   InvalidResponseError,
   AiError,
 } from '../errors.js';
-import type { StreamChunk } from '../types.js';
+
 import { mockMessages, mockStreamChunks, createAsyncIterator } from './fixtures/index.js';
+
+import type { StreamChunk } from '../types.js';
 
 // Mock OpenAI SDK
 vi.mock('openai', () => {
@@ -239,7 +242,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw before completing
         }
       }).rejects.toThrow(InvalidResponseError);
@@ -252,7 +255,7 @@ describe('OpenRouterClient', () => {
       // Act
       const stream = client.streamChat(mockMessages.simple);
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 
@@ -275,7 +278,7 @@ describe('OpenRouterClient', () => {
         topP: 0.9,
       });
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 
@@ -300,7 +303,7 @@ describe('OpenRouterClient', () => {
         timeoutMs: 60000,
       });
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 
@@ -323,7 +326,7 @@ describe('OpenRouterClient', () => {
         signal: abortController.signal,
       });
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 
@@ -434,7 +437,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw before yielding
         }
       }).rejects.toThrow(RateLimitError);
@@ -451,7 +454,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       try {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       } catch (e) {
@@ -471,7 +474,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AuthenticationError);
@@ -486,7 +489,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AuthenticationError);
@@ -501,7 +504,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple, { model: 'invalid/model' });
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(ModelNotAvailableError);
@@ -517,7 +520,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(TimeoutError);
@@ -532,7 +535,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(TimeoutError);
@@ -547,7 +550,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(TimeoutError);
@@ -562,7 +565,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AiError);
@@ -577,7 +580,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AiError);
@@ -592,7 +595,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AiError);
@@ -607,7 +610,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AiError);
@@ -621,7 +624,7 @@ describe('OpenRouterClient', () => {
       const stream = client.streamChat(mockMessages.simple);
 
       await expect(async () => {
-        for await (const chunk of stream) {
+        for await (const _chunk of stream) {
           // Should throw
         }
       }).rejects.toThrow(AiError);
@@ -636,7 +639,7 @@ describe('OpenRouterClient', () => {
       // Act
       const stream = client.streamChat([]);
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 
@@ -654,7 +657,7 @@ describe('OpenRouterClient', () => {
       // Act
       const stream = client.streamChat(mockMessages.conversation);
 
-      for await (const chunk of stream) {
+      for await (const _chunk of stream) {
         // Consume stream
       }
 

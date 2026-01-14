@@ -223,6 +223,7 @@ export default defineConfig({
           { text: "KB Page Design", link: "/contributing/kb-page-design" },
           { text: "Design System", link: "/contributing/design-system" },
           { text: "CI Validation", link: "/contributing/ci-validation" },
+          { text: "ESLint Configuration", link: "/contributing/eslint-setup" },
         ],
       },
     ],

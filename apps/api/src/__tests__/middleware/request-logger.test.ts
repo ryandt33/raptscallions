@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from "vitest";
 import fastify, { type FastifyInstance } from "fastify";
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from "vitest";
 
 describe("Request Logger Middleware (request-logger.ts)", () => {
   let app: FastifyInstance;
-  let mockLogger: {
+  let _mockLogger: {
     info: Mock;
     error: Mock;
   };
@@ -13,7 +13,7 @@ describe("Request Logger Middleware (request-logger.ts)", () => {
     vi.resetModules();
 
     // Mock logger
-    mockLogger = {
+    _mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
     };

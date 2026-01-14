@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ZodError } from "zod";
+
 import {
   userBaseSchema,
   createUserSchema,
@@ -11,7 +12,6 @@ import {
 import {
   createMockUser,
   createMockCreateUser,
-  createMockUpdateUser,
   invalidUserData
 } from "../factories.js";
 

@@ -7,6 +7,7 @@ import {
   beforeEach,
   vi,
 } from "vitest";
+
 import type { FastifyInstance } from "fastify";
 
 // Use vi.hoisted to ensure mock objects are available when vi.mock factories run

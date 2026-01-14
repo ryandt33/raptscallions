@@ -1,5 +1,6 @@
-import { getLogger } from "@raptscallions/telemetry";
 import { queryClient } from "@raptscallions/db";
+import { getLogger } from "@raptscallions/telemetry";
+
 import { config } from "./config.js";
 import { createServer } from "./server.js";
 

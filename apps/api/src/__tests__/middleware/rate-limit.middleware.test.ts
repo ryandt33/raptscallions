@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FastifyRequest } from "fastify";
 
 /**
  * Unit tests for rate limit middleware functions.

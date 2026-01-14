@@ -458,6 +458,40 @@ await db.transaction(async (tx) => {
 
 ---
 
+## ESLint
+
+The project uses ESLint 9.x with TypeScript ESLint v8 to enforce code quality and maintain consistent style across all packages in the monorepo.
+
+**Quick Reference:**
+
+```bash
+# Lint all packages
+pnpm lint
+
+# Auto-fix issues
+pnpm lint:fix
+
+# Lint single package
+pnpm --filter @raptscallions/core lint
+```
+
+**Key Rules:**
+- Zero `any` types allowed (use `unknown` instead)
+- Explicit return types required on exported functions
+- Automatic import ordering and deduplication
+- Type-aware linting for async code and promises
+
+**For Complete Documentation:**
+
+See the [ESLint Configuration](../apps/docs/src/contributing/eslint-setup.md) guide in the Knowledge Base for:
+- Full rule reference with examples
+- Common violations and how to fix them
+- VS Code integration and troubleshooting
+- Configuration details and customization
+- CI/CD integration
+
+---
+
 ## Testing
 
 ### File Location

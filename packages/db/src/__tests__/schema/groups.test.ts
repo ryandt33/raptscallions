@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { Group, NewGroup } from "../../schema/groups.js";
+
 import { groups, groupTypeEnum } from "../../schema/groups.js";
+
+import type { Group, NewGroup } from "../../schema/groups.js";
 
 describe("Groups Schema", () => {
   describe("Type Inference", () => {

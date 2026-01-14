@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { z } from "zod";
 
 describe("Configuration (config.ts)", () => {
   const originalEnv = process.env;

@@ -1,12 +1,13 @@
 // apps/api/src/middleware/auth.middleware.ts
 
-import { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
-import fp from "fastify-plugin";
 import { UnauthorizedError, ForbiddenError } from "@raptscallions/core";
 import { db } from "@raptscallions/db";
 import { groupMembers } from "@raptscallions/db/schema";
-import { eq, and } from "drizzle-orm";
 import { getLogger } from "@raptscallions/telemetry";
+import { eq, and } from "drizzle-orm";
+import { type FastifyPluginAsync, type FastifyRequest, type FastifyReply } from "fastify";
+import fp from "fastify-plugin";
+
 import type { GroupMember } from "@raptscallions/db/schema";
 
 const logger = getLogger("auth-middleware");
@@ -26,13 +27,13 @@ type MemberRole = GroupMember["role"];
  * ```
  */
 const authMiddlewarePlugin: FastifyPluginAsync = async (app) => {
-  app.decorate("requireAuth", async (request: FastifyRequest, reply: FastifyReply) => {
+  app.decorate("requireAuth", async (request: FastifyRequest, _reply: FastifyReply) => {
     if (!request.user) {
       throw new UnauthorizedError("Authentication required");
     }
   });
 
-  app.decorate("requireActiveUser", async (request: FastifyRequest, reply: FastifyReply) => {
+  app.decorate("requireActiveUser", async (request: FastifyRequest, _reply: FastifyReply) => {
     if (!request.user) {
       throw new UnauthorizedError("Authentication required");
     }
@@ -64,7 +65,7 @@ const authMiddlewarePlugin: FastifyPluginAsync = async (app) => {
    * ```
    */
   app.decorate("requireRole", (...roles: MemberRole[]) => {
-    return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return async (request: FastifyRequest, _reply: FastifyReply): Promise<void> => {
       // Validate at least one role is specified
       if (roles.length === 0) {
         throw new Error(
@@ -129,7 +130,7 @@ const authMiddlewarePlugin: FastifyPluginAsync = async (app) => {
    * ```
    */
   app.decorate("requireGroupMembership", (groupId: string) => {
-    return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return async (request: FastifyRequest, _reply: FastifyReply): Promise<void> => {
       // First check auth
       if (!request.user) {
         logger.debug(
@@ -231,7 +232,7 @@ const authMiddlewarePlugin: FastifyPluginAsync = async (app) => {
    * ```
    */
   app.decorate("requireGroupRole", (...roles: MemberRole[]) => {
-    return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return async (request: FastifyRequest, _reply: FastifyReply): Promise<void> => {
       // Validate at least one role is specified
       if (roles.length === 0) {
         throw new Error(

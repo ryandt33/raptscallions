@@ -7,8 +7,9 @@ import {
   beforeEach,
   vi,
 } from "vitest";
-import type { FastifyInstance } from "fastify";
+
 import type { SessionServiceLike } from "../../middleware/session.middleware.js";
+import type { FastifyInstance } from "fastify";
 
 // Use vi.hoisted to ensure mock objects are available when vi.mock factories run
 // CRITICAL: These must be hoisted to the top of the file before ANY imports

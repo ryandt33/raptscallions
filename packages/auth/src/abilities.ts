@@ -1,7 +1,6 @@
 import { AbilityBuilder, createMongoAbility, subject } from "@casl/ability";
+
 import type {
-  Actions,
-  Subjects,
   AppAbility,
   BuildAbilityContext,
   GroupPath,
@@ -26,6 +25,9 @@ import type {
  * }
  * ```
  */
+// CASL's MongoDB query operators ($in, etc.) require complex typing that doesn't directly match TypeScript's Record types
+// Using 'any' here is safe because CASL validates these internally and the query structure is correct
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function buildAbility({
   user,
   memberships,
@@ -110,6 +112,7 @@ export function buildAbility({
 
   return build();
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Check if user can manage a group based on ltree hierarchy.
@@ -137,6 +140,8 @@ export function buildAbility({
  * // Returns true (dept_math is descendant of school1)
  * ```
  */
+// CASL's subject() returns a complex type that requires type assertion
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function canManageGroupHierarchy(
   ability: AppAbility,
   targetGroupId: string,
@@ -154,3 +159,4 @@ export function canManageGroupHierarchy(
     ({ path }) => targetGroupPath.startsWith(path + ".") || targetGroupPath === path
   );
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

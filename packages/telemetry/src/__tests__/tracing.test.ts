@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { getTracer } from '../tracing.js';
 
 describe('Tracer', () => {

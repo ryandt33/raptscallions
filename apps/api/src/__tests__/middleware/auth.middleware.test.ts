@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
-import type { FastifyRequest, FastifyReply } from "fastify";
-import type { GroupMember } from "@raptscallions/db/schema";
 import { UnauthorizedError, ForbiddenError } from "@raptscallions/core";
 import { db } from "@raptscallions/db";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
+
+import type { GroupMember } from "@raptscallions/db/schema";
+import type { FastifyRequest, FastifyReply } from "fastify";
 
 // Mock the database
 vi.mock("@raptscallions/db", () => ({
@@ -36,7 +37,7 @@ describe("Auth Middleware Guards", () => {
   describe("requireRole", () => {
     // Note: requireRole is a factory that returns a preHandler function
     const mockRequireRole = (...roles: MemberRole[]) => {
-      return async (request: FastifyRequest, reply: FastifyReply) => {
+      return async (request: FastifyRequest, _reply: FastifyReply) => {
         if (!request.user) {
           throw new UnauthorizedError("Authentication required");
         }
@@ -81,7 +82,7 @@ describe("Auth Middleware Guards", () => {
         // Act
         try {
           await guard(mockRequest as FastifyRequest, mockReply as FastifyReply);
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -215,25 +216,27 @@ describe("Auth Middleware Guards", () => {
           "student",
         ];
 
-        for (const role of roles) {
-          (db.query.groupMembers.findMany as Mock).mockResolvedValue([
-            {
-              id: "membership-123",
-              userId: "user-123",
-              groupId: "group-456",
-              role,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            } as GroupMember,
-          ]);
+        // Act & Assert - Test all roles in parallel
+        await Promise.all(
+          roles.map(async (role) => {
+            (db.query.groupMembers.findMany as Mock).mockResolvedValue([
+              {
+                id: "membership-123",
+                userId: "user-123",
+                groupId: "group-456",
+                role,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              } as GroupMember,
+            ]);
 
-          const guard = mockRequireRole(role);
+            const guard = mockRequireRole(role);
 
-          // Act & Assert
-          await expect(
-            guard(mockRequest as FastifyRequest, mockReply as FastifyReply)
-          ).resolves.not.toThrow();
-        }
+            await expect(
+              guard(mockRequest as FastifyRequest, mockReply as FastifyReply)
+            ).resolves.not.toThrow();
+          })
+        );
       });
     });
 
@@ -361,8 +364,8 @@ describe("Auth Middleware Guards", () => {
 
   describe("requireGroupMembership", () => {
     // Note: requireGroupMembership is a factory that returns a preHandler function
-    const mockRequireGroupMembership = (groupId: string) => {
-      return async (request: FastifyRequest, reply: FastifyReply) => {
+    const mockRequireGroupMembership = (_groupId: string) => {
+      return async (request: FastifyRequest, _reply: FastifyReply) => {
         if (!request.user) {
           throw new UnauthorizedError("Authentication required");
         }
@@ -403,7 +406,7 @@ describe("Auth Middleware Guards", () => {
         // Act
         try {
           await guard(mockRequest as FastifyRequest, mockReply as FastifyReply);
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -600,7 +603,7 @@ describe("Auth Middleware Guards", () => {
         // Act
         try {
           await guard(mockRequest as FastifyRequest, mockReply as FastifyReply);
-        } catch (error) {
+        } catch (_error) {
           // Expected error
         }
 
@@ -613,7 +616,7 @@ describe("Auth Middleware Guards", () => {
   describe("requireGroupFromParams", () => {
     // Note: requireGroupFromParams is a factory that returns a preHandler function
     const mockRequireGroupFromParams = (paramName: string = "groupId") => {
-      return async (request: FastifyRequest, reply: FastifyReply) => {
+      return async (request: FastifyRequest, _reply: FastifyReply) => {
         const groupId = (request.params as Record<string, unknown>)[paramName];
 
         if (!groupId || typeof groupId !== "string") {
@@ -784,7 +787,7 @@ describe("Auth Middleware Guards", () => {
   describe("requireGroupRole", () => {
     // Note: requireGroupRole is a factory that returns a preHandler function
     const mockRequireGroupRole = (...roles: MemberRole[]) => {
-      return async (request: FastifyRequest, reply: FastifyReply) => {
+      return async (request: FastifyRequest, _reply: FastifyReply) => {
         if (!request.groupMembership) {
           throw new Error(
             "requireGroupRole must be used after requireGroupMembership or requireGroupFromParams"
@@ -925,23 +928,25 @@ describe("Auth Middleware Guards", () => {
           "student",
         ];
 
-        for (const role of roles) {
-          mockRequest.groupMembership = {
-            id: "membership-123",
-            userId: "user-123",
-            groupId: "group-123",
-            role,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
+        // Act & Assert - Test all roles in parallel
+        await Promise.all(
+          roles.map(async (role) => {
+            mockRequest.groupMembership = {
+              id: "membership-123",
+              userId: "user-123",
+              groupId: "group-123",
+              role,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
 
-          const guard = mockRequireGroupRole(role);
+            const guard = mockRequireGroupRole(role);
 
-          // Act & Assert
-          await expect(
-            guard(mockRequest as FastifyRequest, mockReply as FastifyReply)
-          ).resolves.not.toThrow();
-        }
+            await expect(
+              guard(mockRequest as FastifyRequest, mockReply as FastifyReply)
+            ).resolves.not.toThrow();
+          })
+        );
       });
     });
 
@@ -1020,7 +1025,7 @@ describe("Auth Middleware Guards", () => {
         // Mock requireAuth
         const requireAuth = async (
           request: FastifyRequest,
-          reply: FastifyReply
+          _reply: FastifyReply
         ) => {
           if (!request.user) {
             throw new UnauthorizedError("Authentication required");
@@ -1029,7 +1034,7 @@ describe("Auth Middleware Guards", () => {
 
         // Mock requireRole
         const requireRole = (...roles: MemberRole[]) => {
-          return async (request: FastifyRequest, reply: FastifyReply) => {
+          return async (request: FastifyRequest, _reply: FastifyReply) => {
             if (!request.user) {
               throw new UnauthorizedError("Authentication required");
             }
@@ -1064,7 +1069,7 @@ describe("Auth Middleware Guards", () => {
 
         const requireAuth = async (
           request: FastifyRequest,
-          reply: FastifyReply
+          _reply: FastifyReply
         ) => {
           if (!request.user) {
             throw new UnauthorizedError("Authentication required");
@@ -1108,7 +1113,7 @@ describe("Auth Middleware Guards", () => {
         // Mock guards
         const requireAuth = async (
           request: FastifyRequest,
-          reply: FastifyReply
+          _reply: FastifyReply
         ) => {
           if (!request.user) {
             throw new UnauthorizedError("Authentication required");
@@ -1116,7 +1121,7 @@ describe("Auth Middleware Guards", () => {
         };
 
         const requireGroupFromParams = (paramName: string = "groupId") => {
-          return async (request: FastifyRequest, reply: FastifyReply) => {
+          return async (request: FastifyRequest, _reply: FastifyReply) => {
             const groupId = (request.params as Record<string, unknown>)[
               paramName
             ];
@@ -1134,7 +1139,7 @@ describe("Auth Middleware Guards", () => {
         };
 
         const requireGroupRole = (...roles: MemberRole[]) => {
-          return async (request: FastifyRequest, reply: FastifyReply) => {
+          return async (request: FastifyRequest, _reply: FastifyReply) => {
             if (!request.groupMembership) {
               throw new Error("groupMembership required");
             }

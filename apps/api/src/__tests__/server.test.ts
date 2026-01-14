@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
 import type { FastifyInstance } from "fastify";
 
 // Use vi.hoisted to ensure rate limit store is available when mock factory runs

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
+
 import { initTelemetry, getLogger, getTracer, getMeter } from '../index.js';
+
 import type { TelemetryConfig, Logger, Tracer, Meter, Span } from '../index.js';
 
 describe('Package exports', () => {

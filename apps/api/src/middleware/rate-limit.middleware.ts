@@ -1,10 +1,12 @@
-import type { FastifyPluginAsync, FastifyRequest } from "fastify";
-import fp from "fastify-plugin";
 import rateLimit from "@fastify/rate-limit";
-import { Redis } from "ioredis";
-import { config } from "../config.js";
-import { RateLimitError } from "@raptscallions/core";
 import { getLogger } from "@raptscallions/telemetry";
+import fp from "fastify-plugin";
+import { Redis } from "ioredis";
+
+import { config } from "../config.js";
+
+
+import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 
 const logger = getLogger("rate-limit-middleware");
 
@@ -69,7 +71,7 @@ const rateLimitPlugin: FastifyPluginAsync = async (app) => {
   const errorResponseBuilder = (
     request: FastifyRequest,
     context: { max: number; after: string; ttl: number }
-  ) => {
+  ): { statusCode: number; error: string; code: string; details: { limit: number; remaining: number; resetAt: string; retryAfter: string; message: string } } => {
     // Calculate reset timestamp
     const resetAt = new Date(Date.now() + context.ttl);
 

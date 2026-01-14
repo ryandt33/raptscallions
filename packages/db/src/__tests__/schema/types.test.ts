@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { pgTable, uuid, varchar } from "drizzle-orm/pg-core";
+import { describe, it, expect } from "vitest";
+
 import { ltree } from "../../schema/types.js";
 
 describe("Custom PostgreSQL Types", () => {

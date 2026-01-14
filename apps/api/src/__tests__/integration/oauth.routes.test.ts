@@ -8,6 +8,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
+
 import type { FastifyInstance } from "fastify";
 
 // Rate limit store for mock Redis - needs to be accessible for reset in beforeEach

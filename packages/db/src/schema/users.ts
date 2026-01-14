@@ -66,7 +66,11 @@ export type NewUser = typeof users.$inferInsert;
 Object.defineProperty(users, "_", {
   get() {
     return {
-      name: Symbol.for("drizzle:Name") in users ? (users as any)[Symbol.for("drizzle:Name")] : "users",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
+      name: Symbol.for("drizzle:Name") in users
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
+        ? (users as any)[Symbol.for("drizzle:Name")]
+        : "users",
     };
   },
   enumerable: false,

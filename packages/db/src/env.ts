@@ -31,7 +31,9 @@ export type DbEnv = z.infer<typeof dbEnvSchema>;
 export function validateDbEnv(): DbEnv {
   const result = dbEnvSchema.safeParse(process.env);
   if (!result.success) {
+    // eslint-disable-next-line no-console -- Required for CLI feedback
     console.error("Invalid database environment configuration:");
+    // eslint-disable-next-line no-console -- Required for CLI feedback
     console.error(result.error.format());
     throw new Error("Database environment validation failed");
   }

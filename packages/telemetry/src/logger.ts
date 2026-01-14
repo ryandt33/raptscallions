@@ -29,6 +29,7 @@ function parseLogArgs(
  * 1. Standard: logger.info("message", { meta: "data" })
  * 2. Pino-style: logger.info({ meta: "data" }, "message")
  */
+/* eslint-disable no-console -- Console methods are intentional for logging implementation */
 class ConsoleLogger implements Logger {
   constructor(private name: string) {}
 

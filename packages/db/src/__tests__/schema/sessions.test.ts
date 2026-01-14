@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { Session, NewSession } from "../../schema/sessions.js";
+
 import { sessions } from "../../schema/sessions.js";
+
+import type { Session, NewSession } from "../../schema/sessions.js";
 
 describe("Sessions Schema", () => {
   describe("Type Inference", () => {

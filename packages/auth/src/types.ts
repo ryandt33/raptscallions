@@ -1,8 +1,8 @@
 // packages/auth/src/types.ts
 
-import type { User as LuciaUser, Session as LuciaSession } from "lucia";
 import type { MongoAbility } from "@casl/ability";
 import type { GroupMember } from "@raptscallions/db/schema";
+import type { User as LuciaUser, Session as LuciaSession } from "lucia";
 
 /**
  * Authenticated user type with all user attributes from getUserAttributes.

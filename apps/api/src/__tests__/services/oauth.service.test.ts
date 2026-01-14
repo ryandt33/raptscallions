@@ -1,11 +1,34 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import {
+  lucia,
+  sessionService,
+  requireGoogleOAuth,
+  requireMicrosoftOAuth,
+  generateOAuthState,
+  generateOAuthCodeVerifier,
+  validateOAuthState,
+  OAUTH_STATE_COOKIE,
+  OAUTH_CODE_VERIFIER_COOKIE,
+  OAUTH_STATE_MAX_AGE,
+} from "@raptscallions/auth";
 import { UnauthorizedError, AppError } from "@raptscallions/core";
-import type { User } from "@raptscallions/db/schema";
+import { db } from "@raptscallions/db";
+import { logger } from "@raptscallions/telemetry";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import {
+  initiateGoogleOAuth,
+  handleGoogleCallback,
+  initiateMicrosoftOAuth,
+  handleMicrosoftCallback,
+} from "../../services/oauth.service.js";
+
 import type {
   GoogleUserProfile,
   MicrosoftUserProfile,
 } from "@raptscallions/core";
+import type { User } from "@raptscallions/db/schema";
+import type { FastifyReply, FastifyRequest } from "fastify";
+
 
 // Mock dependencies before importing service
 vi.mock("@raptscallions/db", () => ({
@@ -61,30 +84,9 @@ vi.mock("@raptscallions/telemetry", () => ({
 // Mock global fetch
 global.fetch = vi.fn();
 
-import { db } from "@raptscallions/db";
-import {
-  lucia,
-  sessionService,
-  requireGoogleOAuth,
-  requireMicrosoftOAuth,
-  generateOAuthState,
-  generateOAuthCodeVerifier,
-  validateOAuthState,
-  OAUTH_STATE_COOKIE,
-  OAUTH_CODE_VERIFIER_COOKIE,
-  OAUTH_STATE_MAX_AGE,
-} from "@raptscallions/auth";
-import { logger } from "@raptscallions/telemetry";
-import {
-  initiateGoogleOAuth,
-  handleGoogleCallback,
-  initiateMicrosoftOAuth,
-  handleMicrosoftCallback,
-} from "../../services/oauth.service.js";
-
 describe("OAuth Service", () => {
   let mockReply: Partial<FastifyReply>;
-  let mockRequest: Partial<FastifyRequest>;
+  let _mockRequest: Partial<FastifyRequest>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -95,7 +97,7 @@ describe("OAuth Service", () => {
       send: vi.fn(),
     };
 
-    mockRequest = {
+    _mockRequest = {
       query: {},
       cookies: {},
     };
