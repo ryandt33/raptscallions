@@ -1,6 +1,6 @@
 # .github Directory
 
-GitHub configuration and CI/CD automation for Raptscallions.
+GitHub configuration and CI/CD automation for RaptScallions.
 
 ## 📁 Directory Structure
 
@@ -46,6 +46,7 @@ GitHub configuration and CI/CD automation for Raptscallions.
 **Runs on:** Push, PR, Manual
 
 **Jobs:**
+
 - ✅ **Type Check** — `pnpm typecheck` (zero errors)
 - ✅ **Lint** — `pnpm lint` (zero warnings)
 - ✅ **Test** — `pnpm test` (with PostgreSQL + Redis)
@@ -61,6 +62,7 @@ GitHub configuration and CI/CD automation for Raptscallions.
 **Runs on:** Push, PR, Weekly (Mondays)
 
 **Jobs:**
+
 - 🔒 **CodeQL** — Static analysis (JS/TS)
 - 🔒 **Dependency Audit** — `pnpm audit`
 - 🔒 **Secret Scanning** — TruffleHog OSS
@@ -73,6 +75,7 @@ GitHub configuration and CI/CD automation for Raptscallions.
 **Runs on:** Weekly (Mondays), Manual
 
 **Process:**
+
 1. Updates all dependencies
 2. Runs tests
 3. Creates PR with `automerge` label
@@ -83,6 +86,7 @@ GitHub configuration and CI/CD automation for Raptscallions.
 **Runs on:** PR events, Check completion
 
 **Process:**
+
 1. Checks for `automerge` label
 2. Waits for required checks to pass
 3. Automatically merges with squash method
@@ -95,6 +99,7 @@ GitHub configuration and CI/CD automation for Raptscallions.
 [pull_request_template.md](pull_request_template.md)
 
 Includes:
+
 - Summary section
 - Task reference (Epic/Task)
 - Changes made
@@ -107,18 +112,21 @@ Includes:
 ### Issue Templates
 
 **Bug Report** ([bug_report.md](ISSUE_TEMPLATE/bug_report.md))
+
 - Description
 - Reproduction steps
 - Expected vs actual behavior
 - Environment details
 
 **Feature Request** ([feature_request.md](ISSUE_TEMPLATE/feature_request.md))
+
 - Feature description
 - Problem statement
 - Proposed solution
 - Acceptance criteria
 
 **Task** ([task.md](ISSUE_TEMPLATE/task.md))
+
 - Task reference (Epic/Task ID)
 - Description
 - Acceptance criteria
@@ -129,6 +137,7 @@ Includes:
 [CODEOWNERS](CODEOWNERS) automatically requests reviews based on file paths.
 
 **Example:**
+
 ```
 # Backend
 /apps/api/ @backend-team
@@ -149,6 +158,7 @@ Includes:
 [hooks/pre-commit](hooks/pre-commit)
 
 **Runs before each commit:**
+
 ```bash
 pnpm typecheck  # TypeScript errors
 pnpm lint       # Code style
@@ -156,6 +166,7 @@ pnpm test       # Unit tests
 ```
 
 **Install:**
+
 ```bash
 # Automatic on pnpm install
 pnpm install
@@ -166,6 +177,7 @@ chmod +x .git/hooks/pre-commit
 ```
 
 **Bypass (not recommended):**
+
 ```bash
 git commit --no-verify
 ```
@@ -240,13 +252,13 @@ See [SETUP.md](SETUP.md) for details.
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [QUICKSTART.md](QUICKSTART.md) | 5-minute setup guide |
-| [SETUP.md](SETUP.md) | Detailed configuration |
-| [SETUP_SUMMARY.md](SETUP_SUMMARY.md) | Complete overview |
-| [../docs/CI_CD.md](../docs/CI_CD.md) | Comprehensive docs |
-| [../scripts/README.md](../scripts/README.md) | Helper scripts |
+| Document                                     | Purpose                |
+| -------------------------------------------- | ---------------------- |
+| [QUICKSTART.md](QUICKSTART.md)               | 5-minute setup guide   |
+| [SETUP.md](SETUP.md)                         | Detailed configuration |
+| [SETUP_SUMMARY.md](SETUP_SUMMARY.md)         | Complete overview      |
+| [../docs/CI_CD.md](../docs/CI_CD.md)         | Comprehensive docs     |
+| [../scripts/README.md](../scripts/README.md) | Helper scripts         |
 
 ## 🤝 Contributing
 
@@ -283,6 +295,7 @@ gh run view <RUN_ID> --log
 ### Auto-Merge Not Working
 
 **Common issues:**
+
 - PR is in draft mode (`gh pr ready <PR>`)
 - Missing `automerge` label
 - Checks haven't passed yet

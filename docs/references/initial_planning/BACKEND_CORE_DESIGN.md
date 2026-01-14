@@ -28,7 +28,7 @@
 
 ### Purpose
 
-This document specifies the backend core infrastructure for Raptscallions—the foundational services, data models, and architectural patterns that support the application. It covers everything from project organization to deployment strategy, excluding components covered in dedicated specifications (Authentication, Events/Workflows, Module System, and Chat Runtime).
+This document specifies the backend core infrastructure for RaptScallions—the foundational services, data models, and architectural patterns that support the application. It covers everything from project organization to deployment strategy, excluding components covered in dedicated specifications (Authentication, Events/Workflows, Module System, and Chat Runtime).
 
 ### Scope
 
@@ -1103,7 +1103,7 @@ export const tracingPlugin: FastifyPluginAsync = async (app) => {
 ```json
 // app.json
 {
-  "name": "Raptscallions",
+  "name": "RaptScallions",
   "description": "Open-source AI education platform",
   "stack": "container",
   "addons": ["heroku-postgresql:essential-0", "heroku-redis:mini"],

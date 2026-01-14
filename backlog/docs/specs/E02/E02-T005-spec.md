@@ -4,7 +4,7 @@
 
 Implement CASL-based authorization system with ability definitions for all four role types (system_admin, group_admin, teacher, student). Create Fastify middleware to build user abilities from group memberships and enforce permissions on routes. The system must support group hierarchy permissions using ltree queries and provide both route-level and resource-level permission checks.
 
-This task builds on the session middleware from E02-T002 to add fine-grained authorization to the Raptscallions platform.
+This task builds on the session middleware from E02-T002 to add fine-grained authorization to the RaptScallions platform.
 
 ## Approach
 
@@ -35,21 +35,21 @@ For group admins, we'll fetch their managed group paths and use ltree queries to
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `packages/auth/src/abilities.ts` | CASL ability definitions and builder function |
-| `packages/auth/src/permissions.ts` | Permission middleware and helpers |
-| `packages/core/src/errors/common.error.ts` | Add ForbiddenError class (modify existing) |
+| File                                       | Purpose                                       |
+| ------------------------------------------ | --------------------------------------------- |
+| `packages/auth/src/abilities.ts`           | CASL ability definitions and builder function |
+| `packages/auth/src/permissions.ts`         | Permission middleware and helpers             |
+| `packages/core/src/errors/common.error.ts` | Add ForbiddenError class (modify existing)    |
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `packages/auth/src/types.ts` | Add ability-related types and Fastify augmentation |
-| `packages/auth/src/index.ts` | Export ability builder and permission helpers |
-| `packages/auth/package.json` | Add @casl/ability dependency |
-| `packages/core/src/errors/base.error.ts` | Add FORBIDDEN error code constant |
-| `packages/core/src/errors/index.ts` | Export ForbiddenError |
+| File                                     | Changes                                            |
+| ---------------------------------------- | -------------------------------------------------- |
+| `packages/auth/src/types.ts`             | Add ability-related types and Fastify augmentation |
+| `packages/auth/src/index.ts`             | Export ability builder and permission helpers      |
+| `packages/auth/package.json`             | Add @casl/ability dependency                       |
+| `packages/core/src/errors/base.error.ts` | Add FORBIDDEN error code constant                  |
+| `packages/core/src/errors/index.ts`      | Export ForbiddenError                              |
 
 ## Dependencies
 
@@ -75,6 +75,7 @@ Add to `packages/auth/package.json`:
 ### Database Schema
 
 No new tables required. Uses existing:
+
 - `users` - User identity
 - `groups` - Hierarchical organization with ltree paths
 - `group_members` - User roles in groups (system_admin, group_admin, teacher, student)
@@ -88,7 +89,7 @@ No new tables required. Uses existing:
 Add the following types:
 
 ```typescript
-import type { PureAbility } from '@casl/ability';
+import type { PureAbility } from "@casl/ability";
 
 /**
  * Actions that can be performed on resources.
@@ -98,7 +99,7 @@ import type { PureAbility } from '@casl/ability';
  * - delete: Remove resource
  * - manage: All actions (wildcard)
  */
-export type Actions = 'create' | 'read' | 'update' | 'delete' | 'manage';
+export type Actions = "create" | "read" | "update" | "delete" | "manage";
 
 /**
  * Subjects (resource types) in the system.
@@ -112,14 +113,14 @@ export type Actions = 'create' | 'read' | 'update' | 'delete' | 'manage';
  * - all: Wildcard for all subjects
  */
 export type Subjects =
-  | 'User'
-  | 'Group'
-  | 'Class'
-  | 'Tool'
-  | 'Assignment'
-  | 'Session'
-  | 'Run'
-  | 'all';
+  | "User"
+  | "Group"
+  | "Class"
+  | "Tool"
+  | "Assignment"
+  | "Session"
+  | "Run"
+  | "all";
 
 /**
  * Application ability type.
@@ -144,7 +145,7 @@ export interface GroupPath {
 }
 
 // Augment Fastify types
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyRequest {
     ability: AppAbility;
   }
@@ -177,7 +178,9 @@ Add ForbiddenError class:
  * Defaults to HTTP 403 Forbidden.
  */
 export class ForbiddenError extends AppError {
-  constructor(message: string = "You do not have permission to perform this action") {
+  constructor(
+    message: string = "You do not have permission to perform this action"
+  ) {
     super(message, ErrorCode.FORBIDDEN, 403);
   }
 }
@@ -201,16 +204,16 @@ export {
 
 **File**: `packages/auth/src/abilities.ts`
 
-```typescript
-import { AbilityBuilder, PureAbility } from '@casl/ability';
+````typescript
+import { AbilityBuilder, PureAbility } from "@casl/ability";
 import type {
   Actions,
   Subjects,
   AppAbility,
   BuildAbilityContext,
-  GroupPath
-} from './types.js';
-import type { GroupMember } from '@raptscallions/db/schema';
+  GroupPath,
+} from "./types.js";
+import type { GroupMember } from "@raptscallions/db/schema";
 
 /**
  * Build CASL ability instance for a user based on their group memberships.
@@ -231,84 +234,87 @@ import type { GroupMember } from '@raptscallions/db/schema';
  * }
  * ```
  */
-export function buildAbility({ user, memberships }: BuildAbilityContext): AppAbility {
+export function buildAbility({
+  user,
+  memberships,
+}: BuildAbilityContext): AppAbility {
   const { can, cannot, build } = new AbilityBuilder<AppAbility>(PureAbility);
 
   // System admin bypass - can do everything
-  const isSystemAdmin = memberships.some(m => m.role === 'system_admin');
+  const isSystemAdmin = memberships.some((m) => m.role === "system_admin");
   if (isSystemAdmin) {
-    can('manage', 'all');
+    can("manage", "all");
     return build();
   }
 
   // Group admin permissions
   const groupAdminGroups = memberships
-    .filter(m => m.role === 'group_admin')
-    .map(m => m.groupId);
+    .filter((m) => m.role === "group_admin")
+    .map((m) => m.groupId);
 
   if (groupAdminGroups.length > 0) {
     // Can manage groups they administer (hierarchy handled in helper)
-    can('manage', 'Group', { id: { $in: groupAdminGroups } });
+    can("manage", "Group", { id: { $in: groupAdminGroups } });
 
     // Can manage users in their groups
-    can('manage', 'User', { groupId: { $in: groupAdminGroups } });
+    can("manage", "User", { groupId: { $in: groupAdminGroups } });
 
     // Can manage classes in their groups
-    can('manage', 'Class', { groupId: { $in: groupAdminGroups } });
+    can("manage", "Class", { groupId: { $in: groupAdminGroups } });
 
     // Can read all tools in their groups
-    can('read', 'Tool', { groupId: { $in: groupAdminGroups } });
+    can("read", "Tool", { groupId: { $in: groupAdminGroups } });
 
     // Can manage assignments in their groups
-    can('manage', 'Assignment', { groupId: { $in: groupAdminGroups } });
+    can("manage", "Assignment", { groupId: { $in: groupAdminGroups } });
   }
 
   // Teacher permissions
   const teacherGroups = memberships
-    .filter(m => m.role === 'teacher')
-    .map(m => m.groupId);
+    .filter((m) => m.role === "teacher")
+    .map((m) => m.groupId);
 
   if (teacherGroups.length > 0) {
     // Can create tools in their groups
-    can('create', 'Tool', { groupId: { $in: teacherGroups } });
+    can("create", "Tool", { groupId: { $in: teacherGroups } });
 
     // Can manage their own tools
-    can(['read', 'update', 'delete'], 'Tool', { createdBy: user.id });
+    can(["read", "update", "delete"], "Tool", { createdBy: user.id });
 
     // Can create assignments in their groups
-    can('create', 'Assignment', { groupId: { $in: teacherGroups } });
+    can("create", "Assignment", { groupId: { $in: teacherGroups } });
 
     // Can manage their own assignments
-    can(['read', 'update', 'delete'], 'Assignment', { createdBy: user.id });
+    can(["read", "update", "delete"], "Assignment", { createdBy: user.id });
 
     // Can read classes in their groups
-    can('read', 'Class', { groupId: { $in: teacherGroups } });
+    can("read", "Class", { groupId: { $in: teacherGroups } });
 
     // Can read users in their groups
-    can('read', 'User', { groupId: { $in: teacherGroups } });
+    can("read", "User", { groupId: { $in: teacherGroups } });
 
     // Can read sessions for their tools
-    can('read', 'Session', { toolCreatedBy: user.id });
+    can("read", "Session", { toolCreatedBy: user.id });
   }
 
   // Student permissions (everyone gets these)
   // Students can read tools assigned to them
-  can('read', 'Tool', { assignedTo: user.id });
+  can("read", "Tool", { assignedTo: user.id });
 
   // Students can read assignments assigned to them
-  can('read', 'Assignment', { assignedTo: user.id });
+  can("read", "Assignment", { assignedTo: user.id });
 
   // Students can manage their own sessions
-  can('create', 'Session', { userId: user.id });
-  can(['read', 'update', 'delete'], 'Session', { userId: user.id });
+  can("create", "Session", { userId: user.id });
+  can(["read", "update", "delete"], "Session", { userId: user.id });
 
   // Students can manage their own product runs
-  can('create', 'Run', { userId: user.id });
-  can('read', 'Run', { userId: user.id });
+  can("create", "Run", { userId: user.id });
+  can("read", "Run", { userId: user.id });
 
   // All users can read their own profile
-  can('read', 'User', { id: user.id });
-  can('update', 'User', { id: user.id });
+  can("read", "User", { id: user.id });
+  can("update", "User", { id: user.id });
 
   return build();
 }
@@ -346,31 +352,32 @@ export function canManageGroupHierarchy(
   targetGroupPath: string
 ): boolean {
   // First check if user can manage the exact group
-  if (ability.can('manage', 'Group', { id: targetGroupId })) {
+  if (ability.can("manage", "Group", { id: targetGroupId })) {
     return true;
   }
 
   // Check if target group is descendant of any managed group
   // ltree path matching: 'district.school1.dept' starts with 'district.school1'
-  return userGroupPaths.some(({ path }) =>
-    targetGroupPath.startsWith(path + '.') || targetGroupPath === path
+  return userGroupPaths.some(
+    ({ path }) =>
+      targetGroupPath.startsWith(path + ".") || targetGroupPath === path
   );
 }
-```
+````
 
 ### 4. Permission Middleware and Helpers
 
 **File**: `packages/auth/src/permissions.ts`
 
-```typescript
-import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
-import { PureAbility } from '@casl/ability';
-import { db } from '@raptscallions/db';
-import { groupMembers, groups } from '@raptscallions/db/schema';
-import { eq, inArray } from 'drizzle-orm';
-import { buildAbility, canManageGroupHierarchy } from './abilities.js';
-import { ForbiddenError } from '@raptscallions/core';
-import type { Actions, Subjects, AppAbility, GroupPath } from './types.js';
+````typescript
+import { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
+import { PureAbility } from "@casl/ability";
+import { db } from "@raptscallions/db";
+import { groupMembers, groups } from "@raptscallions/db/schema";
+import { eq, inArray } from "drizzle-orm";
+import { buildAbility, canManageGroupHierarchy } from "./abilities.js";
+import { ForbiddenError } from "@raptscallions/core";
+import type { Actions, Subjects, AppAbility, GroupPath } from "./types.js";
 
 /**
  * Permission middleware plugin for Fastify.
@@ -382,13 +389,13 @@ import type { Actions, Subjects, AppAbility, GroupPath } from './types.js';
  */
 export const permissionMiddleware: FastifyPluginAsync = async (app) => {
   // Decorate request with ability (initialized to empty)
-  app.decorateRequest('ability', null);
+  app.decorateRequest("ability", null);
 
   /**
    * onRequest hook to build ability from user's group memberships.
    * Runs after session middleware (which populates request.user).
    */
-  app.addHook('onRequest', async (request, reply) => {
+  app.addHook("onRequest", async (request, reply) => {
     // No user? Create empty ability
     if (!request.user) {
       request.ability = new PureAbility([]);
@@ -423,7 +430,7 @@ export const permissionMiddleware: FastifyPluginAsync = async (app) => {
    * });
    * ```
    */
-  app.decorate('requirePermission', (action: Actions, subject: Subjects) => {
+  app.decorate("requirePermission", (action: Actions, subject: Subjects) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
       if (!request.ability.can(action, subject)) {
         throw new ForbiddenError(`You cannot ${action} ${subject}`);
@@ -449,14 +456,17 @@ export const permissionMiddleware: FastifyPluginAsync = async (app) => {
    * }
    * ```
    */
-  app.decorate('checkResourcePermission', (
-    ability: AppAbility,
-    action: Actions,
-    subject: Subjects,
-    resource: Record<string, unknown>
-  ): boolean => {
-    return ability.can(action, subject, resource);
-  });
+  app.decorate(
+    "checkResourcePermission",
+    (
+      ability: AppAbility,
+      action: Actions,
+      subject: Subjects,
+      resource: Record<string, unknown>
+    ): boolean => {
+      return ability.can(action, subject, resource);
+    }
+  );
 
   /**
    * Helper to fetch group paths for hierarchy permission checks.
@@ -470,30 +480,33 @@ export const permissionMiddleware: FastifyPluginAsync = async (app) => {
    * const canManage = canManageGroupHierarchy(ability, targetId, paths, targetPath);
    * ```
    */
-  app.decorate('getGroupPaths', async (groupIds: string[]): Promise<GroupPath[]> => {
-    if (groupIds.length === 0) {
-      return [];
+  app.decorate(
+    "getGroupPaths",
+    async (groupIds: string[]): Promise<GroupPath[]> => {
+      if (groupIds.length === 0) {
+        return [];
+      }
+
+      const groupsData = await db.query.groups.findMany({
+        where: inArray(groups.id, groupIds),
+        columns: {
+          id: true,
+          path: true,
+        },
+      });
+
+      return groupsData.map((g) => ({
+        groupId: g.id,
+        path: g.path,
+      }));
     }
-
-    const groupsData = await db.query.groups.findMany({
-      where: inArray(groups.id, groupIds),
-      columns: {
-        id: true,
-        path: true,
-      },
-    });
-
-    return groupsData.map(g => ({
-      groupId: g.id,
-      path: g.path,
-    }));
-  });
+  );
 };
 
 /**
  * Augment Fastify instance with permission decorators.
  */
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     requirePermission: (
       action: Actions,
@@ -510,7 +523,7 @@ declare module 'fastify' {
     getGroupPaths: (groupIds: string[]) => Promise<GroupPath[]>;
   }
 }
-```
+````
 
 ### 5. Package Exports
 
@@ -520,10 +533,10 @@ Add to existing exports:
 
 ```typescript
 // Export ability builder and helpers
-export { buildAbility, canManageGroupHierarchy } from './abilities.js';
+export { buildAbility, canManageGroupHierarchy } from "./abilities.js";
 
 // Export permission middleware
-export { permissionMiddleware } from './permissions.js';
+export { permissionMiddleware } from "./permissions.js";
 
 // Export permission types (add to existing type exports)
 export type {
@@ -532,7 +545,7 @@ export type {
   AppAbility,
   BuildAbilityContext,
   GroupPath,
-} from './types.js';
+} from "./types.js";
 ```
 
 ## Test Strategy
@@ -544,131 +557,143 @@ export type {
 Test ability builder for all role types:
 
 ```typescript
-describe('buildAbility', () => {
-  describe('system_admin', () => {
-    it('should allow manage all', () => {
+describe("buildAbility", () => {
+  describe("system_admin", () => {
+    it("should allow manage all", () => {
       const ability = buildAbility({
         user: mockUser,
-        memberships: [{ role: 'system_admin', groupId: 'g1' }],
+        memberships: [{ role: "system_admin", groupId: "g1" }],
       });
 
-      expect(ability.can('manage', 'all')).toBe(true);
-      expect(ability.can('delete', 'User')).toBe(true);
-      expect(ability.can('create', 'Group')).toBe(true);
+      expect(ability.can("manage", "all")).toBe(true);
+      expect(ability.can("delete", "User")).toBe(true);
+      expect(ability.can("create", "Group")).toBe(true);
     });
   });
 
-  describe('group_admin', () => {
-    it('should allow managing groups they administer', () => {
+  describe("group_admin", () => {
+    it("should allow managing groups they administer", () => {
       const ability = buildAbility({
         user: mockUser,
-        memberships: [{ role: 'group_admin', groupId: 'g1' }],
+        memberships: [{ role: "group_admin", groupId: "g1" }],
       });
 
-      expect(ability.can('manage', 'Group', { id: 'g1' })).toBe(true);
-      expect(ability.can('manage', 'Group', { id: 'g2' })).toBe(false);
+      expect(ability.can("manage", "Group", { id: "g1" })).toBe(true);
+      expect(ability.can("manage", "Group", { id: "g2" })).toBe(false);
     });
 
-    it('should allow managing users in their groups', () => {
+    it("should allow managing users in their groups", () => {
       const ability = buildAbility({
         user: mockUser,
-        memberships: [{ role: 'group_admin', groupId: 'g1' }],
+        memberships: [{ role: "group_admin", groupId: "g1" }],
       });
 
-      expect(ability.can('create', 'User', { groupId: 'g1' })).toBe(true);
-      expect(ability.can('create', 'User', { groupId: 'g2' })).toBe(false);
-    });
-  });
-
-  describe('teacher', () => {
-    it('should allow creating tools in their groups', () => {
-      const ability = buildAbility({
-        user: mockUser,
-        memberships: [{ role: 'teacher', groupId: 'g1' }],
-      });
-
-      expect(ability.can('create', 'Tool', { groupId: 'g1' })).toBe(true);
-      expect(ability.can('create', 'Tool', { groupId: 'g2' })).toBe(false);
-    });
-
-    it('should allow managing their own tools', () => {
-      const ability = buildAbility({
-        user: mockUser,
-        memberships: [{ role: 'teacher', groupId: 'g1' }],
-      });
-
-      expect(ability.can('delete', 'Tool', { createdBy: mockUser.id })).toBe(true);
-      expect(ability.can('delete', 'Tool', { createdBy: 'other-user' })).toBe(false);
+      expect(ability.can("create", "User", { groupId: "g1" })).toBe(true);
+      expect(ability.can("create", "User", { groupId: "g2" })).toBe(false);
     });
   });
 
-  describe('student', () => {
-    it('should allow reading assigned tools', () => {
+  describe("teacher", () => {
+    it("should allow creating tools in their groups", () => {
       const ability = buildAbility({
         user: mockUser,
-        memberships: [{ role: 'student', groupId: 'g1' }],
+        memberships: [{ role: "teacher", groupId: "g1" }],
       });
 
-      expect(ability.can('read', 'Tool', { assignedTo: mockUser.id })).toBe(true);
-      expect(ability.can('read', 'Tool', { assignedTo: 'other-user' })).toBe(false);
+      expect(ability.can("create", "Tool", { groupId: "g1" })).toBe(true);
+      expect(ability.can("create", "Tool", { groupId: "g2" })).toBe(false);
     });
 
-    it('should allow managing own sessions', () => {
+    it("should allow managing their own tools", () => {
       const ability = buildAbility({
         user: mockUser,
-        memberships: [{ role: 'student', groupId: 'g1' }],
+        memberships: [{ role: "teacher", groupId: "g1" }],
       });
 
-      expect(ability.can('create', 'Session', { userId: mockUser.id })).toBe(true);
-      expect(ability.can('delete', 'Session', { userId: mockUser.id })).toBe(true);
+      expect(ability.can("delete", "Tool", { createdBy: mockUser.id })).toBe(
+        true
+      );
+      expect(ability.can("delete", "Tool", { createdBy: "other-user" })).toBe(
+        false
+      );
+    });
+  });
+
+  describe("student", () => {
+    it("should allow reading assigned tools", () => {
+      const ability = buildAbility({
+        user: mockUser,
+        memberships: [{ role: "student", groupId: "g1" }],
+      });
+
+      expect(ability.can("read", "Tool", { assignedTo: mockUser.id })).toBe(
+        true
+      );
+      expect(ability.can("read", "Tool", { assignedTo: "other-user" })).toBe(
+        false
+      );
+    });
+
+    it("should allow managing own sessions", () => {
+      const ability = buildAbility({
+        user: mockUser,
+        memberships: [{ role: "student", groupId: "g1" }],
+      });
+
+      expect(ability.can("create", "Session", { userId: mockUser.id })).toBe(
+        true
+      );
+      expect(ability.can("delete", "Session", { userId: mockUser.id })).toBe(
+        true
+      );
     });
   });
 });
 
-describe('canManageGroupHierarchy', () => {
-  it('should allow managing exact group', () => {
+describe("canManageGroupHierarchy", () => {
+  it("should allow managing exact group", () => {
     const ability = buildAbility({
       user: mockUser,
-      memberships: [{ role: 'group_admin', groupId: 'g1' }],
+      memberships: [{ role: "group_admin", groupId: "g1" }],
     });
 
     const result = canManageGroupHierarchy(
       ability,
-      'g1',
-      [{ groupId: 'g1', path: 'district.school1' }],
-      'district.school1'
+      "g1",
+      [{ groupId: "g1", path: "district.school1" }],
+      "district.school1"
     );
 
     expect(result).toBe(true);
   });
 
-  it('should allow managing descendant groups', () => {
+  it("should allow managing descendant groups", () => {
     const ability = buildAbility({
       user: mockUser,
-      memberships: [{ role: 'group_admin', groupId: 'g1' }],
+      memberships: [{ role: "group_admin", groupId: "g1" }],
     });
 
     const result = canManageGroupHierarchy(
       ability,
-      'g2',
-      [{ groupId: 'g1', path: 'district.school1' }],
-      'district.school1.dept_math'
+      "g2",
+      [{ groupId: "g1", path: "district.school1" }],
+      "district.school1.dept_math"
     );
 
     expect(result).toBe(true);
   });
 
-  it('should deny managing sibling groups', () => {
+  it("should deny managing sibling groups", () => {
     const ability = buildAbility({
       user: mockUser,
-      memberships: [{ role: 'group_admin', groupId: 'g1' }],
+      memberships: [{ role: "group_admin", groupId: "g1" }],
     });
 
     const result = canManageGroupHierarchy(
       ability,
-      'g2',
-      [{ groupId: 'g1', path: 'district.school1' }],
-      'district.school2'
+      "g2",
+      [{ groupId: "g1", path: "district.school1" }],
+      "district.school2"
     );
 
     expect(result).toBe(false);
@@ -681,7 +706,7 @@ describe('canManageGroupHierarchy', () => {
 Test permission middleware integration:
 
 ```typescript
-describe('permissionMiddleware', () => {
+describe("permissionMiddleware", () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {
@@ -689,32 +714,36 @@ describe('permissionMiddleware', () => {
     await app.register(permissionMiddleware);
   });
 
-  it('should create empty ability for unauthenticated requests', async () => {
-    app.get('/test', async (request) => {
-      return { canCreate: request.ability.can('create', 'Tool') };
+  it("should create empty ability for unauthenticated requests", async () => {
+    app.get("/test", async (request) => {
+      return { canCreate: request.ability.can("create", "Tool") };
     });
 
-    const response = await app.inject({ method: 'GET', url: '/test' });
+    const response = await app.inject({ method: "GET", url: "/test" });
     expect(JSON.parse(response.body).canCreate).toBe(false);
   });
 
-  it('should build ability from user memberships', async () => {
+  it("should build ability from user memberships", async () => {
     // Mock authenticated request
-    app.decorateRequest('user', mockUser);
+    app.decorateRequest("user", mockUser);
     // ... test ability is built correctly
   });
 
-  it('should expose requirePermission decorator', () => {
+  it("should expose requirePermission decorator", () => {
     expect(app.requirePermission).toBeDefined();
-    expect(typeof app.requirePermission).toBe('function');
+    expect(typeof app.requirePermission).toBe("function");
   });
 
-  it('should throw ForbiddenError when permission denied', async () => {
-    app.get('/protected', {
-      preHandler: [app.requirePermission('manage', 'all')],
-    }, async () => ({ ok: true }));
+  it("should throw ForbiddenError when permission denied", async () => {
+    app.get(
+      "/protected",
+      {
+        preHandler: [app.requirePermission("manage", "all")],
+      },
+      async () => ({ ok: true })
+    );
 
-    const response = await app.inject({ method: 'GET', url: '/protected' });
+    const response = await app.inject({ method: "GET", url: "/protected" });
     expect(response.statusCode).toBe(403);
   });
 });
@@ -727,32 +756,32 @@ describe('permissionMiddleware', () => {
 Test full request lifecycle with permission checks:
 
 ```typescript
-describe('Permission Integration', () => {
-  it('should allow group admin to create users in their group', async () => {
+describe("Permission Integration", () => {
+  it("should allow group admin to create users in their group", async () => {
     // Create user with group_admin role
     // Make authenticated request to POST /users
     // Verify success
   });
 
-  it('should deny group admin from creating users in other groups', async () => {
+  it("should deny group admin from creating users in other groups", async () => {
     // Create user with group_admin role in group A
     // Try to create user in group B
     // Verify 403 Forbidden
   });
 
-  it('should allow teacher to create tools in their group', async () => {
+  it("should allow teacher to create tools in their group", async () => {
     // Create user with teacher role
     // Make authenticated request to POST /tools
     // Verify success
   });
 
-  it('should deny student from creating tools', async () => {
+  it("should deny student from creating tools", async () => {
     // Create user with student role
     // Try to create tool
     // Verify 403 Forbidden
   });
 
-  it('should allow group admin to manage descendant groups', async () => {
+  it("should allow group admin to manage descendant groups", async () => {
     // Create group hierarchy: district > school > dept
     // Create user as admin of school
     // Try to update dept (descendant)
@@ -768,6 +797,7 @@ describe('Permission Integration', () => {
 **Implementation**: `packages/auth/src/abilities.ts` - `buildAbility()` function
 
 Checks each role's memberships and builds appropriate rules:
+
 - System admin: `can('manage', 'all')`
 - Group admin: `can('manage', 'Group', { id: { $in: groupAdminGroups } })`
 - Teacher: `can('create', 'Tool', { groupId: { $in: teacherGroups } })`
@@ -778,6 +808,7 @@ Checks each role's memberships and builds appropriate rules:
 ### AC2: Abilities account for group-scoped permissions using ltree hierarchy
 
 **Implementation**:
+
 - `packages/auth/src/abilities.ts` - `canManageGroupHierarchy()` function
 - Uses ltree path string matching: `targetPath.startsWith(adminPath)`
 
@@ -826,6 +857,7 @@ If any membership has `role === 'system_admin'`, return `can('manage', 'all')` i
 ### AC8: Group admins can manage descendant groups (ltree queries)
 
 **Implementation**:
+
 - `packages/auth/src/abilities.ts` - `canManageGroupHierarchy()` function
 - `packages/auth/src/permissions.ts` - `app.getGroupPaths()` helper
 
@@ -838,6 +870,7 @@ Uses ltree path matching to check if target group is descendant.
 **Implementation**: `packages/auth/src/abilities.ts` - Teacher section in `buildAbility()`
 
 Grants:
+
 - `can('create', 'Tool', { groupId: { $in: teacherGroups } })`
 - `can('read', 'Class', { groupId: { $in: teacherGroups } })`
 - Plus ownership-based permissions for their own tools/assignments
@@ -849,6 +882,7 @@ Grants:
 **Implementation**: `packages/auth/src/abilities.ts` - Student section in `buildAbility()`
 
 Grants:
+
 - `can('read', 'Tool', { assignedTo: user.id })`
 - `can('read', 'Assignment', { assignedTo: user.id })`
 - `can('manage', 'Session', { userId: user.id })`
@@ -886,6 +920,7 @@ Grants:
 **Scenario**: User tries to access resource in soft-deleted group, or resource owned by soft-deleted user.
 
 **Handling**:
+
 - Group memberships for deleted groups should be filtered out when fetching
 - Resource queries should include `isNull(deletedAt)` filter
 - Permission checks happen after resource is found, so deleted resources return 404 before 403
@@ -899,10 +934,11 @@ Grants:
 **Handling**: Resource fetch returns null → throw NotFoundError (404) before permission check (403).
 
 **Pattern**:
+
 ```typescript
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
-if (!tool) throw new NotFoundError('Tool', id);
-if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
+if (!tool) throw new NotFoundError("Tool", id);
+if (!request.ability.can("delete", "Tool", tool)) throw new ForbiddenError();
 ```
 
 **Test**: Verify 404 returned for non-existent resources before permission error.
@@ -940,6 +976,7 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
 **Threat**: User tries to assign themselves system_admin role.
 
 **Mitigation**:
+
 - Role assignment routes must check `request.ability.can('manage', 'User', { groupId })`
 - System admin role can only be granted by existing system admin
 - Database constraints prevent invalid group_id references
@@ -951,6 +988,7 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
 **Threat**: Attacker crafts malicious ltree path to gain access.
 
 **Mitigation**:
+
 - ltree paths come from database, not user input
 - Group creation validates path format with Zod schema
 - String comparison is safe (no SQL injection risk)
@@ -962,6 +1000,7 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
 **Threat**: Attacker floods permission checks to discover resource structure.
 
 **Mitigation**:
+
 - Apply rate limiting at route level (general rate limiter)
 - Permission checks use in-memory CASL (very fast, no DB hit)
 - Membership fetching is cached per request
@@ -973,6 +1012,7 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
 **Threat**: Need to detect unauthorized access attempts.
 
 **Mitigation**:
+
 - Log all ForbiddenError throws with user ID, action, subject
 - Include in request logger output
 - Monitor for patterns of denied access
@@ -980,14 +1020,18 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
 **Implementation**: Add logging to `requirePermission()` and error handler.
 
 Example:
+
 ```typescript
 if (!request.ability.can(action, subject)) {
-  logger.warn({
-    userId: request.user?.id,
-    action,
-    subject,
-    path: request.url,
-  }, 'Permission denied');
+  logger.warn(
+    {
+      userId: request.user?.id,
+      action,
+      subject,
+      path: request.url,
+    },
+    "Permission denied"
+  );
   throw new ForbiddenError(`You cannot ${action} ${subject}`);
 }
 ```
@@ -997,6 +1041,7 @@ if (!request.ability.can(action, subject)) {
 **Threat**: Ability rules might expose sensitive data in error messages.
 
 **Mitigation**:
+
 - Don't include sensitive data in error messages
 - Generic "You cannot X Y" messages
 - Detailed reasons logged server-side only
@@ -1008,26 +1053,31 @@ if (!request.ability.can(action, subject)) {
 Suggested sequence for implementing this task:
 
 1. **Install dependency** (1 min)
+
    - Add `@casl/ability` to `packages/auth/package.json`
    - Run `pnpm install`
 
 2. **Add error classes** (5 min)
+
    - Add `FORBIDDEN` to ErrorCode enum
    - Create `ForbiddenError` class
    - Export from index
 
 3. **Define types** (10 min)
+
    - Add Actions, Subjects, AppAbility types to `packages/auth/src/types.ts`
    - Add BuildAbilityContext, GroupPath interfaces
    - Add Fastify augmentation
 
 4. **Implement ability builder** (30 min)
+
    - Create `packages/auth/src/abilities.ts`
    - Implement `buildAbility()` function
    - Implement `canManageGroupHierarchy()` helper
    - Add comprehensive JSDoc comments
 
 5. **Implement middleware** (30 min)
+
    - Create `packages/auth/src/permissions.ts`
    - Add request decorator
    - Add onRequest hook to build abilities
@@ -1036,22 +1086,26 @@ Suggested sequence for implementing this task:
    - Implement `getGroupPaths()` helper
 
 6. **Export from package** (5 min)
+
    - Update `packages/auth/src/index.ts` with new exports
    - Verify no circular dependencies
 
 7. **Write unit tests** (60 min)
+
    - Test `buildAbility()` for all roles
    - Test `canManageGroupHierarchy()` for hierarchy cases
    - Test permission middleware decorators
    - Aim for 100% coverage
 
 8. **Write integration tests** (45 min)
+
    - Test full request lifecycle with permissions
    - Test route-level and resource-level checks
    - Test edge cases (deleted groups, non-existent resources)
    - Test hierarchy permissions with real DB
 
 9. **Manual testing** (30 min)
+
    - Start API server
    - Test each role's permissions manually
    - Verify error messages are clear
@@ -1070,20 +1124,21 @@ Suggested sequence for implementing this task:
 
 ```typescript
 // apps/api/src/routes/tools.routes.ts
-import { FastifyPluginAsync } from 'fastify';
+import { FastifyPluginAsync } from "fastify";
 
 export const toolsRoutes: FastifyPluginAsync = async (app) => {
   // Only users who can create Tools can access this route
-  app.post('/tools', {
-    preHandler: [
-      app.requireAuth,
-      app.requirePermission('create', 'Tool')
-    ],
-  }, async (request, reply) => {
-    // User has permission to create tools
-    const tool = await toolService.create(request.body);
-    return reply.status(201).send(tool);
-  });
+  app.post(
+    "/tools",
+    {
+      preHandler: [app.requireAuth, app.requirePermission("create", "Tool")],
+    },
+    async (request, reply) => {
+      // User has permission to create tools
+      const tool = await toolService.create(request.body);
+      return reply.status(201).send(tool);
+    }
+  );
 };
 ```
 
@@ -1091,67 +1146,77 @@ export const toolsRoutes: FastifyPluginAsync = async (app) => {
 
 ```typescript
 // Check permission on specific tool instance
-app.delete('/tools/:id', {
-  preHandler: [app.requireAuth],
-}, async (request, reply) => {
-  const tool = await db.query.tools.findFirst({
-    where: eq(tools.id, request.params.id),
-  });
+app.delete(
+  "/tools/:id",
+  {
+    preHandler: [app.requireAuth],
+  },
+  async (request, reply) => {
+    const tool = await db.query.tools.findFirst({
+      where: eq(tools.id, request.params.id),
+    });
 
-  if (!tool) {
-    throw new NotFoundError('Tool', request.params.id);
+    if (!tool) {
+      throw new NotFoundError("Tool", request.params.id);
+    }
+
+    // Check if user can delete THIS specific tool
+    if (!app.checkResourcePermission(request.ability, "delete", "Tool", tool)) {
+      throw new ForbiddenError("You cannot delete this tool");
+    }
+
+    await toolService.delete(tool.id);
+    return reply.status(204).send();
   }
-
-  // Check if user can delete THIS specific tool
-  if (!app.checkResourcePermission(request.ability, 'delete', 'Tool', tool)) {
-    throw new ForbiddenError('You cannot delete this tool');
-  }
-
-  await toolService.delete(tool.id);
-  return reply.status(204).send();
-});
+);
 ```
 
 ### Group Hierarchy Permission Check
 
 ```typescript
 // Check if user can manage a group (including descendants)
-app.put('/groups/:id', {
-  preHandler: [app.requireAuth],
-}, async (request, reply) => {
-  const group = await db.query.groups.findFirst({
-    where: eq(groups.id, request.params.id),
-  });
+app.put(
+  "/groups/:id",
+  {
+    preHandler: [app.requireAuth],
+  },
+  async (request, reply) => {
+    const group = await db.query.groups.findFirst({
+      where: eq(groups.id, request.params.id),
+    });
 
-  if (!group) {
-    throw new NotFoundError('Group', request.params.id);
+    if (!group) {
+      throw new NotFoundError("Group", request.params.id);
+    }
+
+    // Get user's group admin paths
+    const memberships = await db.query.groupMembers.findMany({
+      where: and(
+        eq(groupMembers.userId, request.user!.id),
+        eq(groupMembers.role, "group_admin")
+      ),
+    });
+
+    const groupAdminIds = memberships.map((m) => m.groupId);
+    const adminPaths = await app.getGroupPaths(groupAdminIds);
+
+    // Check hierarchy permission
+    if (
+      !canManageGroupHierarchy(
+        request.ability,
+        group.id,
+        adminPaths,
+        group.path
+      )
+    ) {
+      throw new ForbiddenError("You cannot manage this group");
+    }
+
+    // User can manage this group
+    await groupService.update(group.id, request.body);
+    return reply.send({ data: group });
   }
-
-  // Get user's group admin paths
-  const memberships = await db.query.groupMembers.findMany({
-    where: and(
-      eq(groupMembers.userId, request.user!.id),
-      eq(groupMembers.role, 'group_admin')
-    ),
-  });
-
-  const groupAdminIds = memberships.map(m => m.groupId);
-  const adminPaths = await app.getGroupPaths(groupAdminIds);
-
-  // Check hierarchy permission
-  if (!canManageGroupHierarchy(
-    request.ability,
-    group.id,
-    adminPaths,
-    group.path
-  )) {
-    throw new ForbiddenError('You cannot manage this group');
-  }
-
-  // User can manage this group
-  await groupService.update(group.id, request.body);
-  return reply.send({ data: group });
-});
+);
 ```
 
 ### Manual Permission Check in Service
@@ -1159,17 +1224,21 @@ app.put('/groups/:id', {
 ```typescript
 // Check permission in service layer
 export class ToolService {
-  async update(toolId: string, data: UpdateToolInput, ability: AppAbility): Promise<Tool> {
+  async update(
+    toolId: string,
+    data: UpdateToolInput,
+    ability: AppAbility
+  ): Promise<Tool> {
     const tool = await db.query.tools.findFirst({
       where: eq(tools.id, toolId),
     });
 
     if (!tool) {
-      throw new NotFoundError('Tool', toolId);
+      throw new NotFoundError("Tool", toolId);
     }
 
-    if (!ability.can('update', 'Tool', tool)) {
-      throw new ForbiddenError('You cannot update this tool');
+    if (!ability.can("update", "Tool", tool)) {
+      throw new ForbiddenError("You cannot update this tool");
     }
 
     // Perform update...
@@ -1180,6 +1249,7 @@ export class ToolService {
 ## Open Questions
 
 None - the specification is complete based on the task requirements and existing codebase patterns. All ambiguities have been resolved through examination of:
+
 - Existing session middleware implementation
 - Database schema for users, groups, group_members
 - Error handling patterns
@@ -1220,6 +1290,7 @@ None identified. The spec is technically sound and ready for implementation.
 **Issue:** Generic "You cannot create Tool" messages don't help users understand WHY they lack permission.
 
 **Current Implementation (lines 428-431):**
+
 ```typescript
 if (!request.ability.can(action, subject)) {
   throw new ForbiddenError(`You cannot ${action} ${subject}`);
@@ -1227,16 +1298,22 @@ if (!request.ability.can(action, subject)) {
 ```
 
 **Problem:** A teacher denied access to create a Tool could be denied for multiple reasons:
+
 - Not a member of the target group
 - Not a teacher role in that group
 - The group doesn't allow tool creation
 - The tool type is restricted
 
 **Recommendation:**
+
 ```typescript
 if (!request.ability.can(action, subject)) {
   // Include contextual reason in error
-  const reason = determinePermissionDenialReason(request.ability, action, subject);
+  const reason = determinePermissionDenialReason(
+    request.ability,
+    action,
+    subject
+  );
   throw new ForbiddenError({
     message: `You cannot ${action} ${subject}`,
     reason,
@@ -1246,6 +1323,7 @@ if (!request.ability.can(action, subject)) {
 ```
 
 **Example improved error:**
+
 ```json
 {
   "error": "You cannot create Tool",
@@ -1267,6 +1345,7 @@ if (!request.ability.can(action, subject)) {
 **Issue:** No way for UI to discover what actions a user CAN perform without trial-and-error.
 
 **Missing Capability:** Frontend needs to know:
+
 - Which groups can the user create tools in?
 - Can this user assign this tool to students?
 - Should we show the "Delete" button on this resource?
@@ -1280,27 +1359,31 @@ if (!request.ability.can(action, subject)) {
  * Get list of groups where user can perform action.
  * Useful for populating dropdowns and filtering UI.
  */
-app.decorate('getAuthorizedGroups', async (
-  userId: string,
-  action: Actions,
-  subject: Subjects
-): Promise<Group[]> => {
-  const memberships = await db.query.groupMembers.findMany({
-    where: eq(groupMembers.userId, userId),
-  });
+app.decorate(
+  "getAuthorizedGroups",
+  async (
+    userId: string,
+    action: Actions,
+    subject: Subjects
+  ): Promise<Group[]> => {
+    const memberships = await db.query.groupMembers.findMany({
+      where: eq(groupMembers.userId, userId),
+    });
 
-  // Filter groups based on role permissions
-  const authorizedGroupIds = memberships
-    .filter(m => canPerformActionInRole(m.role, action, subject))
-    .map(m => m.groupId);
+    // Filter groups based on role permissions
+    const authorizedGroupIds = memberships
+      .filter((m) => canPerformActionInRole(m.role, action, subject))
+      .map((m) => m.groupId);
 
-  return db.query.groups.findMany({
-    where: inArray(groups.id, authorizedGroupIds),
-  });
-});
+    return db.query.groups.findMany({
+      where: inArray(groups.id, authorizedGroupIds),
+    });
+  }
+);
 ```
 
 **Example Usage:**
+
 ```typescript
 // GET /api/me/authorized-groups?action=create&subject=Tool
 // Returns: [{ id: 'g1', name: 'Math Department' }]
@@ -1317,6 +1400,7 @@ app.decorate('getAuthorizedGroups', async (
 **Scenario:** Group admin thinks they should be able to delete a tool but gets 403.
 
 **Current State:** Error says "You cannot delete Tool" with no explanation of:
+
 - Which permission rule blocked them?
 - What conditions were checked?
 - What would they need to gain this permission?
@@ -1325,20 +1409,24 @@ app.decorate('getAuthorizedGroups', async (
 
 ```typescript
 // In development, add verbose permission logging
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   const reasons = ability.relevantRuleFor(action, subject);
-  logger.debug({
-    userId: request.user.id,
-    action,
-    subject,
-    allowed: false,
-    rulesChecked: reasons,
-    userRoles: memberships.map(m => m.role),
-  }, 'Permission denied - debug info');
+  logger.debug(
+    {
+      userId: request.user.id,
+      action,
+      subject,
+      allowed: false,
+      rulesChecked: reasons,
+      userRoles: memberships.map((m) => m.role),
+    },
+    "Permission denied - debug info"
+  );
 }
 ```
 
 **Example Debug Output:**
+
 ```
 Permission denied: delete Tool
 User roles: [teacher]
@@ -1357,16 +1445,18 @@ Suggestion: Only tool creator or group admins can delete tools
 **Issue:** Teachers can create tools in their groups, but group admins can only READ tools in their groups. This is counterintuitive.
 
 **From spec (lines 249-263):**
+
 ```typescript
 // Group admins can only READ tools
-can('read', 'Tool', { groupId: { $in: groupAdminGroups } });
+can("read", "Tool", { groupId: { $in: groupAdminGroups } });
 
 // But teachers can CREATE and MANAGE their own tools
-can('create', 'Tool', { groupId: { $in: teacherGroups } });
-can(['read', 'update', 'delete'], 'Tool', { createdBy: user.id });
+can("create", "Tool", { groupId: { $in: teacherGroups } });
+can(["read", "update", "delete"], "Tool", { createdBy: user.id });
 ```
 
 **Confusing Scenario:**
+
 - Alice is group_admin of "Math Department"
 - Bob is teacher in "Math Department"
 - Bob can create tools in Math Department, but Alice (the admin!) cannot
@@ -1375,11 +1465,12 @@ can(['read', 'update', 'delete'], 'Tool', { createdBy: user.id });
 **Question:** Is this intentional? It seems like group admins should be able to do everything teachers can do, plus more.
 
 **Recommendation:** Clarify the role model. Likely:
+
 ```typescript
 // Group admins should be able to create tools too
 if (groupAdminGroups.length > 0) {
-  can('create', 'Tool', { groupId: { $in: groupAdminGroups } });
-  can('manage', 'Tool', { groupId: { $in: groupAdminGroups } }); // Can manage ALL tools in group
+  can("create", "Tool", { groupId: { $in: groupAdminGroups } });
+  can("manage", "Tool", { groupId: { $in: groupAdminGroups } }); // Can manage ALL tools in group
 }
 ```
 
@@ -1394,6 +1485,7 @@ if (groupAdminGroups.length > 0) {
 **Issue:** Every request fetches user's group memberships (line 399-401).
 
 **Current:**
+
 ```typescript
 app.addHook('onRequest', async (request, reply) => {
   const memberships = await db.query.groupMembers.findMany({
@@ -1412,23 +1504,27 @@ app.addHook('onRequest', async (request, reply) => {
 **Issue:** Students get blanket permission to read "assigned" tools, but no concept of class-specific access.
 
 **From spec (line 296):**
+
 ```typescript
 // Students can read tools assigned to them
-can('read', 'Tool', { assignedTo: user.id });
+can("read", "Tool", { assignedTo: user.id });
 ```
 
 **Missing:** What if tool is assigned to student's Class (not individually)? The permission model doesn't account for class roster membership.
 
 **Recommendation:** Add class-based permissions:
+
 ```typescript
 // Get user's class memberships
 const studentClasses = await db.query.classRosters.findMany({
-  where: eq(classRosters.userId, user.id)
+  where: eq(classRosters.userId, user.id),
 });
 
 // Students can read tools assigned to their classes
-can('read', 'Tool', { classId: { $in: studentClasses.map(c => c.classId) } });
-can('read', 'Assignment', { classId: { $in: studentClasses.map(c => c.classId) } });
+can("read", "Tool", { classId: { $in: studentClasses.map((c) => c.classId) } });
+can("read", "Assignment", {
+  classId: { $in: studentClasses.map((c) => c.classId) },
+});
 ```
 
 **Impact:** Medium - May block implementation of class-wide assignments (common use case).
@@ -1440,23 +1536,26 @@ can('read', 'Assignment', { classId: { $in: studentClasses.map(c => c.classId) }
 **Issue:** Spec mixes NotFoundError (404) and ForbiddenError (403) in resource checks (lines 897-906).
 
 **Pattern:**
+
 ```typescript
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
-if (!tool) throw new NotFoundError('Tool', id);
-if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError();
+if (!tool) throw new NotFoundError("Tool", id);
+if (!request.ability.can("delete", "Tool", tool)) throw new ForbiddenError();
 ```
 
 **UX Concern:** This leaks information. A malicious user can probe for resource existence:
+
 - 404 = "Resource doesn't exist"
 - 403 = "Resource exists, but you can't access it"
 
 **Security Best Practice:** Always return 404 for both cases unless user has read permission:
+
 ```typescript
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
-if (!tool || !request.ability.can('read', 'Tool', tool)) {
-  throw new NotFoundError('Tool', id); // Hide existence from unauthorized users
+if (!tool || !request.ability.can("read", "Tool", tool)) {
+  throw new NotFoundError("Tool", id); // Hide existence from unauthorized users
 }
-if (!request.ability.can('delete', 'Tool', tool)) {
+if (!request.ability.can("delete", "Tool", tool)) {
   throw new ForbiddenError();
 }
 ```
@@ -1477,15 +1576,15 @@ if (!request.ability.can('delete', 'Tool', tool)) {
 
 ### Recommendations Summary
 
-| Issue | Priority | Action |
-|-------|----------|--------|
-| #1 - Contextual error messages | SHOULD FIX | Add reason/requiredRole to ForbiddenError details |
-| #2 - Permission introspection API | SHOULD FIX | Add `getAuthorizedGroups()` helper for UI |
-| #3 - Debug logging | NICE TO HAVE | Add verbose permission logging in dev mode |
-| #4 - Group admin tool permissions | SHOULD FIX | Clarify if admins should create tools |
-| #5 - Membership caching | NICE TO HAVE | Cache in session/Redis for performance |
-| #6 - Class-based student access | SHOULD FIX | Add class roster to student permissions |
-| #7 - Information disclosure in 404/403 | NICE TO HAVE | Return 404 for unauthorized reads |
+| Issue                                  | Priority     | Action                                            |
+| -------------------------------------- | ------------ | ------------------------------------------------- |
+| #1 - Contextual error messages         | SHOULD FIX   | Add reason/requiredRole to ForbiddenError details |
+| #2 - Permission introspection API      | SHOULD FIX   | Add `getAuthorizedGroups()` helper for UI         |
+| #3 - Debug logging                     | NICE TO HAVE | Add verbose permission logging in dev mode        |
+| #4 - Group admin tool permissions      | SHOULD FIX   | Clarify if admins should create tools             |
+| #5 - Membership caching                | NICE TO HAVE | Cache in session/Redis for performance            |
+| #6 - Class-based student access        | SHOULD FIX   | Add class roster to student permissions           |
+| #7 - Information disclosure in 404/403 | NICE TO HAVE | Return 404 for unauthorized reads                 |
 
 ---
 
@@ -1511,6 +1610,7 @@ All 10 acceptance criteria are met by the spec:
 ### Final Recommendation
 
 **APPROVED FOR ARCHITECTURE REVIEW** with recommendation to address SHOULD FIX issues:
+
 1. Add contextual error messages (#1)
 2. Add permission introspection API (#2)
 3. Clarify group admin tool permissions (#4)
@@ -1531,6 +1631,7 @@ These can be addressed in follow-up tasks if time-constrained, but will signific
 The CASL authorization implementation spec is architecturally sound and demonstrates strong understanding of the project's patterns. It correctly integrates with Fastify middleware, uses typed errors, follows naming conventions, and provides comprehensive test coverage. The ltree hierarchy integration is particularly well-designed.
 
 However, there are **3 BLOCKING issues** that must be addressed before implementation:
+
 1. CASL's `PureAbility` doesn't support `$in` operator used throughout the spec
 2. Resource permission checks don't use CASL's `subject()` helper (will fail at runtime)
 3. Student permissions reference non-existent fields and don't integrate with class roster
@@ -1546,15 +1647,17 @@ However, there are **3 BLOCKING issues** that must be addressed before implement
 **Issue:** The spec uses MongoDB-style `$in` operator throughout ability definitions, but `PureAbility` doesn't support this by default.
 
 **From spec (lines 249-263):**
+
 ```typescript
-can('manage', 'Group', { id: { $in: groupAdminGroups } });
-can('manage', 'User', { groupId: { $in: groupAdminGroups } });
-can('create', 'Tool', { groupId: { $in: teacherGroups } });
+can("manage", "Group", { id: { $in: groupAdminGroups } });
+can("manage", "User", { groupId: { $in: groupAdminGroups } });
+can("create", "Tool", { groupId: { $in: teacherGroups } });
 ```
 
 **Problem:** `PureAbility` only supports basic field matching. The `$in` operator requires `createMongoAbility` instead.
 
 **Evidence from CASL docs:**
+
 - `PureAbility` → Basic field equality only
 - `createMongoAbility` → Supports MongoDB operators (`$in`, `$ne`, `$gt`, etc.)
 
@@ -1562,17 +1665,20 @@ can('create', 'Tool', { groupId: { $in: teacherGroups } });
 
 ```typescript
 // ❌ Current (WRONG)
-import { PureAbility } from '@casl/ability';
+import { PureAbility } from "@casl/ability";
 export type AppAbility = PureAbility<[Actions, Subjects]>;
 const { can, cannot, build } = new AbilityBuilder<AppAbility>(PureAbility);
 
 // ✅ Correct (REQUIRED)
-import { createMongoAbility, MongoAbility } from '@casl/ability';
+import { createMongoAbility, MongoAbility } from "@casl/ability";
 export type AppAbility = MongoAbility<[Actions, Subjects]>;
-const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
+const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+  createMongoAbility
+);
 ```
 
 **Files to update:**
+
 - `packages/auth/src/types.ts` - Change `AppAbility` type
 - `packages/auth/src/abilities.ts` - Import `createMongoAbility`
 - `packages/auth/src/permissions.ts` - Update empty ability creation
@@ -1586,15 +1692,19 @@ const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility
 **Issue:** The `checkResourcePermission` helper passes raw objects to `ability.can()`, but CASL requires wrapping with `subject()` for attribute-based checks.
 
 **From spec (lines 452-459):**
+
 ```typescript
-app.decorate('checkResourcePermission', (
-  ability: AppAbility,
-  action: Actions,
-  subject: Subjects,
-  resource: Record<string, unknown>
-): boolean => {
-  return ability.can(action, subject, resource); // ❌ WRONG
-});
+app.decorate(
+  "checkResourcePermission",
+  (
+    ability: AppAbility,
+    action: Actions,
+    subject: Subjects,
+    resource: Record<string, unknown>
+  ): boolean => {
+    return ability.can(action, subject, resource); // ❌ WRONG
+  }
+);
 ```
 
 **Problem:** Without `subject()` wrapper, CASL can't match fields like `createdBy`, `groupId`, etc.
@@ -1604,32 +1714,37 @@ app.decorate('checkResourcePermission', (
 **Fix Required:**
 
 ```typescript
-import { subject } from '@casl/ability';
+import { subject } from "@casl/ability";
 
-app.decorate('checkResourcePermission', (
-  ability: AppAbility,
-  action: Actions,
-  subjectType: Subjects,
-  resource: Record<string, unknown>
-): boolean => {
-  return ability.can(action, subject(subjectType, resource)); // ✅ CORRECT
-});
+app.decorate(
+  "checkResourcePermission",
+  (
+    ability: AppAbility,
+    action: Actions,
+    subjectType: Subjects,
+    resource: Record<string, unknown>
+  ): boolean => {
+    return ability.can(action, subject(subjectType, resource)); // ✅ CORRECT
+  }
+);
 ```
 
 **Usage example:**
+
 ```typescript
 // Before fix - FAILS silently
-if (!app.checkResourcePermission(request.ability, 'delete', 'Tool', tool)) {
+if (!app.checkResourcePermission(request.ability, "delete", "Tool", tool)) {
   throw new ForbiddenError();
 }
 
 // After fix - Works correctly
-if (!app.checkResourcePermission(request.ability, 'delete', 'Tool', tool)) {
+if (!app.checkResourcePermission(request.ability, "delete", "Tool", tool)) {
   throw new ForbiddenError(); // Now correctly checks tool.createdBy === user.id
 }
 ```
 
 **Files to update:**
+
 - `packages/auth/src/permissions.ts` - Import and use `subject()` helper
 - Usage examples in spec (lines 1090-1178) - Update to use new signature
 
@@ -1642,15 +1757,17 @@ if (!app.checkResourcePermission(request.ability, 'delete', 'Tool', tool)) {
 **Issue:** Student permissions check `assignedTo: user.id` field that doesn't exist in the database schema.
 
 **From spec (lines 295-308):**
+
 ```typescript
 // Students can read tools assigned to them
-can('read', 'Tool', { assignedTo: user.id }); // ❌ Field doesn't exist
+can("read", "Tool", { assignedTo: user.id }); // ❌ Field doesn't exist
 
 // Students can read assignments assigned to them
-can('read', 'Assignment', { assignedTo: user.id }); // ❌ Field doesn't exist
+can("read", "Assignment", { assignedTo: user.id }); // ❌ Field doesn't exist
 ```
 
 **Database Reality (from ARCHITECTURE.md):**
+
 - Tools don't have `assignedTo` field - they're assigned to Classes, not individual students
 - Students access tools via class_members join table
 - Assignments also assigned to classes, not individuals
@@ -1666,35 +1783,40 @@ export interface BuildAbilityContext {
 }
 
 // Update buildAbility to handle class-based permissions
-export function buildAbility({ user, memberships, classMemberships }: BuildAbilityContext): AppAbility {
+export function buildAbility({
+  user,
+  memberships,
+  classMemberships,
+}: BuildAbilityContext): AppAbility {
   // ... existing code ...
 
   // Student permissions via class enrollment
   const studentClassIds = classMemberships
-    .filter(m => m.role === 'student')
-    .map(m => m.classId);
+    .filter((m) => m.role === "student")
+    .map((m) => m.classId);
 
   if (studentClassIds.length > 0) {
     // Students can read tools assigned to their classes
-    can('read', 'Tool', { assignedClasses: { $in: studentClassIds } });
+    can("read", "Tool", { assignedClasses: { $in: studentClassIds } });
 
     // Students can read assignments for their classes
-    can('read', 'Assignment', { classId: { $in: studentClassIds } });
+    can("read", "Assignment", { classId: { $in: studentClassIds } });
   }
 
   // All users can manage their own sessions/runs
-  can('create', 'Session', { userId: user.id });
-  can(['read', 'update', 'delete'], 'Session', { userId: user.id });
-  can('create', 'Run', { userId: user.id });
-  can('read', 'Run', { userId: user.id });
+  can("create", "Session", { userId: user.id });
+  can(["read", "update", "delete"], "Session", { userId: user.id });
+  can("create", "Run", { userId: user.id });
+  can("read", "Run", { userId: user.id });
 
   return build();
 }
 ```
 
 **Middleware Update Required (lines 399-408):**
+
 ```typescript
-app.addHook('onRequest', async (request, reply) => {
+app.addHook("onRequest", async (request, reply) => {
   if (!request.user) {
     request.ability = createMongoAbility([]);
     return;
@@ -1720,6 +1842,7 @@ app.addHook('onRequest', async (request, reply) => {
 ```
 
 **Files to update:**
+
 - `packages/auth/src/types.ts` - Add `classMemberships` to BuildAbilityContext
 - `packages/auth/src/abilities.ts` - Import ClassMember type, update student permissions
 - `packages/auth/src/permissions.ts` - Fetch class memberships in onRequest hook
@@ -1736,16 +1859,18 @@ app.addHook('onRequest', async (request, reply) => {
 **Issue:** Teachers can create tools in their groups, but group admins (who are higher in the hierarchy) can only READ tools.
 
 **From spec (lines 259-263, 272-276):**
+
 ```typescript
 // Group admins - can only READ tools
-can('read', 'Tool', { groupId: { $in: groupAdminGroups } });
+can("read", "Tool", { groupId: { $in: groupAdminGroups } });
 
 // Teachers - can CREATE and MANAGE tools
-can('create', 'Tool', { groupId: { $in: teacherGroups } });
-can(['read', 'update', 'delete'], 'Tool', { createdBy: user.id });
+can("create", "Tool", { groupId: { $in: teacherGroups } });
+can(["read", "update", "delete"], "Tool", { createdBy: user.id });
 ```
 
 **Confusing Scenario:**
+
 - Alice is group_admin of "Math Department"
 - Bob is teacher in "Math Department"
 - Bob can create tools, but Alice (the admin!) cannot
@@ -1758,17 +1883,17 @@ Group admins should have ALL permissions that teachers have, plus administrative
 ```typescript
 if (groupAdminGroups.length > 0) {
   // Group admins inherit all teacher permissions
-  can('create', 'Tool', { groupId: { $in: groupAdminGroups } });
-  can('create', 'Assignment', { groupId: { $in: groupAdminGroups } });
+  can("create", "Tool", { groupId: { $in: groupAdminGroups } });
+  can("create", "Assignment", { groupId: { $in: groupAdminGroups } });
 
   // Plus can manage ALL tools/assignments in group (not just owned)
-  can('manage', 'Tool', { groupId: { $in: groupAdminGroups } });
-  can('manage', 'Assignment', { groupId: { $in: groupAdminGroups } });
+  can("manage", "Tool", { groupId: { $in: groupAdminGroups } });
+  can("manage", "Assignment", { groupId: { $in: groupAdminGroups } });
 
   // Plus group/user/class management
-  can('manage', 'Group', { id: { $in: groupAdminGroups } });
-  can('manage', 'User', { groupId: { $in: groupAdminGroups } });
-  can('manage', 'Class', { groupId: { $in: groupAdminGroups } });
+  can("manage", "Group", { id: { $in: groupAdminGroups } });
+  can("manage", "User", { groupId: { $in: groupAdminGroups } });
+  can("manage", "Class", { groupId: { $in: groupAdminGroups } });
 }
 ```
 
@@ -1783,6 +1908,7 @@ if (groupAdminGroups.length > 0) {
 **Issue:** Every request fetches group memberships from database (lines 399-401).
 
 **Current Performance:**
+
 - Database query on every request: ~5-20ms latency
 - High-traffic scenario: 100 req/sec = 100 DB queries/sec just for memberships
 - No change detection - same user gets same memberships fetched repeatedly
@@ -1796,7 +1922,7 @@ Cache memberships in Redis with smart invalidation:
 // TTL: 5 minutes (balance between freshness and DB load)
 // Invalidate on: group membership changes
 
-app.addHook('onRequest', async (request, reply) => {
+app.addHook("onRequest", async (request, reply) => {
   if (!request.user) {
     request.ability = createMongoAbility([]);
     return;
@@ -1819,7 +1945,11 @@ app.addHook('onRequest', async (request, reply) => {
 
     // Store in cache (5 min TTL)
     await redis.setex(cacheKey, 300, JSON.stringify(memberships));
-    await redis.setex(`${cacheKey}:classes`, 300, JSON.stringify(classMemberships));
+    await redis.setex(
+      `${cacheKey}:classes`,
+      300,
+      JSON.stringify(classMemberships)
+    );
   } else {
     // Cache hit - parse from JSON
     memberships = JSON.parse(memberships);
@@ -1834,7 +1964,11 @@ app.addHook('onRequest', async (request, reply) => {
 });
 
 // Invalidation on membership change:
-async function updateUserMembership(userId: string, groupId: string, role: MemberRole) {
+async function updateUserMembership(
+  userId: string,
+  groupId: string,
+  role: MemberRole
+) {
   await db.insert(groupMembers).values({ userId, groupId, role });
 
   // Invalidate cache
@@ -1856,13 +1990,15 @@ async function updateUserMembership(userId: string, groupId: string, role: Membe
 **Issue:** Spec pattern leaks resource existence (lines 897-906).
 
 **Current Pattern:**
+
 ```typescript
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
-if (!tool) throw new NotFoundError('Tool', id); // 404
-if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError(); // 403
+if (!tool) throw new NotFoundError("Tool", id); // 404
+if (!request.ability.can("delete", "Tool", tool)) throw new ForbiddenError(); // 403
 ```
 
 **Vulnerability:** Attacker can probe for resource existence:
+
 - DELETE /tools/secret-id → 404 = "Doesn't exist"
 - DELETE /tools/secret-id → 403 = "Exists but you can't access it"
 
@@ -1872,13 +2008,13 @@ if (!request.ability.can('delete', 'Tool', tool)) throw new ForbiddenError(); //
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
 
 // Return 404 for both non-existent AND unauthorized reads
-if (!tool || !request.ability.can('read', 'Tool', subject('Tool', tool))) {
-  throw new NotFoundError('Tool', id);
+if (!tool || !request.ability.can("read", "Tool", subject("Tool", tool))) {
+  throw new NotFoundError("Tool", id);
 }
 
 // Now check the actual action (delete)
-if (!request.ability.can('delete', 'Tool', subject('Tool', tool))) {
-  throw new ForbiddenError('You cannot delete this tool');
+if (!request.ability.can("delete", "Tool", subject("Tool", tool))) {
+  throw new ForbiddenError("You cannot delete this tool");
 }
 ```
 
@@ -1891,6 +2027,7 @@ if (!request.ability.can('delete', 'Tool', subject('Tool', tool))) {
 **Issue:** When permission denied, no logging to help debugging or detect attacks.
 
 **Current (lines 428-431):**
+
 ```typescript
 if (!request.ability.can(action, subject)) {
   throw new ForbiddenError(`You cannot ${action} ${subject}`);
@@ -1902,19 +2039,23 @@ if (!request.ability.can(action, subject)) {
 ```typescript
 if (!request.ability.can(action, subject)) {
   // Log denial for security monitoring
-  logger.warn({
-    userId: request.user?.id,
-    action,
-    subject,
-    path: request.url,
-    userRoles: request.user ? await getUserRoles(request.user.id) : [],
-  }, 'Permission denied');
+  logger.warn(
+    {
+      userId: request.user?.id,
+      action,
+      subject,
+      path: request.url,
+      userRoles: request.user ? await getUserRoles(request.user.id) : [],
+    },
+    "Permission denied"
+  );
 
   throw new ForbiddenError(`You cannot ${action} ${subject}`);
 }
 ```
 
 **Benefits:**
+
 - Security monitoring (detect brute-force permission probing)
 - Debugging in development
 - Analytics for UX improvements (which denials are most common?)
@@ -1927,15 +2068,15 @@ if (!request.ability.can(action, subject)) {
 
 ✅ **COMPLIANT** - Spec correctly uses canonical tech stack:
 
-| Requirement | Spec | Notes |
-|-------------|------|-------|
-| Fastify | ✅ | Uses Fastify plugin pattern, decorators, preHandler |
-| TypeScript Strict | ✅ | No `any` types, explicit types throughout |
-| Drizzle ORM | ✅ | Uses `db.query` API correctly |
-| Zod Validation | ✅ | Not needed for this package (no user input) |
-| CASL 6.x | ⚠️ | Specified, but using wrong ability type (see issue #1) |
-| Error System | ✅ | Uses AppError, adds ForbiddenError correctly |
-| Package Structure | ✅ | Follows monorepo structure (`packages/auth`) |
+| Requirement       | Spec | Notes                                                  |
+| ----------------- | ---- | ------------------------------------------------------ |
+| Fastify           | ✅   | Uses Fastify plugin pattern, decorators, preHandler    |
+| TypeScript Strict | ✅   | No `any` types, explicit types throughout              |
+| Drizzle ORM       | ✅   | Uses `db.query` API correctly                          |
+| Zod Validation    | ✅   | Not needed for this package (no user input)            |
+| CASL 6.x          | ⚠️   | Specified, but using wrong ability type (see issue #1) |
+| Error System      | ✅   | Uses AppError, adds ForbiddenError correctly           |
+| Package Structure | ✅   | Follows monorepo structure (`packages/auth`)           |
 
 ---
 
@@ -1943,16 +2084,16 @@ if (!request.ability.can(action, subject)) {
 
 ✅ **COMPLIANT** - Spec follows CONVENTIONS.md patterns:
 
-| Convention | Status | Notes |
-|------------|--------|-------|
-| Naming | ✅ | camelCase functions, PascalCase types, snake_case DB |
-| File naming | ✅ | `abilities.ts`, `permissions.ts`, `types.ts` |
-| Functional over OOP | ✅ | Uses pure functions, not classes |
-| Explicit error handling | ✅ | Throws typed errors |
-| JSDoc comments | ✅ | Comprehensive documentation |
-| Test structure (AAA) | ✅ | Test examples follow Arrange/Act/Assert |
-| TypeScript imports | ✅ | Uses `import type` for type-only imports |
-| Zero `any` | ✅ | No `any` types in spec |
+| Convention              | Status | Notes                                                |
+| ----------------------- | ------ | ---------------------------------------------------- |
+| Naming                  | ✅     | camelCase functions, PascalCase types, snake_case DB |
+| File naming             | ✅     | `abilities.ts`, `permissions.ts`, `types.ts`         |
+| Functional over OOP     | ✅     | Uses pure functions, not classes                     |
+| Explicit error handling | ✅     | Throws typed errors                                  |
+| JSDoc comments          | ✅     | Comprehensive documentation                          |
+| Test structure (AAA)    | ✅     | Test examples follow Arrange/Act/Assert              |
+| TypeScript imports      | ✅     | Uses `import type` for type-only imports             |
+| Zero `any`              | ✅     | No `any` types in spec                               |
 
 ---
 
@@ -1961,19 +2102,23 @@ if (!request.ability.can(action, subject)) {
 ✅ **GOOD** - Integrates cleanly with existing systems:
 
 **Session Middleware (E02-T002):**
+
 - ✅ Correctly assumes `request.user` and `request.session` populated
 - ✅ Runs after session middleware via `onRequest` hook
 - ✅ Handles unauthenticated requests (empty ability)
 
 **Database Schema:**
+
 - ✅ Uses existing `users`, `groups`, `group_members` tables
 - ⚠️ Missing `class_members` table integration (issue #3)
 
 **Error Handling:**
+
 - ✅ Extends existing error system (`AppError` → `ForbiddenError`)
 - ✅ Adds `FORBIDDEN` to ErrorCode enum correctly
 
 **Type System:**
+
 - ✅ Augments Fastify types correctly
 - ✅ Exports types for use in other packages
 
@@ -1984,6 +2129,7 @@ if (!request.ability.can(action, subject)) {
 ✅ **SOLID** - Security considerations well-addressed:
 
 **Positive Security Patterns:**
+
 1. Fail-safe defaults (unauthenticated = empty ability)
 2. System admin bypass is explicit and auditable
 3. ltree hierarchy checks prevent lateral movement
@@ -1992,11 +2138,13 @@ if (!request.ability.can(action, subject)) {
 6. Type safety prevents common bugs
 
 **Addressed Threats:**
+
 - ✅ Privilege escalation (lines 938-947)
 - ✅ ltree path injection (lines 949-958)
 - ✅ Audit logging (lines 973-993)
 
 **Minor Concerns:**
+
 - ⚠️ 404 vs 403 information disclosure (issue #6) - Low priority
 - ⚠️ No rate limiting (delegated to general rate limiter) - Acceptable
 
@@ -2007,6 +2155,7 @@ if (!request.ability.can(action, subject)) {
 ✅ **EXCELLENT** - Comprehensive test coverage plan:
 
 **Unit Tests (lines 540-677):**
+
 - ✅ Tests all four roles (system_admin, group_admin, teacher, student)
 - ✅ Tests hierarchy permissions with ltree
 - ✅ Tests edge cases (empty memberships, multiple roles)
@@ -2014,6 +2163,7 @@ if (!request.ability.can(action, subject)) {
 - ✅ Uses mocks correctly
 
 **Integration Tests (lines 729-762):**
+
 - ✅ Tests full request lifecycle
 - ✅ Tests route-level and resource-level checks
 - ✅ Tests real database with ltree paths
@@ -2028,27 +2178,32 @@ if (!request.ability.can(action, subject)) {
 **Excellent Design Choices:**
 
 1. **Fastify Plugin Pattern** (lines 383-491)
+
    - Proper use of `FastifyPluginAsync`
    - Decorators for reusable permission checks
    - Clean integration with existing middleware
 
 2. **Separation of Concerns**
+
    - `abilities.ts` - Pure ability logic
    - `permissions.ts` - Fastify integration
    - `types.ts` - Type definitions
    - No mixing of concerns
 
 3. **Type Safety**
+
    - Zero `any` types
    - Proper TypeScript inference
    - Augmented Fastify types for IDE autocomplete
 
 4. **ltree Hierarchy Integration** (lines 342-358)
+
    - Elegant use of PostgreSQL native capabilities
    - String prefix matching for descendant checks
    - No N+1 query problems
 
 5. **Composability**
+
    - `buildAbility()` is pure function (testable)
    - `canManageGroupHierarchy()` is reusable helper
    - Permission checks are declarative
@@ -2062,15 +2217,15 @@ if (!request.ability.can(action, subject)) {
 
 ### Recommendations Summary
 
-| Issue | Priority | Effort | Recommendation |
-|-------|----------|--------|----------------|
-| #1 - Use createMongoAbility | MUST FIX | 15 min | Change PureAbility to MongoAbility |
-| #2 - Add subject() helper | MUST FIX | 10 min | Import and wrap resource checks |
-| #3 - Class roster integration | MUST FIX | 45 min | Fetch class memberships, update student permissions |
-| #4 - Group admin tool perms | SHOULD FIX | 20 min | Grant admins all teacher permissions |
-| #5 - Membership caching | DEFER | 2 hours | Create follow-up task for Redis caching |
-| #6 - 404 vs 403 disclosure | NICE TO HAVE | 15 min | Return 404 for unauthorized reads |
-| #7 - Debug logging | NICE TO HAVE | 10 min | Add logger.warn() for denials |
+| Issue                         | Priority     | Effort  | Recommendation                                      |
+| ----------------------------- | ------------ | ------- | --------------------------------------------------- |
+| #1 - Use createMongoAbility   | MUST FIX     | 15 min  | Change PureAbility to MongoAbility                  |
+| #2 - Add subject() helper     | MUST FIX     | 10 min  | Import and wrap resource checks                     |
+| #3 - Class roster integration | MUST FIX     | 45 min  | Fetch class memberships, update student permissions |
+| #4 - Group admin tool perms   | SHOULD FIX   | 20 min  | Grant admins all teacher permissions                |
+| #5 - Membership caching       | DEFER        | 2 hours | Create follow-up task for Redis caching             |
+| #6 - 404 vs 403 disclosure    | NICE TO HAVE | 15 min  | Return 404 for unauthorized reads                   |
+| #7 - Debug logging            | NICE TO HAVE | 10 min  | Add logger.warn() for denials                       |
 
 **Total effort for MUST FIX:** ~70 minutes
 **Total effort for SHOULD FIX:** ~20 minutes
@@ -2081,26 +2236,26 @@ if (!request.ability.can(action, subject)) {
 
 **STATUS: NEEDS CHANGES**
 
-The specification demonstrates excellent architectural understanding and follows Raptscallions conventions closely. The Fastify integration, type safety, and ltree hierarchy approach are all well-designed.
+The specification demonstrates excellent architectural understanding and follows RaptScallions conventions closely. The Fastify integration, type safety, and ltree hierarchy approach are all well-designed.
 
 However, **3 BLOCKING issues** prevent approval:
+
 1. CASL ability type incompatible with `$in` operator usage
 2. Resource permission checks won't work without `subject()` helper
 3. Student permissions don't integrate with class roster system
 
 **Required Actions Before Approval:**
+
 1. ✅ Update to `createMongoAbility` instead of `PureAbility`
 2. ✅ Add `subject()` helper to resource permission checks
 3. ✅ Integrate class roster into student permissions
 
-**Optional Improvements (can defer to follow-up tasks):**
-4. ⚠️ Clarify group admin vs teacher permission hierarchy (UX concern)
-5. ⚠️ Add Redis caching for memberships (performance at scale)
-6. ⚠️ Add security logging for denied permissions (ops visibility)
+**Optional Improvements (can defer to follow-up tasks):** 4. ⚠️ Clarify group admin vs teacher permission hierarchy (UX concern) 5. ⚠️ Add Redis caching for memberships (performance at scale) 6. ⚠️ Add security logging for denied permissions (ops visibility)
 
 **Effort Estimate:** ~90 minutes to address blocking issues and group admin permissions.
 
 **Next Steps:**
+
 1. Analyst updates spec to fix 3 blocking issues
 2. Architect re-reviews updated spec
 3. If approved → task moves to APPROVED state

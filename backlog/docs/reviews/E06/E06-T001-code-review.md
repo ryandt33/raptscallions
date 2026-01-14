@@ -14,6 +14,7 @@
 The VitePress setup has been implemented successfully and meets all acceptance criteria. The code is clean, follows project conventions, and the build/typecheck pass without errors. There are a few minor suggestions for improvement, but none are blocking.
 
 **Key Strengths:**
+
 - Complete adherence to specification
 - Clean TypeScript configuration with proper project references
 - Build artifacts properly gitignored
@@ -21,6 +22,7 @@ The VitePress setup has been implemented successfully and meets all acceptance c
 - Homepage content is well-structured
 
 **Minor Issues:**
+
 - Navigation structure could be improved (AC specified more nav items, implementation has fewer)
 - Spec mentions features that don't have actual pages yet (expected for foundation task)
 
@@ -31,6 +33,7 @@ The VitePress setup has been implemented successfully and meets all acceptance c
 ### Files Reviewed
 
 **Created Files:**
+
 - [apps/docs/package.json](apps/docs/package.json) - Package manifest
 - [apps/docs/tsconfig.json](apps/docs/tsconfig.json) - TypeScript config
 - [apps/docs/.vitepress/config.ts](apps/docs/.vitepress/config.ts) - VitePress configuration
@@ -38,10 +41,12 @@ The VitePress setup has been implemented successfully and meets all acceptance c
 - [apps/docs/.gitignore](apps/docs/.gitignore) - Local gitignore rules
 
 **Modified Files:**
+
 - [package.json](package.json:24-26) - Added `docs:dev`, `docs:build`, `docs:preview` scripts
 - [tsconfig.json](tsconfig.json:29) - Added `apps/docs` to project references
 
 **Not Modified (As Expected):**
+
 - [pnpm-workspace.yaml](pnpm-workspace.yaml:2) - Already includes `apps/*` pattern
 - [.gitignore](.gitignore:6) - Already covers `dist/` pattern
 
@@ -63,6 +68,7 @@ The VitePress setup has been implemented successfully and meets all acceptance c
 **Score: 10/10** ✅
 
 **Positives:**
+
 - Correct package name: `@raptscallions/docs`
 - Proper `type: "module"` for ES modules
 - All required scripts present: `dev`, `build`, `preview`, `clean`, `typecheck`
@@ -70,6 +76,7 @@ The VitePress setup has been implemented successfully and meets all acceptance c
 - DevDependencies appropriate: `@types/node`, `typescript`
 
 **Code Quality:**
+
 ```json
 {
   "name": "@raptscallions/docs",
@@ -78,11 +85,13 @@ The VitePress setup has been implemented successfully and meets all acceptance c
   "type": "module"
 }
 ```
+
 ✅ Follows monorepo naming convention
 ✅ Private package (not for npm)
 ✅ Correct module type
 
 **Verification:**
+
 - ✅ Scripts delegate to VitePress correctly
 - ✅ Installed versions match expectations (vitepress 1.6.4, vue 3.5.26)
 
@@ -96,6 +105,7 @@ None - implementation is perfect.
 **Score: 9/10** ✅
 
 **Positives:**
+
 - Extends root strict config correctly
 - `moduleResolution: "Bundler"` appropriate for Vite
 - `composite: true` enables project references
@@ -103,6 +113,7 @@ None - implementation is perfect.
 - Excludes build outputs properly
 
 **Code Quality:**
+
 ```json
 {
   "extends": "../../tsconfig.json",
@@ -113,6 +124,7 @@ None - implementation is perfect.
   }
 }
 ```
+
 ✅ Proper inheritance from root config
 ✅ Vite-compatible module resolution
 
@@ -123,6 +135,7 @@ None - implementation is perfect.
 VitePress build outputs to `.vitepress/dist/` (relative to project root), but there's also a `src/.vitepress/dist/` directory being created. This suggests the build process may be generating files in the wrong location.
 
 **Evidence:**
+
 ```bash
 $ find apps/docs -name "dist" -type d
 /home/ryan/Documents/coding/claude-box/raptscallions/apps/docs/.vitepress/dist
@@ -132,6 +145,7 @@ $ find apps/docs -name "dist" -type d
 **Impact:** Low - both are properly gitignored, but indicates potential misconfiguration
 
 **Recommendation:**
+
 - Investigate why VitePress is creating `src/.vitepress/dist/`
 - Spec indicates build output should be `.vitepress/dist/` only
 - May be related to `srcDir: './src'` config interaction with output directory
@@ -143,6 +157,7 @@ $ find apps/docs -name "dist" -type d
 **Score: 8/10** ⚠️
 
 **Positives:**
+
 - Clean, well-structured configuration
 - Local search properly configured with `provider: 'local'`
 - `cleanUrls: true` and `lastUpdated: true` enabled
@@ -150,18 +165,20 @@ $ find apps/docs -name "dist" -type d
 - Edit links and footer configured
 
 **Code Quality:**
+
 ```typescript
-import { defineConfig } from 'vitepress';
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  title: 'Raptscallions KB',
-  description: 'Knowledge base for...',
-  srcDir: './src',
+  title: "RaptScallions KB",
+  description: "Knowledge base for...",
+  srcDir: "./src",
   cleanUrls: true,
   lastUpdated: true,
   // ...
 });
 ```
+
 ✅ Type-safe configuration with `defineConfig`
 ✅ Clear comments for each section
 ✅ Logical organization
@@ -169,38 +186,42 @@ export default defineConfig({
 **Issues Found:**
 
 #### Issue 1: Simplified Navigation vs. Spec
+
 **Severity:** Minor
 **Location:** [apps/docs/.vitepress/config.ts:20-22](apps/docs/.vitepress/config.ts#L20-L22)
 
 **Spec Expected:**
+
 ```typescript
 nav: [
-  { text: 'Home', link: '/' },
-  { text: 'Architecture', link: '/architecture/' },
-  { text: 'Contributing', link: '/contributing/' }
-]
+  { text: "Home", link: "/" },
+  { text: "Architecture", link: "/architecture/" },
+  { text: "Contributing", link: "/contributing/" },
+];
 ```
 
 **Actual Implementation:**
+
 ```typescript
-nav: [
-  { text: 'Home', link: '/' }
-]
+nav: [{ text: "Home", link: "/" }];
 ```
 
 **Analysis:**
 The implementation has simplified the nav to only include "Home". This is reasonable for a foundation task since the other pages don't exist yet, but it deviates from the spec.
 
 **Recommendation:**
+
 - ✅ **Accept** - This is pragmatic for initial setup
 - Document in implementation notes that nav will be expanded in E06-T002
 - Could optionally add placeholder nav items that link to `#` or `/` for now
 
 #### Issue 2: Placeholder GitHub URLs
+
 **Severity:** Minor
 **Location:** [apps/docs/.vitepress/config.ts:29](apps/docs/.vitepress/config.ts#L29), [config.ts:58](apps/docs/.vitepress/config.ts#L58)
 
 **Current:**
+
 ```typescript
 socialLinks: [
   { icon: 'github', link: 'https://github.com/yourusername/raptscallions' }
@@ -215,11 +236,13 @@ editLink: {
 **Impact:** Low - links will be broken until updated
 
 **Recommendation:**
+
 - Update with actual GitHub username/org when known
 - Or remove these features until repository URL is finalized
 - Not blocking for local development
 
 **Suggestions:**
+
 - Consider adding `base` config if docs will be served from a subdirectory
 - Could add `outDir` to explicitly control build output location
 
@@ -230,6 +253,7 @@ editLink: {
 **Score: 9/10** ✅
 
 **Positives:**
+
 - Uses VitePress `home` layout correctly
 - Hero section is compelling and on-brand
 - Feature cards link to logical sections
@@ -237,15 +261,17 @@ editLink: {
 - Emphasizes "implementation-first" philosophy
 
 **Code Quality:**
+
 ```yaml
 ---
 layout: home
 hero:
-  name: Raptscallions
+  name: RaptScallions
   text: Knowledge Base
   tagline: Architecture, patterns, decisions...
 ---
 ```
+
 ✅ Proper YAML frontmatter
 ✅ Clear content hierarchy
 ✅ Good use of markdown features
@@ -253,29 +279,35 @@ hero:
 **Issues Found:**
 
 #### Issue 1: Feature Card Links Point to Non-Existent Pages
+
 **Severity:** Expected (Not Blocking)
 **Location:** [apps/docs/src/index.md:10-11](apps/docs/src/index.md#L10-L11)
 
 **Current:**
+
 ```markdown
 actions:
-  - theme: brand
-    text: Get Started
-    link: /
+
+- theme: brand
+  text: Get Started
+  link: /
 ```
 
 **Analysis:**
 "Get Started" button links back to homepage (`/`). Spec suggested linking to `/architecture/`, but that page doesn't exist yet.
 
 **Recommendation:**
+
 - ✅ **Accept** - Linking to `/` is better than a broken link
 - Will be updated in E06-T002 when structure is created
 
 #### Issue 2: Minor Content Deviation from Spec
+
 **Severity:** Very Minor
 **Location:** [apps/docs/src/index.md:46-48](apps/docs/src/index.md#L46-L48)
 
 **Spec Expected:**
+
 ```markdown
 ### Contributing
 
@@ -283,6 +315,7 @@ See the [Contributing Guide](/contributing/) for information on updating documen
 ```
 
 **Actual:**
+
 ```markdown
 ### Contributing
 
@@ -293,6 +326,7 @@ Documentation contributions are welcome. See the main repository for contributio
 Removed the link to `/contributing/` (which doesn't exist) and used more generic text. This is pragmatic.
 
 **Recommendation:**
+
 - ✅ **Accept** - Better than a broken link
 
 **Overall Assessment:**
@@ -305,11 +339,13 @@ Homepage content is excellent. Minor deviations from spec are all pragmatic choi
 **Score: 10/10** ✅
 
 **Positives:**
+
 - Covers both `.vitepress/dist/` and `src/.vitepress/dist/`
 - Ignores `.vitepress/cache/`
 - Ignores TypeScript build info
 
 **Code Quality:**
+
 ```
 # VitePress build outputs
 .vitepress/dist/
@@ -320,15 +356,18 @@ src/.vitepress/cache/
 # TypeScript
 *.tsbuildinfo
 ```
+
 ✅ Clear comments
 ✅ Comprehensive patterns
 ✅ Aligns with root `.gitignore`
 
 **Verification:**
+
 ```bash
 $ git check-ignore -v apps/docs/src/.vitepress/dist/index.html
 apps/docs/.gitignore:4:src/.vitepress/dist/	apps/docs/src/.vitepress/dist/index.html
 ```
+
 ✅ Build artifacts properly ignored
 
 **Note:**
@@ -341,11 +380,13 @@ The fact that both `.vitepress/dist/` and `src/.vitepress/dist/` need to be igno
 **Score: 10/10** ✅
 
 **Positives:**
+
 - All three convenience scripts added: `docs:dev`, `docs:build`, `docs:preview`
 - Scripts follow existing pattern: `pnpm --filter @raptscallions/docs [command]`
 - Scripts work correctly when tested
 
 **Code Quality:**
+
 ```json
 "scripts": {
   "docs:dev": "pnpm --filter @raptscallions/docs dev",
@@ -353,11 +394,13 @@ The fact that both `.vitepress/dist/` and `src/.vitepress/dist/` need to be igno
   "docs:preview": "pnpm --filter @raptscallions/docs preview"
 }
 ```
+
 ✅ Consistent with existing patterns
 ✅ All three scripts from spec present
 ✅ Correct filter syntax
 
 **Verification:**
+
 ```bash
 $ pnpm docs:build
 > @raptscallions/root@0.1.0 docs:build
@@ -375,11 +418,13 @@ None - implementation is perfect.
 **Score: 10/10** ✅
 
 **Positives:**
+
 - `apps/docs` added to references array
 - Enables incremental type checking across workspace
 - Position in array is logical (after other apps)
 
 **Code Quality:**
+
 ```json
 "references": [
   { "path": "packages/core" },
@@ -389,10 +434,12 @@ None - implementation is perfect.
   { "path": "apps/docs" }
 ]
 ```
+
 ✅ Proper syntax
 ✅ Logical ordering
 
 **Verification:**
+
 ```bash
 $ pnpm typecheck
 > tsc --build
@@ -408,20 +455,23 @@ $ pnpm typecheck
 **Status:** Already correctly configured
 
 **Current:**
+
 ```yaml
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - "apps/*"
+  - "packages/*"
 ```
 
 **Analysis:**
 The `apps/*` glob pattern already includes `apps/docs/`, so no changes were needed. This is correct per the spec.
 
 **Verification:**
+
 ```bash
 $ pnpm list --depth 0 --filter @raptscallions/docs
 @raptscallions/docs@0.1.0 /home/ryan/.../apps/docs (PRIVATE)
 ```
+
 ✅ Package properly recognized in workspace
 
 ---
@@ -429,6 +479,7 @@ $ pnpm list --depth 0 --filter @raptscallions/docs
 ## Acceptance Criteria Verification
 
 ### AC1: `apps/docs/` workspace created with package.json
+
 **Status:** ✅ **PASS**
 
 - File exists at [apps/docs/package.json](apps/docs/package.json)
@@ -437,23 +488,27 @@ $ pnpm list --depth 0 --filter @raptscallions/docs
 - Has all required scripts: `dev`, `build`, `preview`, `clean`, `typecheck`
 
 ### AC2: VitePress installed as dependency
+
 **Status:** ✅ **PASS**
 
 ```bash
 $ pnpm list vitepress --filter @raptscallions/docs
 vitepress 1.6.4
 ```
+
 - VitePress installed at version 1.6.4 (spec required ^1.5.0)
 - Vue installed at version 3.5.26 (spec required ^3.5.0)
 - Both dependencies present in `node_modules/`
 
 ### AC3: pnpm-workspace.yaml includes apps/docs
+
 **Status:** ✅ **PASS**
 
 - `apps/*` pattern in [pnpm-workspace.yaml](pnpm-workspace.yaml:2) includes `apps/docs/`
 - `@raptscallions/docs` recognized by `pnpm list`
 
 ### AC4: VitePress config created
+
 **Status:** ✅ **PASS**
 
 - File exists at [apps/docs/.vitepress/config.ts](apps/docs/.vitepress/config.ts)
@@ -463,6 +518,7 @@ vitepress 1.6.4
 - ⚠️ Minor: Nav bar simplified from spec (acceptable)
 
 ### AC5: `pnpm --filter docs dev` starts development server
+
 **Status:** ✅ **PASS** (Assumed - Not Tested)
 
 - Script configured correctly in package.json
@@ -470,12 +526,14 @@ vitepress 1.6.4
 - **Note:** Did not start dev server to avoid hanging process
 
 **Expected Behavior:**
+
 ```bash
 $ pnpm --filter @raptscallions/docs dev
 # Server starts on http://localhost:5173
 ```
 
 ### AC6: `pnpm --filter docs build` generates static site
+
 **Status:** ✅ **PASS**
 
 ```bash
@@ -485,11 +543,13 @@ build complete in 1.22s.
 ✓ building client + server bundles...
 ✓ rendering pages...
 ```
+
 - Build completes successfully
 - `.vitepress/dist/` directory created with assets
 - Contains `index.html` and JavaScript bundles
 
 ### AC7: Root package.json has convenience scripts
+
 **Status:** ✅ **PASS**
 
 - `docs:dev` script added at [package.json:24](package.json:24)
@@ -498,23 +558,26 @@ build complete in 1.22s.
 - All scripts delegate correctly using `--filter`
 
 **Tested:**
+
 ```bash
 $ pnpm docs:build
 ✓ Build succeeds via root script
 ```
 
 ### AC8: Homepage renders correctly
+
 **Status:** ✅ **PASS** (Assumed - Not Tested Visually)
 
 - [apps/docs/src/index.md](apps/docs/src/index.md) exists with proper content
 - Uses VitePress `home` layout in frontmatter
-- Hero section with "Raptscallions" and "Knowledge Base" title
+- Hero section with "RaptScallions" and "Knowledge Base" title
 - Feature cards with icons and descriptions present
 - Build succeeds (implies rendering works)
 
 **Expected:** Homepage displays with hero, features, and content sections
 
 ### AC9: Local search enabled and working
+
 **Status:** ✅ **PASS** (Assumed - Not Tested Interactively)
 
 - `search.provider: 'local'` configured in [config.ts:33-54](apps/docs/.vitepress/config.ts#L33-L54)
@@ -522,11 +585,13 @@ $ pnpm docs:build
 - Custom translations provided for better UX
 
 **Expected Behavior:**
+
 - Cmd/Ctrl+K opens search modal
-- Can search for "Raptscallions" and find homepage
+- Can search for "RaptScallions" and find homepage
 - Keyboard navigation works
 
 ### AC10: Dark/light theme toggle present
+
 **Status:** ✅ **PASS** (Assumed - VitePress Default)
 
 - VitePress default theme includes theme toggle automatically
@@ -536,6 +601,7 @@ $ pnpm docs:build
 **Expected:** Toggle button visible in navbar, switches themes correctly
 
 ### AC11: Build outputs added to .gitignore
+
 **Status:** ✅ **PASS**
 
 - [apps/docs/.gitignore](apps/docs/.gitignore) created with proper patterns
@@ -543,10 +609,12 @@ $ pnpm docs:build
 - Root [.gitignore](.gitignore:6-7) already covers `dist/` and `*.tsbuildinfo`
 
 **Verified:**
+
 ```bash
 $ git check-ignore -v apps/docs/.vitepress/dist/index.html
 apps/docs/.gitignore:2:.vitepress/dist/	apps/docs/.vitepress/dist/index.html
 ```
+
 ✅ Build artifacts properly ignored
 
 ---
@@ -554,6 +622,7 @@ apps/docs/.gitignore:2:.vitepress/dist/	apps/docs/.vitepress/dist/index.html
 ## Issues Summary
 
 ### Critical Issues
+
 **Count:** 0
 
 No critical issues found.
@@ -561,6 +630,7 @@ No critical issues found.
 ---
 
 ### Must Fix Issues
+
 **Count:** 0
 
 No must-fix issues found.
@@ -568,18 +638,22 @@ No must-fix issues found.
 ---
 
 ### Should Fix Issues
+
 **Count:** 1
 
 #### SF-1: Investigate Dual Dist Directory Generation
+
 **Severity:** Should Fix
 **Files:** Build process, possibly [apps/docs/.vitepress/config.ts](apps/docs/.vitepress/config.ts)
 
 **Problem:**
 VitePress is generating build outputs in two locations:
+
 - `apps/docs/.vitepress/dist/` (expected)
 - `apps/docs/src/.vitepress/dist/` (unexpected)
 
 **Evidence:**
+
 ```bash
 $ find apps/docs -name "dist" -type d
 /home/ryan/Documents/coding/claude-box/raptscallions/apps/docs/.vitepress/dist
@@ -587,6 +661,7 @@ $ find apps/docs -name "dist" -type d
 ```
 
 **Impact:**
+
 - Both locations are properly gitignored, so no immediate harm
 - Wastes disk space with duplicate builds
 - May indicate misconfiguration of `srcDir` or output directory
@@ -595,12 +670,13 @@ $ find apps/docs -name "dist" -type d
 The config sets `srcDir: './src'`, which tells VitePress where to find markdown files. The build output should be `.vitepress/dist/` (relative to project root), but it appears VitePress may also be creating a relative path from the source directory.
 
 **Suggested Fix:**
+
 1. Review VitePress documentation on `srcDir` and output directory interaction
 2. Consider adding explicit `outDir` configuration:
    ```typescript
    export default defineConfig({
-     srcDir: './src',
-     outDir: './.vitepress/dist',  // Explicit output
+     srcDir: "./src",
+     outDir: "./.vitepress/dist", // Explicit output
      // ...
    });
    ```
@@ -613,14 +689,17 @@ After fix, only one dist directory should exist after build.
 ---
 
 ### Suggestions (Nice to Have)
+
 **Count:** 3
 
 #### S-1: Update Placeholder GitHub URLs
+
 **Severity:** Nice to Have
 **Files:** [apps/docs/.vitepress/config.ts](apps/docs/.vitepress/config.ts)
 
 **Suggestion:**
 Replace `yourusername` placeholders with actual GitHub username/org:
+
 ```typescript
 socialLinks: [
   { icon: 'github', link: 'https://github.com/ryandt33/raptscallions' }
@@ -635,14 +714,16 @@ editLink: {
 ---
 
 #### S-2: Consider Adding Explicit Base Path
+
 **Severity:** Nice to Have
 **Files:** [apps/docs/.vitepress/config.ts](apps/docs/.vitepress/config.ts)
 
 **Suggestion:**
 If docs will be deployed to a subdirectory (e.g., `https://example.com/kb/`), add:
+
 ```typescript
 export default defineConfig({
-  base: '/kb/',  // Add if needed for deployment
+  base: "/kb/", // Add if needed for deployment
   // ...
 });
 ```
@@ -654,13 +735,15 @@ export default defineConfig({
 ---
 
 #### S-3: Add README to apps/docs
+
 **Severity:** Nice to Have
 **Files:** None (new file)
 
 **Suggestion:**
 Create `apps/docs/README.md` with quick start instructions:
-```markdown
-# Raptscallions Documentation
+
+````markdown
+# RaptScallions Documentation
 
 VitePress-based knowledge base.
 
@@ -671,8 +754,10 @@ pnpm docs:dev     # Start dev server
 pnpm docs:build   # Build static site
 pnpm docs:preview # Preview production build
 ```
+````
 
 See [../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) for full details.
+
 ```
 
 **Benefit:** Helps developers quickly understand how to work with docs
@@ -908,16 +993,21 @@ Include manual QA checklist execution before marking task as DONE.
 
 ### TypeScript Check
 ```
+
 $ pnpm typecheck
+
 > @raptscallions/root@0.1.0 typecheck /home/ryan/Documents/coding/claude-box/raptscallions
 > tsc --build
 
 [No output - success]
+
 ```
 
 ### Build Output
 ```
+
 $ pnpm docs:build
+
 > @raptscallions/root@0.1.0 docs:build
 > pnpm --filter @raptscallions/docs build
 
@@ -928,10 +1018,12 @@ vitepress v1.6.4
 build complete in 1.22s.
 ✓ building client + server bundles...
 ✓ rendering pages...
+
 ```
 
 ### Workspace Verification
 ```
+
 $ pnpm list --depth 0 --filter @raptscallions/docs
 @raptscallions/docs@0.1.0 /home/ryan/Documents/coding/claude-box/raptscallions/apps/docs (PRIVATE)
 
@@ -942,16 +1034,20 @@ vue 3.5.26
 devDependencies:
 @types/node 20.19.28
 typescript 5.9.3
+
 ```
 
 ### Git Ignore Verification
 ```
+
 $ git check-ignore -v apps/docs/src/.vitepress/dist/index.html apps/docs/.vitepress/dist/index.html
-apps/docs/.gitignore:4:src/.vitepress/dist/	apps/docs/src/.vitepress/dist/index.html
-apps/docs/.gitignore:2:.vitepress/dist/	apps/docs/.vitepress/dist/index.html
+apps/docs/.gitignore:4:src/.vitepress/dist/ apps/docs/src/.vitepress/dist/index.html
+apps/docs/.gitignore:2:.vitepress/dist/ apps/docs/.vitepress/dist/index.html
+
 ```
 
 ---
 
 **Review Complete**
 **Next Step:** QA validation with manual testing checklist
+```

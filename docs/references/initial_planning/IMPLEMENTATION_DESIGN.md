@@ -1,8 +1,8 @@
-# Raptscallions Component System: Implementation Design Guide
+# RaptScallions Component System: Implementation Design Guide
 
 ## Document Purpose
 
-This document provides the architectural blueprint for building a theme-switchable component library for Raptscallions. It defines the shared component API, theme token structure, and implementation patterns without prescribing specific code.
+This document provides the architectural blueprint for building a theme-switchable component library for RaptScallions. It defines the shared component API, theme token structure, and implementation patterns without prescribing specific code.
 
 ---
 
@@ -736,7 +736,7 @@ Base Theme (Garden/Modern)
           └── Class Overrides
 ```
 
-This aligns with the existing Raptscallions theme configuration system.
+This aligns with the existing RaptScallions theme configuration system.
 
 ---
 

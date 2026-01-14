@@ -1,6 +1,6 @@
-# Raptscallions Frontend Implementation Guide
+# RaptScallions Frontend Implementation Guide
 
-Complete implementation guide for the Raptscallions frontend using Vite, React, TypeScript, TanStack Router, and TanStack Query.
+Complete implementation guide for the RaptScallions frontend using Vite, React, TypeScript, TanStack Router, and TanStack Query.
 
 ---
 
@@ -632,7 +632,7 @@ import type { ThemeConfig } from "@raptscallions/core/schemas";
 
 const templates: Record<string, ThemeConfig & { name: string }> = {
   default: {
-    name: "Raptscallions Default",
+    name: "RaptScallions Default",
     primary: "#0066CC",
     secondary: "#64748B",
     accent: "#10B981",

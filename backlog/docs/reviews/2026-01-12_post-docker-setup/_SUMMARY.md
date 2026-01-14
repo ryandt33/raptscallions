@@ -30,16 +30,16 @@
 
 **Status:** ✅ Aligned (1 with scope expansion)
 
-| Task | Title | Status | Tests | Notes |
-|------|-------|--------|-------|-------|
-| E01-T001 | Initialize pnpm monorepo | ✅ Aligned | N/A | Perfect alignment |
-| E01-T002 | Setup packages/core with Zod | ✅ Aligned | 110 passing | All arch concerns addressed |
-| E01-T003 | Setup packages/db with Drizzle | ✅ Aligned | 352 passing | Revision: compiled schema paths |
-| E01-T004 | Create users schema | ✅ Aligned | 30 passing | Production-ready |
-| E01-T005 | Create groups schema with ltree | ✅ Aligned | 44 passing | ltree properly implemented |
-| E01-T006 | Create group_members schema | ✅ Aligned | 41 passing | Join table with cascade |
-| E01-T007 | Setup packages/telemetry | ⚠️ Scope Expansion | Tests passing | Revision: functional logger vs stub |
-| E01-T008 | Configure Vitest | ✅ Aligned | 784 total | Monorepo tests working |
+| Task     | Title                           | Status             | Tests         | Notes                               |
+| -------- | ------------------------------- | ------------------ | ------------- | ----------------------------------- |
+| E01-T001 | Initialize pnpm monorepo        | ✅ Aligned         | N/A           | Perfect alignment                   |
+| E01-T002 | Setup packages/core with Zod    | ✅ Aligned         | 110 passing   | All arch concerns addressed         |
+| E01-T003 | Setup packages/db with Drizzle  | ✅ Aligned         | 352 passing   | Revision: compiled schema paths     |
+| E01-T004 | Create users schema             | ✅ Aligned         | 30 passing    | Production-ready                    |
+| E01-T005 | Create groups schema with ltree | ✅ Aligned         | 44 passing    | ltree properly implemented          |
+| E01-T006 | Create group_members schema     | ✅ Aligned         | 41 passing    | Join table with cascade             |
+| E01-T007 | Setup packages/telemetry        | ⚠️ Scope Expansion | Tests passing | Revision: functional logger vs stub |
+| E01-T008 | Configure Vitest                | ✅ Aligned         | 784 total     | Monorepo tests working              |
 
 **Test Summary:** 577 passing tests in db/core/telemetry packages
 **Issues:** E01-T007 implemented functional logger instead of stub (documented, accepted)
@@ -49,14 +49,15 @@
 
 **Status:** ⚠️ Implemented, 24 tests failing
 
-| Task | Title | Status | Tests | Notes |
-|------|-------|--------|-------|-------|
-| E02-T001 | Fastify API server foundation | ✅ Aligned | 9 passing, 2 failing | Implementation complete |
+| Task     | Title                          | Status     | Tests                 | Notes                                       |
+| -------- | ------------------------------ | ---------- | --------------------- | ------------------------------------------- |
+| E02-T001 | Fastify API server foundation  | ✅ Aligned | 9 passing, 2 failing  | Implementation complete                     |
 | E02-T002 | Sessions table and Lucia setup | ✅ Aligned | 33 passing, 6 failing | Schema perfect, middleware tests need fixes |
-| E02-T003 | Email/password auth routes | ✅ Aligned | Unit tests passing | Integration tests depend on session fixes |
-| E02-T004 | OAuth with Arctic | ✅ Aligned | 0 passing, 18 failing | PKCE code verifier cookie mocking needed |
+| E02-T003 | Email/password auth routes     | ✅ Aligned | Unit tests passing    | Integration tests depend on session fixes   |
+| E02-T004 | OAuth with Arctic              | ✅ Aligned | 0 passing, 18 failing | PKCE code verifier cookie mocking needed    |
 
 **Test Summary:** Implementation is correct, 27 test failures due to:
+
 - OAuth PKCE code verifier cookies not mocked (18 tests)
 - Session middleware lucia validation mocking (6 tests)
 - Config/error handler edge cases (3 tests)
@@ -68,10 +69,10 @@
 
 **Status:** ✅ Fully Aligned
 
-| Task | Title | Status | Tests | Notes |
-|------|-------|--------|-------|-------|
+| Task     | Title                             | Status     | Tests      | Notes                  |
+| -------- | --------------------------------- | ---------- | ---------- | ---------------------- |
 | E03-T001 | Classes and class_members schemas | ✅ Aligned | 75 passing | Perfect implementation |
-| E03-T002 | Tools schema with YAML storage | ✅ Aligned | 60 passing | All criteria met |
+| E03-T002 | Tools schema with YAML storage    | ✅ Aligned | 60 passing | All criteria met       |
 
 **Test Summary:** 135 passing, 0 failing
 **Issues:** None
@@ -81,10 +82,10 @@
 
 **Status:** ✅ Fully Aligned
 
-| Task | Title | Status | Tests | Notes |
-|------|-------|--------|-------|-------|
+| Task     | Title                              | Status     | Tests      | Notes                    |
+| -------- | ---------------------------------- | ---------- | ---------- | ------------------------ |
 | E04-T001 | Chat sessions and messages schemas | ✅ Aligned | 44 passing | State/role enums correct |
-| E04-T002 | OpenRouter client with streaming | ✅ Aligned | 45 passing | Full streaming support |
+| E04-T002 | OpenRouter client with streaming   | ✅ Aligned | 45 passing | Full streaming support   |
 
 **Test Summary:** 89 passing, 0 failing
 **Issues:** None
@@ -95,41 +96,47 @@
 ### Overall Test Results
 
 **Total Tests:** 811
+
 - **Passing:** 784 (96.7%)
 - **Failing:** 27 (3.3%)
 
 ### Passing Tests by Package
 
-| Package | Tests Passing |
-|---------|--------------|
-| @raptscallions/core | 110 |
-| @raptscallions/db | 352 |
-| @raptscallions/telemetry | (included in core) |
-| @raptscallions/ai | 45 |
-| @raptscallions/api | ~277 (estimated from total) |
+| Package                  | Tests Passing               |
+| ------------------------ | --------------------------- |
+| @raptscallions/core      | 110                         |
+| @raptscallions/db        | 352                         |
+| @raptscallions/telemetry | (included in core)          |
+| @raptscallions/ai        | 45                          |
+| @raptscallions/api       | ~277 (estimated from total) |
 
 ### Failing Tests (27 total, all in @raptscallions/api)
 
 **Category Breakdown:**
+
 1. **OAuth PKCE Tests (18 failures)**
+
    - Location: `apps/api/src/__tests__/services/oauth.service.test.ts`
    - Root Cause: Arctic 3.x requires code verifier cookie for PKCE
    - Fix Required: Update test mocks to include `oauth_code_verifier` cookie
    - Impact: Low (implementation is correct, just test mocks outdated)
 
 2. **Session Middleware Tests (6 failures)**
+
    - Location: `apps/api/src/__tests__/middleware/session.middleware.test.ts`
    - Root Cause: Lucia validation mock incomplete
    - Fix Required: Update lucia mock to include all required properties
    - Impact: Low (middleware implementation is correct)
 
 3. **Config Test (1 failure)**
+
    - Location: `apps/api/src/__tests__/config.test.ts`
    - Issue: Import validation edge case
    - Fix Required: Update test setup for environment validation
    - Impact: Very low (edge case)
 
 4. **Error Handler Test (1 failure)**
+
    - Location: `apps/api/src/__tests__/middleware/error-handler.test.ts`
    - Issue: AppError subclass discrimination
    - Fix Required: Verify error instanceof checks
@@ -144,6 +151,7 @@
 ## Revisions Documented
 
 ### 1. Drizzle Config Schema Paths (E01-T003)
+
 **File:** `packages/db/drizzle.config.ts`
 **Change:** Schema paths point to compiled `dist/` files instead of `src/` TypeScript files
 **Reason:** Docker production deployment - drizzle-kit needs compiled JavaScript
@@ -152,6 +160,7 @@
 **Document:** [backlog/docs/revisions/2026-01-12_post-docker-setup/E01/T003/revision.md](./E01/T003/revision.md)
 
 ### 2. Telemetry Scope Expansion (E01-T007)
+
 **File:** `packages/telemetry/src/logger.ts`
 **Change:** Implemented functional pino logger instead of stub
 **Reason:** Immediate debugging need, pino is lightweight and production-ready
@@ -164,6 +173,7 @@
 ### ✅ Technology Stack Compliance
 
 All tasks correctly use the mandated technology stack:
+
 - **Runtime:** Node.js 20 LTS ✅
 - **Language:** TypeScript 5.3+ strict mode ✅
 - **API Framework:** Fastify 4.x ✅
@@ -177,6 +187,7 @@ All tasks correctly use the mandated technology stack:
 ### ✅ Code Quality Standards
 
 All implementations follow project conventions:
+
 - Snake_case for database tables/columns ✅
 - PascalCase for React components ✅
 - Functional programming patterns ✅
@@ -188,6 +199,7 @@ All implementations follow project conventions:
 ### ✅ Security Standards
 
 All implementations include proper security measures:
+
 - Password hashing with Argon2 ✅
 - Secure session cookies (httpOnly, sameSite) ✅
 - Environment variable validation ✅
@@ -200,6 +212,7 @@ All implementations include proper security measures:
 ### Immediate Actions (Before Next Development Phase)
 
 1. **Fix 27 Failing Tests** - Systematic fixes needed for:
+
    - Update OAuth PKCE test mocks with code verifier cookie
    - Update session middleware lucia mocks
    - Fix config import edge case
@@ -224,7 +237,7 @@ All implementations include proper security measures:
 
 ### Overall Assessment
 
-The Raptscallions codebase is **well-aligned with specifications** after Docker setup and first compilation. The systematic review found:
+The RaptScallions codebase is **well-aligned with specifications** after Docker setup and first compilation. The systematic review found:
 
 ✅ **15 of 16 tasks fully aligned** (93.75%)
 ✅ **1 task with beneficial scope expansion** (functional logger)
@@ -235,6 +248,7 @@ The Raptscallions codebase is **well-aligned with specifications** after Docker 
 ### Quality Rating: EXCELLENT
 
 **Strengths:**
+
 - Comprehensive test coverage across all packages
 - Strict TypeScript compliance with zero `any` types
 - Proper security measures (Argon2, secure cookies, PKCE)
@@ -243,6 +257,7 @@ The Raptscallions codebase is **well-aligned with specifications** after Docker 
 - OpenTelemetry-ready structure
 
 **Areas for Improvement:**
+
 - 27 test failures need systematic fixes (test mocks, not implementation)
 - Optional: Use pool size env vars in db client
 - Optional: Add migration down scripts
@@ -263,6 +278,7 @@ The codebase is ready for continued development. The 27 failing tests are isolat
 ---
 
 **Review Artifacts:**
+
 - Individual task reviews: `./E##/T###/review.md`
 - Revision documents: `../revisions/2026-01-12_post-docker-setup/E##/T###/revision.md`
 - Epic summaries: `./E##/summary.md`

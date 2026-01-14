@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaptScallions - Final Font Selection</title>
+  <!-- Fonts - Final candidates -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Varela+Round&family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Modern Agricultural Design System */
+      --green-50: #f0fdf4;
+      --green-100: #dcfce7;
+      --green-200: #bbf7d0;
+      --green-300: #86efac;
+      --green-400: #4ade80;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --green-800: #166534;
+      --green-900: #14532d;
+
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-300: #d6d3d1;
+      --stone-400: #a8a29e;
+      --stone-500: #78716c;
+      --stone-600: #57534e;
+      --stone-700: #44403c;
+      --stone-800: #292524;
+      --stone-900: #1c1917;
+      --stone-950: #0c0a09;
+
+      /* Warm browns for dark mode */
+      --brown-950: #120f0c;
+      --brown-900: #1a1512;
+      --brown-800: #2a2420;
+      --brown-700: #3d3530;
+
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-200: #fde68a;
+      --amber-300: #fcd34d;
+      --amber-400: #fbbf24;
+      --amber-500: #f59e0b;
+      --amber-600: #d97706;
+
+      /* Typography */
+      --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(22, 163, 74, 0.15);
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--stone-100);
+      color: var(--stone-900);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(250, 250, 249, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--stone-200);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-family: "Nunito", sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--green-700) 0%, var(--green-500) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--stone-600);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--green-600);
+    }
+
+    /* Main Content */
+    main {
+      padding-top: 60px;
+    }
+
+    /* Section Header */
+    .section-header {
+      padding: 1rem 2rem;
+      background: var(--stone-200);
+      border-bottom: 2px solid var(--stone-300);
+    }
+
+    .section-header h2 {
+      font-size: 1rem;
+      color: var(--stone-700);
+      font-family: var(--font-body);
+      font-weight: 600;
+    }
+
+    .section-header .label {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      background: var(--green-100);
+      color: var(--green-800);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .section-header .label.dark {
+      background: var(--stone-800);
+      color: var(--stone-200);
+    }
+
+    /* Base Hero Styles */
+    .hero {
+      padding: 5rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero .name {
+      font-size: clamp(3rem, 8vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero .tagline {
+      font-family: var(--font-body);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 500;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero .description {
+      font-size: 1.125rem;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green-700) 0%, var(--green-600) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--stone-900);
+      border: 1px solid var(--stone-200);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green-500);
+      color: var(--green-700);
+    }
+
+    /* ============================================
+       FONT FAMILY OPTIONS - FINAL CANDIDATES
+       ============================================ */
+
+    /* Option 1: Nunito (very rounded, friendly) */
+    .font-nunito .name {
+      font-family: "Nunito", sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    /* Option 2: Varela Round (fully rounded, soft) */
+    .font-varela .name {
+      font-family: "Varela Round", sans-serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    /* Option 3: Comfortaa (very rounded, playful) */
+    .font-comfortaa .name {
+      font-family: "Comfortaa", sans-serif;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    /* ============================================
+       LIGHT MODE: VARIANT 7 - Warm Earth Tones
+       ============================================ */
+    .hero-light {
+      background: linear-gradient(180deg, #fef7ed 0%, var(--stone-50) 100%);
+    }
+
+    .hero-light .name {
+      color: var(--green-800);
+    }
+
+    .hero-light .tagline {
+      color: var(--stone-800);
+    }
+
+    .hero-light .description {
+      color: var(--stone-600);
+    }
+
+    /* ============================================
+       DARK MODE: OPTION C - Golden Wheat Accent
+       ============================================ */
+    .hero-dark-c {
+      background: linear-gradient(180deg, var(--brown-900) 0%, var(--brown-950) 100%);
+    }
+
+    .hero-dark-c .name {
+      background: linear-gradient(135deg, var(--amber-400) 0%, var(--amber-200) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-dark-c .tagline {
+      color: var(--stone-100);
+    }
+
+    .hero-dark-c .description {
+      color: var(--stone-400);
+    }
+
+    .hero-dark-c .btn-primary {
+      background: linear-gradient(135deg, var(--amber-600) 0%, var(--amber-500) 100%);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+
+    .hero-dark-c .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+    }
+
+    .hero-dark-c .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--stone-100);
+      border-color: var(--brown-700);
+    }
+
+    .hero-dark-c .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--amber-500);
+      color: var(--amber-400);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 3rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .features h2 {
+      font-family: var(--font-body);
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--stone-900);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid var(--stone-200);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .feature-card:hover {
+      border-color: var(--green-500);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .feature-card .icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-body);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.375rem;
+      color: var(--stone-900);
+    }
+
+    .feature-card p {
+      color: var(--stone-600);
+      font-size: 0.875rem;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--stone-200);
+      border-top: 1px solid var(--stone-300);
+      padding: 2rem;
+      text-align: center;
+      color: var(--stone-600);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a href="#" class="logo">RaptScallions KB</a>
+      <ul class="nav-links">
+        <li><a href="http://localhost:5173">Current Docs</a></li>
+        <li><a href="https://github.com/ryandt33/raptscallions">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <!-- OPTION 1: NUNITO -->
+    <div class="section-header">
+      <h2>☀️ OPTION 1: NUNITO <span class="label">Light</span></h2>
+    </div>
+    <section class="hero hero-light font-nunito">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-header">
+      <h2>🌙 OPTION 1: NUNITO <span class="label dark">Dark</span></h2>
+    </div>
+    <section class="hero hero-dark-c font-nunito">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Cards for Nunito -->
+    <section class="features">
+      <h2 style="font-family: 'Nunito', sans-serif; font-weight: 800;">Nunito Feature Cards</h2>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="icon">🏗️</span>
+          <h3 style="font-family: 'Nunito', sans-serif; font-weight: 700;">Architecture</h3>
+          <p>System design, technology stack, and core entity relationships</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🎨</span>
+          <h3 style="font-family: 'Nunito', sans-serif; font-weight: 700;">Patterns</h3>
+          <p>Reusable implementation patterns for common scenarios</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">📚</span>
+          <h3 style="font-family: 'Nunito', sans-serif; font-weight: 700;">Domain Guides</h3>
+          <p>Deep dives into auth, database, API, AI, and testing</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🔍</span>
+          <h3 style="font-family: 'Nunito', sans-serif; font-weight: 700;">Troubleshooting</h3>
+          <p>Problem-solution guides for common issues</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- OPTION 2: VARELA ROUND -->
+    <div class="section-header">
+      <h2>☀️ OPTION 2: VARELA ROUND <span class="label">Light</span></h2>
+    </div>
+    <section class="hero hero-light font-varela">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-header">
+      <h2>🌙 OPTION 2: VARELA ROUND <span class="label dark">Dark</span></h2>
+    </div>
+    <section class="hero hero-dark-c font-varela">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Cards for Varela Round -->
+    <section class="features">
+      <h2 style="font-family: 'Varela Round', sans-serif;">Varela Round Feature Cards</h2>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="icon">🏗️</span>
+          <h3 style="font-family: 'Varela Round', sans-serif;">Architecture</h3>
+          <p>System design, technology stack, and core entity relationships</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🎨</span>
+          <h3 style="font-family: 'Varela Round', sans-serif;">Patterns</h3>
+          <p>Reusable implementation patterns for common scenarios</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">📚</span>
+          <h3 style="font-family: 'Varela Round', sans-serif;">Domain Guides</h3>
+          <p>Deep dives into auth, database, API, AI, and testing</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🔍</span>
+          <h3 style="font-family: 'Varela Round', sans-serif;">Troubleshooting</h3>
+          <p>Problem-solution guides for common issues</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- OPTION 3: COMFORTAA -->
+    <div class="section-header">
+      <h2>☀️ OPTION 3: COMFORTAA <span class="label">Light</span></h2>
+    </div>
+    <section class="hero hero-light font-comfortaa">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-header">
+      <h2>🌙 OPTION 3: COMFORTAA <span class="label dark">Dark</span></h2>
+    </div>
+    <section class="hero hero-dark-c font-comfortaa">
+      <div class="hero-content">
+        <h1 class="name">RaptScallions</h1>
+        <p class="tagline">Knowledge Base</p>
+        <p class="description">Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-secondary">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Cards for Comfortaa -->
+    <section class="features">
+      <h2 style="font-family: 'Comfortaa', sans-serif; font-weight: 600;">Comfortaa Feature Cards</h2>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="icon">🏗️</span>
+          <h3 style="font-family: 'Comfortaa', sans-serif; font-weight: 600;">Architecture</h3>
+          <p>System design, technology stack, and core entity relationships</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🎨</span>
+          <h3 style="font-family: 'Comfortaa', sans-serif; font-weight: 600;">Patterns</h3>
+          <p>Reusable implementation patterns for common scenarios</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">📚</span>
+          <h3 style="font-family: 'Comfortaa', sans-serif; font-weight: 600;">Domain Guides</h3>
+          <p>Deep dives into auth, database, API, AI, and testing</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">🔍</span>
+          <h3 style="font-family: 'Comfortaa', sans-serif; font-weight: 600;">Troubleshooting</h3>
+          <p>Problem-solution guides for common issues</p>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p><strong>Final Font Selection</strong></p>
+    <p>Name: "RaptScallions" (with capital S)</p>
+    <p>Theme: Light (Warm Earth) + Dark (Golden Wheat)</p>
+    <p>Choose between: Nunito, Varela Round, or Comfortaa</p>
+  </footer>
+</body>
+</html>

@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: Raptscallions
+  name: RaptScallions
   text: Knowledge Base
-  tagline: Architecture, patterns, decisions, and troubleshooting for the Raptscallions platform
+  tagline: Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform
   actions:
     - theme: brand
       text: Get Started
@@ -30,7 +30,7 @@ features:
 
 ## About This KB
 
-This knowledge base documents the **implemented** features of the Raptscallions platform. Unlike planning documents, every article here is verified against working code.
+This knowledge base documents the **implemented** features of the RaptScallions platform. Unlike planning documents, every article here is verified against working code.
 
 ### What's Inside
 
@@ -50,19 +50,25 @@ Documentation contributions are welcome. See the main repository for contributio
 ## Browse by Domain
 
 ### [Authentication & Authorization](/auth/)
+
 Lucia sessions, CASL permissions, OAuth providers, guards, and rate limiting.
 
 ### [Database & ORM](/database/)
+
 PostgreSQL schemas, Drizzle ORM patterns, migrations, and entity relationships.
 
 ### [API Design & Patterns](/api/)
+
 Fastify route handlers, middleware, services, validation, and error handling.
 
 ### [AI Gateway Integration](/ai/)
+
 OpenRouter client, streaming, error handling, and usage patterns.
 
 ### [Testing](/testing/)
+
 Vitest setup, AAA pattern, mocking strategies, Fastify integration testing.
 
 ### [Contributing](/contributing/)
+
 How to contribute code, documentation, and improvements.

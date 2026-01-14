@@ -11,6 +11,7 @@ This task builds directly on E06-T001 (VitePress setup) by adding the folder str
 ### Folder Structure Strategy
 
 Create a **domain-first** organization where:
+
 - Each domain represents a major codebase area (auth, database, api, ai, testing)
 - Within each domain, content is organized by **type** (concepts, patterns, decisions, troubleshooting)
 - Maximum depth of 3 levels: domain/type/article (avoid deep nesting)
@@ -19,6 +20,7 @@ Create a **domain-first** organization where:
 ### VitePress Sidebar Configuration
 
 Use VitePress's sidebar API to create hierarchical navigation:
+
 - Define sidebar groups for each domain
 - Use `collapsed: false` for initial visibility
 - Group content by type within each domain
@@ -27,6 +29,7 @@ Use VitePress's sidebar API to create hierarchical navigation:
 ### Content Organization Pattern
 
 Each domain follows a consistent pattern:
+
 ```
 domain/
 ├── index.md              # Domain overview
@@ -44,39 +47,39 @@ Not all domains need all types (e.g., testing doesn't have decisions).
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `apps/docs/src/auth/index.md` | Auth domain overview and navigation |
-| `apps/docs/src/auth/concepts/.gitkeep` | Placeholder for auth concepts articles |
-| `apps/docs/src/auth/patterns/.gitkeep` | Placeholder for auth patterns articles |
-| `apps/docs/src/auth/decisions/.gitkeep` | Placeholder for auth decision records |
-| `apps/docs/src/auth/troubleshooting/.gitkeep` | Placeholder for auth troubleshooting guides |
-| `apps/docs/src/database/index.md` | Database domain overview and navigation |
-| `apps/docs/src/database/concepts/.gitkeep` | Placeholder for database concepts |
-| `apps/docs/src/database/patterns/.gitkeep` | Placeholder for database patterns |
-| `apps/docs/src/database/decisions/.gitkeep` | Placeholder for database decisions |
-| `apps/docs/src/database/troubleshooting/.gitkeep` | Placeholder for database troubleshooting |
-| `apps/docs/src/api/index.md` | API domain overview and navigation |
-| `apps/docs/src/api/concepts/.gitkeep` | Placeholder for API concepts |
-| `apps/docs/src/api/patterns/.gitkeep` | Placeholder for API patterns |
-| `apps/docs/src/api/decisions/.gitkeep` | Placeholder for API decisions |
-| `apps/docs/src/api/troubleshooting/.gitkeep` | Placeholder for API troubleshooting |
-| `apps/docs/src/ai/index.md` | AI domain overview and navigation |
-| `apps/docs/src/ai/concepts/.gitkeep` | Placeholder for AI concepts |
-| `apps/docs/src/ai/patterns/.gitkeep` | Placeholder for AI patterns |
-| `apps/docs/src/ai/decisions/.gitkeep` | Placeholder for AI decisions |
-| `apps/docs/src/ai/troubleshooting/.gitkeep` | Placeholder for AI troubleshooting |
-| `apps/docs/src/testing/index.md` | Testing domain overview and navigation |
-| `apps/docs/src/testing/patterns/.gitkeep` | Placeholder for testing patterns |
-| `apps/docs/src/testing/troubleshooting/.gitkeep` | Placeholder for testing troubleshooting |
-| `apps/docs/src/contributing/index.md` | Contribution guidelines overview |
+| File                                              | Purpose                                     |
+| ------------------------------------------------- | ------------------------------------------- |
+| `apps/docs/src/auth/index.md`                     | Auth domain overview and navigation         |
+| `apps/docs/src/auth/concepts/.gitkeep`            | Placeholder for auth concepts articles      |
+| `apps/docs/src/auth/patterns/.gitkeep`            | Placeholder for auth patterns articles      |
+| `apps/docs/src/auth/decisions/.gitkeep`           | Placeholder for auth decision records       |
+| `apps/docs/src/auth/troubleshooting/.gitkeep`     | Placeholder for auth troubleshooting guides |
+| `apps/docs/src/database/index.md`                 | Database domain overview and navigation     |
+| `apps/docs/src/database/concepts/.gitkeep`        | Placeholder for database concepts           |
+| `apps/docs/src/database/patterns/.gitkeep`        | Placeholder for database patterns           |
+| `apps/docs/src/database/decisions/.gitkeep`       | Placeholder for database decisions          |
+| `apps/docs/src/database/troubleshooting/.gitkeep` | Placeholder for database troubleshooting    |
+| `apps/docs/src/api/index.md`                      | API domain overview and navigation          |
+| `apps/docs/src/api/concepts/.gitkeep`             | Placeholder for API concepts                |
+| `apps/docs/src/api/patterns/.gitkeep`             | Placeholder for API patterns                |
+| `apps/docs/src/api/decisions/.gitkeep`            | Placeholder for API decisions               |
+| `apps/docs/src/api/troubleshooting/.gitkeep`      | Placeholder for API troubleshooting         |
+| `apps/docs/src/ai/index.md`                       | AI domain overview and navigation           |
+| `apps/docs/src/ai/concepts/.gitkeep`              | Placeholder for AI concepts                 |
+| `apps/docs/src/ai/patterns/.gitkeep`              | Placeholder for AI patterns                 |
+| `apps/docs/src/ai/decisions/.gitkeep`             | Placeholder for AI decisions                |
+| `apps/docs/src/ai/troubleshooting/.gitkeep`       | Placeholder for AI troubleshooting          |
+| `apps/docs/src/testing/index.md`                  | Testing domain overview and navigation      |
+| `apps/docs/src/testing/patterns/.gitkeep`         | Placeholder for testing patterns            |
+| `apps/docs/src/testing/troubleshooting/.gitkeep`  | Placeholder for testing troubleshooting     |
+| `apps/docs/src/contributing/index.md`             | Contribution guidelines overview            |
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
+| File                             | Changes                                                          |
+| -------------------------------- | ---------------------------------------------------------------- |
 | `apps/docs/.vitepress/config.ts` | Add sidebar configuration with domain-based navigation structure |
-| `apps/docs/src/index.md` | Update homepage to link to all domain sections |
+| `apps/docs/src/index.md`         | Update homepage to link to all domain sections                   |
 
 ## Implementation Details
 
@@ -153,6 +156,7 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 #### Domain-Specific Content
 
 **Auth (`apps/docs/src/auth/index.md`):**
+
 ```markdown
 ---
 title: Authentication & Authorization
@@ -186,6 +190,7 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 ```
 
 **Database (`apps/docs/src/database/index.md`):**
+
 ```markdown
 ---
 title: Database & ORM
@@ -219,6 +224,7 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 ```
 
 **API (`apps/docs/src/api/index.md`):**
+
 ```markdown
 ---
 title: API Design & Patterns
@@ -253,6 +259,7 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 ```
 
 **AI (`apps/docs/src/ai/index.md`):**
+
 ```markdown
 ---
 title: AI Gateway Integration
@@ -286,6 +293,7 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 ```
 
 **Testing (`apps/docs/src/testing/index.md`):**
+
 ```markdown
 ---
 title: Testing Patterns & Conventions
@@ -316,19 +324,21 @@ Check back soon or see the [GitHub repository](https://github.com/ryandt33/rapts
 ```
 
 **Contributing (`apps/docs/src/contributing/index.md`):**
+
 ```markdown
 ---
-title: Contributing to Raptscallions
+title: Contributing to RaptScallions
 description: How to contribute code, documentation, and improvements
 ---
 
-# Contributing to Raptscallions
+# Contributing to RaptScallions
 
-Guidelines for contributing to the Raptscallions project, including code contributions, documentation updates, and development workflow.
+Guidelines for contributing to the RaptScallions project, including code contributions, documentation updates, and development workflow.
 
 ## Coming Soon
 
 This section will include:
+
 - Development environment setup
 - Code contribution guidelines
 - Documentation contribution process
@@ -349,7 +359,7 @@ Check the [GitHub repository](https://github.com/ryandt33/raptscallions) for cur
 Update `apps/docs/.vitepress/config.ts` to add the sidebar configuration:
 
 ```typescript
-import { defineConfig } from 'vitepress';
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
   // ... existing config ...
@@ -360,176 +370,140 @@ export default defineConfig({
     // Sidebar navigation
     sidebar: [
       {
-        text: 'Authentication & Authorization',
+        text: "Authentication & Authorization",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/auth/' },
+          { text: "Overview", link: "/auth/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/auth/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Database & ORM',
+        text: "Database & ORM",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/database/' },
+          { text: "Overview", link: "/database/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
             items: [
-              { text: 'Coming Soon', link: '/database/troubleshooting/' }
-            ]
-          }
-        ]
+              { text: "Coming Soon", link: "/database/troubleshooting/" },
+            ],
+          },
+        ],
       },
       {
-        text: 'API Design & Patterns',
+        text: "API Design & Patterns",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/api/' },
+          { text: "Overview", link: "/api/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/api/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'AI Gateway Integration',
+        text: "AI Gateway Integration",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/ai/' },
+          { text: "Overview", link: "/ai/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/ai/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Testing',
+        text: "Testing",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/testing/' },
+          { text: "Overview", link: "/testing/" },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/testing/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/testing/patterns/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/testing/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/testing/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Contributing',
-        items: [
-          { text: 'Overview', link: '/contributing/' }
-        ]
-      }
+        text: "Contributing",
+        items: [{ text: "Overview", link: "/contributing/" }],
+      },
     ],
 
     // ... rest of existing config ...
-  }
+  },
 });
 ```
 
@@ -545,6 +519,7 @@ export default defineConfig({
 Create `index.md` in each subdirectory to avoid dead links:
 
 **Template for placeholder index files:**
+
 ```markdown
 # Coming Soon
 
@@ -554,6 +529,7 @@ Check back soon or return to the [domain overview](../).
 ```
 
 Create this file at:
+
 - `apps/docs/src/auth/concepts/index.md`
 - `apps/docs/src/auth/patterns/index.md`
 - `apps/docs/src/auth/decisions/index.md`
@@ -583,21 +559,27 @@ Add a new section after the "About This KB" content:
 ## Browse by Domain
 
 ### [Authentication & Authorization](/auth/)
+
 Lucia sessions, CASL permissions, OAuth providers, guards, and rate limiting.
 
 ### [Database & ORM](/database/)
+
 PostgreSQL schemas, Drizzle ORM patterns, migrations, and entity relationships.
 
 ### [API Design & Patterns](/api/)
+
 Fastify route handlers, middleware, services, validation, and error handling.
 
 ### [AI Gateway Integration](/ai/)
+
 OpenRouter client, streaming, error handling, and usage patterns.
 
 ### [Testing](/testing/)
+
 Vitest setup, AAA pattern, mocking strategies, Fastify integration testing.
 
 ### [Contributing](/contributing/)
+
 How to contribute code, documentation, and improvements.
 ```
 
@@ -617,7 +599,7 @@ Create a new section in the contributing index that documents the folder structu
 
 Add to `apps/docs/src/contributing/index.md`:
 
-```markdown
+````markdown
 ## Documentation Structure
 
 The knowledge base follows a domain-first organization:
@@ -625,6 +607,7 @@ The knowledge base follows a domain-first organization:
 ### Domain Folders
 
 Each domain represents a major codebase area:
+
 - **auth/** — Authentication and authorization
 - **database/** — Database schemas and ORM patterns
 - **api/** — API design and Fastify patterns
@@ -659,6 +642,7 @@ When adding documentation:
 5. Update the sidebar in `.vitepress/config.ts` to add the new page
 
 Example:
+
 ```markdown
 ---
 title: Session Lifecycle
@@ -669,7 +653,9 @@ description: How Lucia sessions are created, validated, and expired
 
 [Content here...]
 ```
-```
+````
+
+````
 
 ## Dependencies
 
@@ -748,7 +734,7 @@ ls -la apps/docs/src/auth/patterns/index.md
 
 # Verify config file updated
 grep -A 20 "sidebar:" apps/docs/.vitepress/config.ts
-```
+````
 
 ### TypeScript Verification
 
@@ -769,33 +755,39 @@ git status apps/docs/src/
 ### AC1: Domain folders created in apps/docs/src/
 
 **Implementation:**
+
 - Create folders: `auth/`, `database/`, `api/`, `ai/`, `testing/`, `contributing/`
 - Located at: `apps/docs/src/{domain}/`
 
 **Verification:**
+
 ```bash
 ls -la apps/docs/src/ | grep -E "auth|database|api|ai|testing|contributing"
 ```
 
 **Done when:**
+
 - All 6 domain folders exist
 - Folders are committed to Git
 
 ### AC2: Each domain has index.md with section overview template
 
 **Implementation:**
+
 - Create `index.md` in each domain folder
 - Use domain-specific templates from Step 2
 - Include frontmatter with title and description
 - Include overview, "What's Here", "Coming Soon", and "Related Domains" sections
 
 **Verification:**
+
 - Check each `apps/docs/src/{domain}/index.md` exists
 - Verify frontmatter is present
 - Verify all required sections are present
 - Build site and navigate to each domain
 
 **Done when:**
+
 - All 6 domain index files exist with complete content
 - Pages render correctly in VitePress
 - No TypeScript or build errors
@@ -803,12 +795,14 @@ ls -la apps/docs/src/ | grep -E "auth|database|api|ai|testing|contributing"
 ### AC3: Sub-folder structure created (concepts/, patterns/, decisions/, troubleshooting/) per domain
 
 **Implementation:**
+
 - Create subdirectories as specified in Step 1
 - Auth, database, api, ai: all 4 types
 - Testing: patterns/, troubleshooting/ only
 - Contributing: no subdirectories
 
 **Verification:**
+
 ```bash
 # Should succeed for auth, database, api, ai
 ls -la apps/docs/src/auth/concepts/
@@ -825,6 +819,7 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ```
 
 **Done when:**
+
 - All required subdirectories exist
 - Placeholder `index.md` files exist in each subdirectory
 - `.gitkeep` files NOT needed if `index.md` files are present
@@ -832,18 +827,21 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC4: VitePress sidebar configuration reflects folder structure
 
 **Implementation:**
+
 - Update `apps/docs/.vitepress/config.ts` with sidebar configuration
 - Use nested structure: domain → type → articles
 - Set `collapsed: false` for top-level domains
 - Set `collapsed: true` for type groups
 
 **Verification:**
+
 - Grep config file for sidebar definition
 - Build and visually inspect sidebar in browser
 - Verify all domains appear
 - Verify types are nested under domains
 
 **Done when:**
+
 - Config file contains complete sidebar definition
 - Build succeeds without errors
 - Sidebar renders correctly in dev server
@@ -851,18 +849,21 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC5: Navigation works correctly at all levels (domain, type, article)
 
 **Implementation:**
+
 - Ensure all links in sidebar point to valid pages
 - Domain links point to `/{domain}/`
 - Type links point to placeholder pages or are expandable groups only
 - Article links point to specific content (none yet, but structure supports)
 
 **Verification:**
+
 - Start dev server: `pnpm docs:dev`
 - Click every link in sidebar
 - Verify no 404 errors
 - Verify placeholder pages render "Coming Soon" message
 
 **Done when:**
+
 - All sidebar links work (no 404s)
 - Domain pages render full content
 - Placeholder pages render "Coming Soon" content
@@ -870,16 +871,19 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC6: Breadcrumb navigation displays correct path
 
 **Implementation:**
+
 - No code needed - VitePress generates breadcrumbs automatically from sidebar structure
 - Breadcrumbs appear based on current page's position in sidebar hierarchy
 
 **Verification:**
+
 - Navigate to domain index page
 - Verify breadcrumb: `Home > Domain Name`
 - Navigate to subdirectory placeholder
 - Verify breadcrumb: `Home > Domain Name > Type`
 
 **Done when:**
+
 - Breadcrumbs appear on all pages
 - Breadcrumbs reflect correct hierarchy
 - Breadcrumb links work (clicking navigates correctly)
@@ -887,17 +891,20 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC7: KB homepage (apps/docs/src/index.md) links to all domains
 
 **Implementation:**
+
 - Add "Browse by Domain" section to homepage
 - List all 6 domains with links and descriptions
 - Use markdown links: `[Domain Name](/domain/)`
 
 **Verification:**
+
 - Open homepage in browser
 - Verify "Browse by Domain" section appears
 - Click each domain link
 - Verify all links navigate correctly
 
 **Done when:**
+
 - Homepage contains all domain links
 - All links work (no 404s)
 - Descriptions are clear and accurate
@@ -905,16 +912,19 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC8: Empty sections gracefully indicate "Coming soon" or similar
 
 **Implementation:**
+
 - Create placeholder `index.md` files in all subdirectories
 - Use consistent "Coming Soon" template
 - Include link back to domain overview
 
 **Verification:**
+
 - Navigate to any placeholder page
 - Verify "Coming Soon" message appears
 - Verify back link works
 
 **Done when:**
+
 - All subdirectory placeholders exist
 - All placeholders use consistent template
 - No dead links or blank pages
@@ -922,16 +932,19 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 ### AC9: Folder structure documented in contributing section
 
 **Implementation:**
+
 - Add "Documentation Structure" section to `apps/docs/src/contributing/index.md`
 - Document domain folders, content types, naming conventions
 - Provide guidance on adding new content
 
 **Verification:**
+
 - Open contributing page
 - Verify "Documentation Structure" section exists
 - Verify all information is accurate and complete
 
 **Done when:**
+
 - Contributing page documents folder structure
 - Guidance is clear for future contributors
 - Examples are provided
@@ -943,6 +956,7 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 **Issue:** Git doesn't track empty directories
 
 **Solution:** Use placeholder `index.md` files instead of `.gitkeep` files. This:
+
 - Ensures directories are tracked
 - Provides valid pages (no 404s)
 - Serves as navigation endpoints
@@ -958,6 +972,7 @@ ls -la apps/docs/src/testing/concepts/  # Expected: No such file or directory
 **Issue:** VitePress sidebar items can be either expandable groups OR links, but behavior can be confusing
 
 **Solution:**
+
 - Domain level: Both expandable AND link (link to domain index)
 - Type level: Expandable group with link to placeholder page
 - Article level: Direct links (will be added in future tasks)

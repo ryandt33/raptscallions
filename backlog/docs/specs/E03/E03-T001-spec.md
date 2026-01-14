@@ -11,7 +11,7 @@
 
 ### 1.1 Purpose
 
-Define Drizzle ORM schemas for `classes` and `class_members` tables to support teaching groups within the Raptscallions platform. Classes represent teaching groups (like "Period 3 Algebra I") within a school or department, while class_members tracks the roster of teachers and students in each class.
+Define Drizzle ORM schemas for `classes` and `class_members` tables to support teaching groups within the RaptScallions platform. Classes represent teaching groups (like "Period 3 Algebra I") within a school or department, while class_members tracks the roster of teachers and students in each class.
 
 ### 1.2 Context
 
@@ -65,10 +65,11 @@ class_members ← N:1 → users (existing)
 #### 2.2.1 class_role Enum
 
 ```typescript
-export const classRoleEnum = pgEnum('class_role', ['teacher', 'student']);
+export const classRoleEnum = pgEnum("class_role", ["teacher", "student"]);
 ```
 
 **Design Notes:**
+
 - Only two roles: `teacher` and `student` (unlike group_members which has 4 roles)
 - Multiple teachers allowed per class (co-teaching support)
 - No admin roles at class level (managed at group level)
@@ -77,38 +78,47 @@ export const classRoleEnum = pgEnum('class_role', ['teacher', 'student']);
 #### 2.2.2 classes Table
 
 ```typescript
-export const classes = pgTable('classes', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  groupId: uuid('group_id').notNull()
-    .references(() => groups.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 100 }).notNull(),
-  settings: jsonb('settings').notNull().default('{}'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (table) => ({
-  groupIdIdx: index('classes_group_id_idx').on(table.groupId),
-}));
+export const classes = pgTable(
+  "classes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 100 }).notNull(),
+    settings: jsonb("settings").notNull().default("{}"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => ({
+    groupIdIdx: index("classes_group_id_idx").on(table.groupId),
+  })
+);
 ```
 
 **Field Specifications:**
 
-| Field | Type | Constraints | Notes |
-|-------|------|-------------|-------|
-| `id` | UUID | PRIMARY KEY, auto-generated | Uses `gen_random_uuid()` |
-| `group_id` | UUID | NOT NULL, FK to groups(id), CASCADE | Class belongs to one group |
-| `name` | VARCHAR(100) | NOT NULL | Display name (e.g., "Period 3 Algebra I") |
-| `settings` | JSONB | NOT NULL, DEFAULT '{}' | Extensible config (future: grading, themes) |
-| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Audit trail |
-| `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Modified timestamp |
-| `deleted_at` | TIMESTAMPTZ | NULL | Soft delete support |
+| Field        | Type         | Constraints                         | Notes                                       |
+| ------------ | ------------ | ----------------------------------- | ------------------------------------------- |
+| `id`         | UUID         | PRIMARY KEY, auto-generated         | Uses `gen_random_uuid()`                    |
+| `group_id`   | UUID         | NOT NULL, FK to groups(id), CASCADE | Class belongs to one group                  |
+| `name`       | VARCHAR(100) | NOT NULL                            | Display name (e.g., "Period 3 Algebra I")   |
+| `settings`   | JSONB        | NOT NULL, DEFAULT '{}'              | Extensible config (future: grading, themes) |
+| `created_at` | TIMESTAMPTZ  | NOT NULL, DEFAULT now()             | Audit trail                                 |
+| `updated_at` | TIMESTAMPTZ  | NOT NULL, DEFAULT now()             | Modified timestamp                          |
+| `deleted_at` | TIMESTAMPTZ  | NULL                                | Soft delete support                         |
 
 **Indexes:**
+
 - `classes_group_id_idx` (B-tree): Optimizes "get all classes in a group" queries
 
 **Soft Delete:**
+
 - Classes support soft delete via `deleted_at` timestamp
 - Allows archiving classes without losing historical data
 - Cascade behavior: When group is deleted, all classes are deleted (respects soft delete)
@@ -116,49 +126,62 @@ export const classes = pgTable('classes', {
 #### 2.2.3 class_members Table
 
 ```typescript
-export const classMembers = pgTable('class_members', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  classId: uuid('class_id').notNull()
-    .references(() => classes.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id').notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  role: classRoleEnum('role').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow().notNull(),
-}, (table) => ({
-  classIdIdx: index('class_members_class_id_idx').on(table.classId),
-  userIdIdx: index('class_members_user_id_idx').on(table.userId),
-  uniqueMembership: unique('class_members_class_user_unique')
-    .on(table.classId, table.userId),
-}));
+export const classMembers = pgTable(
+  "class_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    classId: uuid("class_id")
+      .notNull()
+      .references(() => classes.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: classRoleEnum("role").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    classIdIdx: index("class_members_class_id_idx").on(table.classId),
+    userIdIdx: index("class_members_user_id_idx").on(table.userId),
+    uniqueMembership: unique("class_members_class_user_unique").on(
+      table.classId,
+      table.userId
+    ),
+  })
+);
 ```
 
 **Field Specifications:**
 
-| Field | Type | Constraints | Notes |
-|-------|------|-------------|-------|
-| `id` | UUID | PRIMARY KEY, auto-generated | Uses `gen_random_uuid()` |
-| `class_id` | UUID | NOT NULL, FK to classes(id), CASCADE | Member belongs to one class |
-| `user_id` | UUID | NOT NULL, FK to users(id), CASCADE | Member is one user |
-| `role` | class_role | NOT NULL | 'teacher' or 'student' |
-| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | When user joined class |
+| Field        | Type        | Constraints                          | Notes                       |
+| ------------ | ----------- | ------------------------------------ | --------------------------- |
+| `id`         | UUID        | PRIMARY KEY, auto-generated          | Uses `gen_random_uuid()`    |
+| `class_id`   | UUID        | NOT NULL, FK to classes(id), CASCADE | Member belongs to one class |
+| `user_id`    | UUID        | NOT NULL, FK to users(id), CASCADE   | Member is one user          |
+| `role`       | class_role  | NOT NULL                             | 'teacher' or 'student'      |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now()              | When user joined class      |
 
 **Indexes:**
+
 - `class_members_class_id_idx` (B-tree): Optimizes "get all members of a class" (roster queries)
 - `class_members_user_id_idx` (B-tree): Optimizes "get all classes for a user" (schedule queries)
 
 **Constraints:**
+
 - `class_members_class_user_unique`: UNIQUE(class_id, user_id) - prevents duplicate memberships
   - A user can only have ONE role per class
   - To change roles, UPDATE the existing record (don't create new one)
 
 **Design Decision - No updated_at:**
+
 - Unlike group_members, class_members does NOT have `updated_at`
 - Reason: Role changes in classes are rare and can be tracked via audit log (future)
 - Simplifies schema and aligns with "minimal viable fields" principle
 - If role changes become common, can add `updated_at` in future migration
 
 **No Soft Delete:**
+
 - Class memberships do NOT support soft delete (no `deleted_at`)
 - When a student/teacher leaves a class, the record is hard-deleted
 - Rationale: Audit trail will be in separate `audit_log` table (future)
@@ -177,6 +200,7 @@ export type NewClassMember = typeof classMembers.$inferInsert;
 ```
 
 **Type Inference:**
+
 - `Class`: Includes all fields (id, timestamps) - for SELECT operations
 - `NewClass`: Omits auto-generated fields (id, created_at, updated_at) - for INSERT operations
 - `ClassMember`: Includes all fields - for SELECT operations
@@ -229,10 +253,10 @@ const classData = await db.query.classes.findFirst({
     group: true,
     members: {
       with: {
-        user: true
-      }
-    }
-  }
+        user: true,
+      },
+    },
+  },
 });
 
 // Get user with all class memberships
@@ -241,18 +265,18 @@ const userData = await db.query.users.findFirst({
   with: {
     classMembers: {
       with: {
-        class: true
-      }
-    }
-  }
+        class: true,
+      },
+    },
+  },
 });
 
 // Get group with all classes
 const groupData = await db.query.groups.findFirst({
   where: eq(groups.id, groupId),
   with: {
-    classes: true
-  }
+    classes: true,
+  },
 });
 ```
 
@@ -285,6 +309,7 @@ packages/db/src/
 **Location:** `packages/db/src/schema/classes.ts`
 
 **Implementation:**
+
 1. Import Drizzle types and existing schemas
 2. Define `classes` table with all fields
 3. Add index on `group_id`
@@ -293,6 +318,7 @@ packages/db/src/
 6. Define `classesRelations` for bidirectional queries
 
 **Pattern:** Follow `groups.ts` structure exactly
+
 - Use same field naming conventions (snake_case in DB, camelCase in TypeScript)
 - Include comprehensive JSDoc comments
 - Export types immediately after table definition
@@ -302,6 +328,7 @@ packages/db/src/
 **Location:** `packages/db/src/schema/class-members.ts`
 
 **Implementation:**
+
 1. Import Drizzle types and existing schemas
 2. Define `classRoleEnum` with 'teacher' and 'student' values
 3. Define `classMembers` table with all fields
@@ -312,6 +339,7 @@ packages/db/src/
 8. Define `classMembersRelations` for bidirectional queries
 
 **Pattern:** Follow `group-members.ts` structure exactly
+
 - Comprehensive JSDoc explaining role semantics
 - Document unique constraint behavior
 - Explain CASCADE delete behavior
@@ -319,14 +347,17 @@ packages/db/src/
 #### Step 3: Update existing schema files
 
 **File:** `packages/db/src/schema/users.ts`
+
 - Add `classMembers: many(classMembers)` to `usersRelations`
 - Import `classMembers` table
 
 **File:** `packages/db/src/schema/groups.ts`
+
 - Add `classes: many(classes)` to `groupsRelations`
 - Import `classes` table
 
 **File:** `packages/db/src/schema/index.ts`
+
 - Add `export * from "./classes.js";`
 - Add `export * from "./class-members.js";`
 
@@ -335,6 +366,7 @@ packages/db/src/
 **Location:** `packages/db/src/migrations/0005_create_classes.sql`
 
 **Contents:**
+
 ```sql
 -- Create class_role enum
 CREATE TYPE "public"."class_role" AS ENUM('teacher', 'student');
@@ -399,6 +431,7 @@ ALTER TABLE "class_members"
 **Location:** `packages/db/src/__tests__/schema/classes.test.ts`
 
 **Test Coverage:**
+
 1. **Type Inference** - Verify `Class` and `NewClass` types
 2. **Schema Definition** - Verify table name and columns
 3. **Schema Exports** - Verify exports are defined
@@ -413,6 +446,7 @@ ALTER TABLE "class_members"
    - Settings with different configurations
 
 **Pattern:** Follow `groups.test.ts` structure exactly
+
 - AAA pattern (Arrange/Act/Assert)
 - Comprehensive JSDoc for each test
 - Test both happy path and edge cases
@@ -422,6 +456,7 @@ ALTER TABLE "class_members"
 **Location:** `packages/db/src/__tests__/schema/class-members.test.ts`
 
 **Test Coverage:**
+
 1. **Type Inference** - Verify `ClassMember` and `NewClassMember` types
 2. **Role Enum** - Verify 'teacher' and 'student' values
 3. **Schema Definition** - Verify table name and columns
@@ -436,6 +471,7 @@ ALTER TABLE "class_members"
    - User with both group_member and class_member roles
 
 **Pattern:** Follow `group-members.test.ts` structure exactly
+
 - Test all enum values
 - Test foreign key relationships
 - Test unique constraint behavior (type-level)
@@ -494,22 +530,23 @@ pnpm --filter @raptscallions/db test:coverage
 
 ### 5.1 Acceptance Criteria Mapping
 
-| AC | Requirement | Validation Method |
-|----|-------------|-------------------|
-| AC1 | classes table with id, group_id FK, name, settings (jsonb), timestamps | Code review + schema inspection |
-| AC2 | class_members table with id, class_id FK, user_id FK, role enum | Code review + schema inspection |
-| AC3 | class_role enum: 'teacher', 'student' | Code review + test verification |
-| AC4 | Foreign keys with CASCADE delete | Migration file inspection |
-| AC5 | Unique constraint on (class_id, user_id) | Migration file inspection |
-| AC6 | Indexes on class_id and user_id for roster queries | Migration file inspection |
-| AC7 | TypeScript types exported (Class, NewClass, ClassMember, NewClassMember) | Code review + test verification |
-| AC8 | Migration file 0005_create_classes.sql | File existence + SQL review |
-| AC9 | Drizzle relations defined for bidirectional queries | Code review + manual query test |
-| AC10 | Tests verify schema constraints and relations | Test suite passes with 100% coverage |
+| AC   | Requirement                                                              | Validation Method                    |
+| ---- | ------------------------------------------------------------------------ | ------------------------------------ |
+| AC1  | classes table with id, group_id FK, name, settings (jsonb), timestamps   | Code review + schema inspection      |
+| AC2  | class_members table with id, class_id FK, user_id FK, role enum          | Code review + schema inspection      |
+| AC3  | class_role enum: 'teacher', 'student'                                    | Code review + test verification      |
+| AC4  | Foreign keys with CASCADE delete                                         | Migration file inspection            |
+| AC5  | Unique constraint on (class_id, user_id)                                 | Migration file inspection            |
+| AC6  | Indexes on class_id and user_id for roster queries                       | Migration file inspection            |
+| AC7  | TypeScript types exported (Class, NewClass, ClassMember, NewClassMember) | Code review + test verification      |
+| AC8  | Migration file 0005_create_classes.sql                                   | File existence + SQL review          |
+| AC9  | Drizzle relations defined for bidirectional queries                      | Code review + manual query test      |
+| AC10 | Tests verify schema constraints and relations                            | Test suite passes with 100% coverage |
 
 ### 5.2 Code Quality Checks
 
 **Before submitting:**
+
 1. ✅ `pnpm typecheck` passes (zero TypeScript errors)
 2. ✅ `pnpm lint` passes (zero ESLint warnings)
 3. ✅ `pnpm --filter @raptscallions/db test` passes (all tests green)
@@ -524,15 +561,18 @@ pnpm --filter @raptscallions/db test:coverage
 ### 6.1 Database Performance
 
 **Index Strategy:**
+
 - `classes_group_id_idx`: Optimizes "get all classes in group" (common query)
 - `class_members_class_id_idx`: Optimizes roster queries (very common)
 - `class_members_user_id_idx`: Optimizes "get user's schedule" (common)
 
 **Unique Constraint:**
+
 - `class_members_class_user_unique`: Prevents accidental duplicate enrollments
 - Index is automatically created for unique constraint (no separate index needed)
 
 **Query Performance Estimates:**
+
 - Get all classes in a group: O(log N) + result size (B-tree index scan)
 - Get class roster: O(log N) + roster size (index scan + join)
 - Get user's classes: O(log N) + class count (index scan + join)
@@ -540,12 +580,14 @@ pnpm --filter @raptscallions/db test:coverage
 ### 6.2 Soft Delete Implications
 
 **Classes soft delete:**
+
 - When `deleted_at IS NOT NULL`, class is "archived"
 - Class members remain (for historical reporting)
 - Queries MUST filter: `WHERE deleted_at IS NULL` (or use `isNull(classes.deletedAt)`)
 - Service layer (E03-T003) will handle this filtering
 
 **Class members NO soft delete:**
+
 - Hard delete when user leaves class
 - Simpler queries (no deleted_at filter needed)
 - Audit trail handled separately (future)
@@ -553,16 +595,19 @@ pnpm --filter @raptscallions/db test:coverage
 ### 6.3 CASCADE Delete Behavior
 
 **Scenario 1: User deleted**
+
 - CASCADE deletes all class_members records for that user
 - User automatically removed from all classes
 - Follows same pattern as group_members
 
 **Scenario 2: Group deleted**
+
 - CASCADE deletes all classes in that group
 - CASCADE then deletes all class_members for those classes
 - Two-level cascade works correctly in PostgreSQL
 
 **Scenario 3: Class deleted**
+
 - CASCADE deletes all class_members for that class
 - All rosters cleared automatically
 
@@ -571,11 +616,13 @@ pnpm --filter @raptscallions/db test:coverage
 ### 6.4 Settings Field Design
 
 **Initial Implementation:**
+
 - Empty JSONB object `{}` by default
 - No schema validation at database level
 - Future: Define Zod schema for settings validation in service layer
 
 **Potential Settings (future):**
+
 ```typescript
 {
   "grading": {
@@ -596,22 +643,24 @@ pnpm --filter @raptscallions/db test:coverage
 ### 6.5 Co-Teaching Support
 
 **Multiple Teachers:**
+
 - No limit on number of teachers per class
 - Each teacher is a separate `class_members` record with role='teacher'
 - All teachers have equal permissions (no "primary teacher" concept initially)
 - Future: Could add `is_primary` flag or `teacher_role` field for distinctions
 
 **Query Example:**
+
 ```typescript
 // Get all teachers for a class
 const teachers = await db.query.classMembers.findMany({
   where: and(
     eq(classMembers.classId, classId),
-    eq(classMembers.role, 'teacher')
+    eq(classMembers.role, "teacher")
   ),
   with: {
-    user: true
-  }
+    user: true,
+  },
 });
 ```
 
@@ -632,12 +681,14 @@ pnpm db:generate
 ### 7.2 Migration Application
 
 **Development:**
+
 ```bash
 # Apply migration to local database
 pnpm --filter @raptscallions/db db:push
 ```
 
 **Production:**
+
 ```bash
 # Apply migrations in order (Drizzle handles sequencing)
 pnpm --filter @raptscallions/db db:migrate
@@ -646,6 +697,7 @@ pnpm --filter @raptscallions/db db:migrate
 ### 7.3 Rollback Plan
 
 **If migration fails:**
+
 1. Identify the failed statement in 0005_create_classes.sql
 2. Create rollback migration: 0006_rollback_classes.sql
 3. Rollback SQL (drop in reverse order):
@@ -679,18 +731,22 @@ DROP TYPE IF EXISTS "public"."class_role";
 **Not in this task, but designed to support:**
 
 1. **Class Schedules** (future table)
+
    - Meeting times, days of week
    - Link to classes table
 
 2. **Class Settings Validation** (E03-T003)
+
    - Zod schema for settings JSONB
    - Service layer validation
 
 3. **Audit Log** (future epic)
+
    - Track class creation, roster changes, role changes
    - Separate `audit_log` table
 
 4. **Class Hierarchies** (future)
+
    - Parent/child classes (e.g., lecture + lab sections)
    - Use self-referential FK or ltree if needed
 
@@ -701,6 +757,7 @@ DROP TYPE IF EXISTS "public"."class_role";
 ### 8.2 Migration Path
 
 **If role enum needs expansion:**
+
 ```sql
 -- Add new role to enum
 ALTER TYPE "class_role" ADD VALUE 'teaching_assistant';
@@ -711,6 +768,7 @@ ALTER TYPE "class_role" ADD VALUE 'teaching_assistant';
 ```
 
 **If unique constraint needs modification:**
+
 ```sql
 -- Drop old constraint
 ALTER TABLE "class_members" DROP CONSTRAINT "class_members_class_user_unique";
@@ -726,13 +784,15 @@ ALTER TABLE "class_members" DROP CONSTRAINT "class_members_class_user_unique";
 ### 9.1 Code Documentation
 
 **Required JSDoc for:**
+
 - Each table definition (comprehensive comment block)
 - Each enum definition (explain values and semantics)
 - Each exported type (with usage examples)
 - Each relation definition (with query examples)
 
 **Example:**
-```typescript
+
+````typescript
 /**
  * Classes table - teaching groups within schools/departments.
  *
@@ -757,11 +817,12 @@ ALTER TABLE "class_members" DROP CONSTRAINT "class_members_class_user_unique";
  * ```
  */
 export const classes = pgTable(...);
-```
+````
 
 ### 9.2 Migration Documentation
 
 **Migration file should include:**
+
 - Comments explaining each section
 - Statement breakpoints for Drizzle parsing
 - Proper ordering (tables before constraints)
@@ -772,22 +833,22 @@ export const classes = pgTable(...);
 
 ### 10.1 Technical Risks
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| Migration fails on apply | Medium | Test on local database first, have rollback plan ready |
-| Unique constraint too restrictive | Low | Design allows role changes via UPDATE (not new record) |
-| JSONB settings lacks validation | Low | Service layer will handle validation (E03-T003) |
-| CASCADE delete unintended side effects | Medium | Comprehensive documentation, integration tests |
-| Performance issues with large rosters | Low | Proper indexes in place, can add composite indexes if needed |
+| Risk                                   | Severity | Mitigation                                                   |
+| -------------------------------------- | -------- | ------------------------------------------------------------ |
+| Migration fails on apply               | Medium   | Test on local database first, have rollback plan ready       |
+| Unique constraint too restrictive      | Low      | Design allows role changes via UPDATE (not new record)       |
+| JSONB settings lacks validation        | Low      | Service layer will handle validation (E03-T003)              |
+| CASCADE delete unintended side effects | Medium   | Comprehensive documentation, integration tests               |
+| Performance issues with large rosters  | Low      | Proper indexes in place, can add composite indexes if needed |
 
 ### 10.2 Dependency Risks
 
-| Dependency | Risk | Mitigation |
-|------------|------|------------|
-| groups table must exist | High | groups table already exists (E01-T005 completed) |
-| users table must exist | High | users table already exists (E01-T004 completed) |
-| Drizzle ORM version compatibility | Low | Using stable Drizzle 0.29+ |
-| PostgreSQL ltree extension | N/A | Not used in classes (only in groups) |
+| Dependency                        | Risk | Mitigation                                       |
+| --------------------------------- | ---- | ------------------------------------------------ |
+| groups table must exist           | High | groups table already exists (E01-T005 completed) |
+| users table must exist            | High | users table already exists (E01-T004 completed)  |
+| Drizzle ORM version compatibility | Low  | Using stable Drizzle 0.29+                       |
+| PostgreSQL ltree extension        | N/A  | Not used in classes (only in groups)             |
 
 ---
 
@@ -831,50 +892,51 @@ CREATE INDEX class_members_user_id_idx ON class_members(user_id);
 ### 11.2 Example Queries
 
 **Get all classes in a school:**
+
 ```typescript
 const schoolClasses = await db.query.classes.findMany({
-  where: and(
-    eq(classes.groupId, schoolId),
-    isNull(classes.deletedAt)
-  ),
+  where: and(eq(classes.groupId, schoolId), isNull(classes.deletedAt)),
   with: {
     members: {
-      where: eq(classMembers.role, 'teacher'),
-      with: { user: true }
-    }
-  }
+      where: eq(classMembers.role, "teacher"),
+      with: { user: true },
+    },
+  },
 });
 ```
 
 **Get user's class schedule:**
+
 ```typescript
 const userSchedule = await db.query.classMembers.findMany({
   where: eq(classMembers.userId, userId),
   with: {
     class: {
-      with: { group: true }
-    }
-  }
+      with: { group: true },
+    },
+  },
 });
 ```
 
 **Add student to class:**
+
 ```typescript
 await db.insert(classMembers).values({
   classId: "class-uuid",
   userId: "student-uuid",
-  role: "student"
+  role: "student",
 });
 ```
 
 **Change user's role in class:**
+
 ```typescript
-await db.update(classMembers)
+await db
+  .update(classMembers)
   .set({ role: "teacher" })
-  .where(and(
-    eq(classMembers.classId, classId),
-    eq(classMembers.userId, userId)
-  ));
+  .where(
+    and(eq(classMembers.classId, classId), eq(classMembers.userId, userId))
+  );
 ```
 
 ---
@@ -886,6 +948,7 @@ await db.update(classMembers)
 **Status:** Ready for review
 
 **Next Steps:**
+
 1. Architect review (architecture agent)
 2. Developer assignment (TDD developer agent)
 3. Implementation (E03-T001)
@@ -912,6 +975,7 @@ await db.update(classMembers)
 4. **Student viewing schedule:** Efficient user_id → classMembers → classes query
 
 **Strengths:**
+
 - Natural hierarchy matches mental model (School → Classes → Students/Teachers)
 - Role enum ('teacher', 'student') is intuitive and matches K-12 terminology
 - Settings JSONB provides extensibility without schema changes
@@ -925,6 +989,7 @@ await db.update(classMembers)
 3. **Unique constraint:** Prevents confusing duplicate memberships that could cause navigation issues
 
 **Recommendations:**
+
 - When implementing UI (future), ensure class names are descriptive for screen readers
 - Settings JSONB should support future accessibility preferences (text size, contrast)
 
@@ -944,11 +1009,13 @@ await db.update(classMembers)
 **Issue:** Unique constraint on (class_id, user_id) prevents duplicate memberships, but the spec doesn't address the UX of changing roles.
 
 **User Scenario:**
+
 - A teaching assistant is initially added as 'student'
 - Later needs to be promoted to 'teacher'
 - Without clear guidance, UI developer might try INSERT (fails) instead of UPDATE
 
 **Recommendation:**
+
 ```typescript
 // Add to section 6.5 "Co-Teaching Support"
 /**
@@ -980,6 +1047,7 @@ await db.update(classMembers)
 4. **Soft delete:** Matches groups table pattern (classes have deletedAt, members don't)
 
 **Strengths:**
+
 - Developers will find patterns familiar
 - UI components can be reused (roster view similar to group members view)
 - Reduces cognitive load for new contributors
@@ -994,12 +1062,13 @@ await db.update(classMembers)
 4. **Teacher who is also a student:** ✅ Supported (different roles in different classes)
 
 **Edge case well-handled:**
+
 ```typescript
 // User is teacher in one class, student in another
 [
-  { classId: 'algebra-1', userId: 'john', role: 'teacher' },
-  { classId: 'professional-development', userId: 'john', role: 'student' }
-]
+  { classId: "algebra-1", userId: "john", role: "teacher" },
+  { classId: "professional-development", userId: "john", role: "student" },
+];
 ```
 
 #### 13.1.7 Performance Impact on UX ⚠️ CONSIDERATION
@@ -1019,14 +1088,15 @@ const classData = await db.query.classes.findFirst({
   with: {
     members: {
       with: {
-        user: true  // N+1 query risk?
-      }
-    }
-  }
+        user: true, // N+1 query risk?
+      },
+    },
+  },
 });
 ```
 
 **Recommendation:**
+
 - Drizzle should handle this efficiently with JOIN
 - UI should paginate rosters if > 50 students
 - Consider adding guidance in future service layer spec (E03-T003):
@@ -1042,6 +1112,7 @@ const classData = await db.query.classes.findFirst({
 **Assessment:** JSONB settings field supports future UX enhancements:
 
 **Potential future settings (well-architected for):**
+
 ```typescript
 {
   "display": {
@@ -1068,11 +1139,13 @@ const classData = await db.query.classes.findFirst({
 ### 13.2 Recommendations Summary
 
 #### Must Fix
+
 None - schema is solid from UX perspective
 
 #### Should Consider
 
 1. **Emphasize role change pattern** (Section 6.5)
+
    - Add explicit "Role Change Pattern" subsection with ✅/❌ examples
    - Helps UI developers avoid constraint violations
    - **Priority:** LOW (already documented elsewhere)
@@ -1094,6 +1167,7 @@ None - schema is solid from UX perspective
 **APPROVED** - This schema design provides an excellent foundation for intuitive, accessible, and performant class management UX.
 
 **Rationale:**
+
 - Data model matches user mental models (School → Classes → Roster)
 - Terminology is clear and appropriate for K-12 context
 - Supports complex real-world scenarios (co-teaching, multiple enrollments)
@@ -1118,6 +1192,7 @@ None - schema is solid from UX perspective
 The implementation specification for classes and class_members schemas is architecturally sound and follows established patterns from the existing codebase. The data model correctly implements the hierarchical organization (Groups → Classes → Members), uses appropriate PostgreSQL features, and maintains consistency with prior schema designs (users, groups, group_members, sessions).
 
 **Key Strengths:**
+
 - Proper use of Drizzle ORM patterns established in E01 tasks
 - Appropriate CASCADE delete behavior for referential integrity
 - Correct index strategy for query optimization
@@ -1132,19 +1207,23 @@ The implementation specification for classes and class_members schemas is archit
 ### 14.2 Architecture Compliance
 
 #### Technology Stack ✅ PASS
+
 - Drizzle ORM 0.29+ with proper type inference patterns
 - PostgreSQL 16 features (UUID, JSONB, timestamptz)
 - TypeScript strict mode with `$inferSelect`/`$inferInsert`
 - No use of banned patterns (`any` type, Prisma, etc.)
 
 #### Naming Conventions ✅ PASS
+
 - Tables: `snake_case` plural (`classes`, `class_members`)
 - Columns: `snake_case` (`group_id`, `created_at`)
 - Indexes: `{table}_{column}_idx` pattern
 - TypeScript types: PascalCase (`Class`, `NewClass`)
 
 #### Pattern Consistency ✅ PASS
+
 Perfect consistency with established patterns from:
+
 - E01-T004 (users schema)
 - E01-T005 (groups schema with ltree)
 - E01-T006 (group_members join table)
@@ -1153,6 +1232,7 @@ Perfect consistency with established patterns from:
 ### 14.3 Data Model Architecture
 
 #### Entity Relationships ✅ PASS
+
 ```
 groups (1) ─────< (N) classes (1) ─────< (N) class_members >────┐
                                                                  │
@@ -1165,7 +1245,9 @@ groups (1) ─────< (N) classes (1) ─────< (N) class_members >
 - **Unique constraint:** `(class_id, user_id)` prevents duplicate memberships
 
 #### CASCADE Delete Behavior ✅ PASS
+
 Three scenarios correctly implemented:
+
 1. User deleted → CASCADE deletes all class_members
 2. Group deleted → CASCADE deletes classes → CASCADE deletes class_members
 3. Class deleted → CASCADE deletes class_members
@@ -1173,12 +1255,15 @@ Three scenarios correctly implemented:
 **Critical Note:** Soft-deleting a group (setting `deleted_at`) does NOT trigger CASCADE. Service layer MUST filter soft-deleted entities in queries.
 
 #### Soft Delete Design ✅ PASS
+
 - `classes`: Has `deleted_at` (archive for historical reporting) ✅
 - `class_members`: No `deleted_at` (hard delete, audit trail separate) ✅
 - Matches pattern: entities have soft delete, join tables don't ✅
 
 #### Index Strategy ✅ PASS
+
 All common queries have supporting indexes:
+
 - `classes_group_id_idx` - "Get all classes in group" (HIGH frequency)
 - `class_members_class_id_idx` - "Get class roster" (VERY HIGH frequency)
 - `class_members_user_id_idx` - "Get user's schedule" (HIGH frequency)
@@ -1189,16 +1274,19 @@ Query performance: O(log N) + result size for all common operations ✅
 ### 14.4 Security & Performance
 
 #### Type Safety ✅ PASS
+
 - Proper Drizzle type inference (no `any` usage)
 - Strict TypeScript compliance
 - Parameterized queries (SQL injection prevention)
 
 #### Authorization Patterns ⚠️ FUTURE CONSIDERATION
+
 - Users have `member_role` in groups AND `class_role` in classes
 - Permission resolution logic needed for CASL integration (future epic)
 - Schema design correctly supports multiple role contexts ✅
 
 #### Performance ✅ PASS
+
 - Optimal index strategy for common queries
 - Bulk insert support for large rosters
 - Pagination recommended for rosters > 50 students (service layer concern)
@@ -1206,16 +1294,21 @@ Query performance: O(log N) + result size for all common operations ✅
 ### 14.5 Migration Strategy
 
 #### Migration Ordering ✅ PASS
+
 Correct dependency order:
+
 1. Create enum → 2. Create tables → 3. Add FK constraints → 4. Create indexes
 
 Rollback reverses correctly.
 
 #### Migration File Naming ✅ PASS
+
 `0005_create_classes.sql` follows sequential numbering convention
 
 #### Generation Method ⚠️ RECOMMENDATION
+
 Spec includes hand-written SQL. **Recommend using Drizzle Kit auto-generation:**
+
 ```bash
 cd packages/db
 pnpm db:generate
@@ -1227,11 +1320,13 @@ pnpm db:generate
 ### 14.6 Testing Strategy
 
 #### Test Coverage ✅ PASS
+
 - Target: 100% line coverage (achievable for schema files)
 - AAA pattern (Arrange/Act/Assert)
 - Comprehensive edge cases documented
 
 #### Test Organization ✅ PASS
+
 - Follows `groups.test.ts` and `group-members.test.ts` structure
 - Separate describe blocks for type inference, schema definition, edge cases
 - Tests verify enum values, foreign keys, unique constraints
@@ -1239,30 +1334,32 @@ pnpm db:generate
 ### 14.7 Recommendations
 
 #### MUST FIX (Blockers)
+
 **None.** Specification is ready for implementation.
 
 #### SHOULD CONSIDER (Medium Priority)
 
 1. **Add Soft Delete Query Pattern Guidance**
+
    - **Where:** Section 6.2 "Soft Delete Implications"
    - **What:** Document service layer pattern for filtering soft-deleted groups
+
    ```typescript
    // CRITICAL: Always filter soft-deleted groups when loading classes
    const activeClasses = await db.query.classes.findMany({
-     where: and(
-       eq(classes.groupId, groupId),
-       isNull(classes.deletedAt)
-     ),
+     where: and(eq(classes.groupId, groupId), isNull(classes.deletedAt)),
      with: {
        group: {
-         where: isNull(groups.deletedAt)  // Don't forget this!
-       }
-     }
+         where: isNull(groups.deletedAt), // Don't forget this!
+       },
+     },
    });
    ```
+
    - **Impact:** Medium (prevents common service layer bug)
 
 2. **Use Drizzle Kit for Migration**
+
    - **Where:** Section 7.1
    - **What:** Emphasize `drizzle-kit generate` over hand-written SQL
    - **Impact:** Medium (best practice)
@@ -1273,18 +1370,19 @@ pnpm db:generate
    - **Impact:** Low (future concern, good to document now)
 
 #### NICE TO HAVE (Low Priority)
+
 - Pagination guidance for large rosters (service layer concern)
 - Composite index analysis (optimization detail)
 
 ### 14.8 Risk Assessment
 
-| Risk | Severity | Mitigation Status |
-|------|----------|-------------------|
-| Migration fails | LOW | Proper ordering, rollback plan ✅ |
-| Unique constraint issues | VERY LOW | Design allows role changes via UPDATE ✅ |
-| CASCADE delete unintended | LOW | Comprehensive docs, tested pattern ✅ |
-| Large roster performance | LOW | Proper indexes, pagination possible ✅ |
-| Soft delete filter forgotten | MEDIUM | Document in service layer spec (E03-T003) |
+| Risk                         | Severity | Mitigation Status                         |
+| ---------------------------- | -------- | ----------------------------------------- |
+| Migration fails              | LOW      | Proper ordering, rollback plan ✅         |
+| Unique constraint issues     | VERY LOW | Design allows role changes via UPDATE ✅  |
+| CASCADE delete unintended    | LOW      | Comprehensive docs, tested pattern ✅     |
+| Large roster performance     | LOW      | Proper indexes, pagination possible ✅    |
+| Soft delete filter forgotten | MEDIUM   | Document in service layer spec (E03-T003) |
 
 ### 14.9 Final Verdict
 
@@ -1293,6 +1391,7 @@ pnpm db:generate
 **Conditions:** None (recommendations are optional enhancements)
 
 **Rationale:**
+
 - Architecturally sound and consistent with existing patterns
 - Type-safe with proper Drizzle inference
 - Performant with appropriate indexes
@@ -1301,6 +1400,7 @@ pnpm db:generate
 - No architectural blockers identified
 
 **Next Steps:**
+
 1. Analyst: Address optional recommendations if desired
 2. PM: Assign to TDD developer agent
 3. Developer: Implement with TDD (tests first)
@@ -1308,6 +1408,7 @@ pnpm db:generate
 5. QA: Validate acceptance criteria
 
 **Sign-off:**
+
 - **Architect:** Architecture Agent
 - **Date:** 2026-01-12
 - **Status:** APPROVED for implementation ✅

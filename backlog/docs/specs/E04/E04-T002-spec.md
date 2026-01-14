@@ -12,7 +12,7 @@
 
 ### 1.1 Purpose
 
-Create a robust OpenRouter AI gateway client that provides streaming chat completions using the OpenAI SDK. This client will be the foundation for all AI-powered chat functionality in Raptscallions, supporting multiple models via OpenRouter's unified API.
+Create a robust OpenRouter AI gateway client that provides streaming chat completions using the OpenAI SDK. This client will be the foundation for all AI-powered chat functionality in RaptScallions, supporting multiple models via OpenRouter's unified API.
 
 ### 1.2 Context
 
@@ -41,6 +41,7 @@ Create a robust OpenRouter AI gateway client that provides streaming chat comple
 **Location:** `packages/ai/`
 
 **Structure:**
+
 ```
 packages/ai/
 ├── src/
@@ -60,11 +61,13 @@ packages/ai/
 ### 2.2 Dependencies
 
 **Runtime Dependencies:**
+
 - `openai` (^4.0.0) - OpenAI SDK with OpenRouter compatibility
 - `zod` (^3.22.4) - Runtime validation
 - `@raptscallions/core` (workspace:\*) - Shared errors and types
 
 **Dev Dependencies:**
+
 - `vitest` (^1.1.0)
 - `typescript` (^5.3.0)
 - `@types/node` (^20.10.0)
@@ -75,12 +78,12 @@ packages/ai/
 
 ```typescript
 // packages/ai/src/config.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const aiConfigSchema = z.object({
-  AI_GATEWAY_URL: z.string().url().default('https://openrouter.ai/api/v1'),
-  AI_API_KEY: z.string().min(1, 'AI_API_KEY is required'),
-  AI_DEFAULT_MODEL: z.string().default('anthropic/claude-sonnet-4-20250514'),
+  AI_GATEWAY_URL: z.string().url().default("https://openrouter.ai/api/v1"),
+  AI_API_KEY: z.string().min(1, "AI_API_KEY is required"),
+  AI_DEFAULT_MODEL: z.string().default("anthropic/claude-sonnet-4-20250514"),
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(120000), // 2 minutes
   AI_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
 });
@@ -103,12 +106,12 @@ export const aiConfig = aiConfigSchema.parse({
 
 ```typescript
 // packages/ai/src/types.ts
-import type OpenAI from 'openai';
+import type OpenAI from "openai";
 
 /**
  * Message role in conversation
  */
-export type MessageRole = 'system' | 'user' | 'assistant';
+export type MessageRole = "system" | "user" | "assistant";
 
 /**
  * Message structure compatible with OpenAI API
@@ -131,9 +134,9 @@ export interface UsageMetadata {
  * Streaming chunk types
  */
 export type StreamChunk =
-  | { type: 'content'; content: string }
-  | { type: 'usage'; usage: UsageMetadata }
-  | { type: 'done' };
+  | { type: "content"; content: string }
+  | { type: "usage"; usage: UsageMetadata }
+  | { type: "done" };
 
 /**
  * Options for chat completion request
@@ -172,7 +175,7 @@ export interface ChatCompletionResult {
   model: string;
 
   /** Response finish reason */
-  finishReason: 'stop' | 'length' | 'content_filter' | 'error' | null;
+  finishReason: "stop" | "length" | "content_filter" | "error" | null;
 }
 ```
 
@@ -182,15 +185,19 @@ export interface ChatCompletionResult {
 
 ```typescript
 // packages/ai/src/errors.ts
-import { AppError, ErrorCode } from '@raptscallions/core/errors';
+import { AppError, ErrorCode } from "@raptscallions/core/errors";
 
 /**
  * Base error for AI-related issues
  */
 export class AiError extends AppError {
-  constructor(message: string, statusCode: number = 500, details?: Record<string, unknown>) {
-    super(message, 'AI_ERROR', statusCode, details);
-    this.name = 'AiError';
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    details?: Record<string, unknown>
+  ) {
+    super(message, "AI_ERROR", statusCode, details);
+    this.name = "AiError";
   }
 }
 
@@ -200,11 +207,11 @@ export class AiError extends AppError {
 export class RateLimitError extends AiError {
   constructor(retryAfter?: number) {
     super(
-      'AI API rate limit exceeded',
+      "AI API rate limit exceeded",
       429,
       retryAfter ? { retryAfter } : undefined
     );
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
   }
 }
 
@@ -214,7 +221,7 @@ export class RateLimitError extends AiError {
 export class TimeoutError extends AiError {
   constructor(timeoutMs: number) {
     super(`AI request timed out after ${timeoutMs}ms`, 504, { timeoutMs });
-    this.name = 'TimeoutError';
+    this.name = "TimeoutError";
   }
 }
 
@@ -224,7 +231,7 @@ export class TimeoutError extends AiError {
 export class InvalidResponseError extends AiError {
   constructor(message: string, details?: Record<string, unknown>) {
     super(`Invalid AI API response: ${message}`, 502, details);
-    this.name = 'InvalidResponseError';
+    this.name = "InvalidResponseError";
   }
 }
 
@@ -233,8 +240,8 @@ export class InvalidResponseError extends AiError {
  */
 export class AuthenticationError extends AiError {
   constructor() {
-    super('AI API authentication failed - check API key', 401);
-    this.name = 'AuthenticationError';
+    super("AI API authentication failed - check API key", 401);
+    this.name = "AuthenticationError";
   }
 }
 
@@ -244,7 +251,7 @@ export class AuthenticationError extends AiError {
 export class ModelNotAvailableError extends AiError {
   constructor(model: string) {
     super(`Model not available: ${model}`, 400, { model });
-    this.name = 'ModelNotAvailableError';
+    this.name = "ModelNotAvailableError";
   }
 }
 ```
@@ -253,10 +260,10 @@ export class ModelNotAvailableError extends AiError {
 
 **OpenRouterClient Class:**
 
-```typescript
+````typescript
 // packages/ai/src/client.ts
-import OpenAI from 'openai';
-import { aiConfig } from './config.js';
+import OpenAI from "openai";
+import { aiConfig } from "./config.js";
 import {
   AiError,
   RateLimitError,
@@ -264,14 +271,14 @@ import {
   InvalidResponseError,
   AuthenticationError,
   ModelNotAvailableError,
-} from './errors.js';
+} from "./errors.js";
 import type {
   ChatMessage,
   ChatCompletionOptions,
   ChatCompletionResult,
   StreamChunk,
   UsageMetadata,
-} from './types.js';
+} from "./types.js";
 
 /**
  * OpenRouter AI client with streaming support
@@ -327,21 +334,24 @@ export class OpenRouterClient {
 
     try {
       // Create streaming request
-      const stream = await this.client.chat.completions.create({
-        model,
-        messages,
-        stream: true,
-        max_tokens: options.maxTokens,
-        temperature: options.temperature,
-        top_p: options.topP,
-      }, {
-        signal: options.signal,
-        timeout: options.timeoutMs ?? aiConfig.AI_REQUEST_TIMEOUT_MS,
-      });
+      const stream = await this.client.chat.completions.create(
+        {
+          model,
+          messages,
+          stream: true,
+          max_tokens: options.maxTokens,
+          temperature: options.temperature,
+          top_p: options.topP,
+        },
+        {
+          signal: options.signal,
+          timeout: options.timeoutMs ?? aiConfig.AI_REQUEST_TIMEOUT_MS,
+        }
+      );
 
-      let fullContent = '';
+      let fullContent = "";
       let usage: UsageMetadata | undefined;
-      let finishReason: ChatCompletionResult['finishReason'] = null;
+      let finishReason: ChatCompletionResult["finishReason"] = null;
       let responseModel = model;
 
       // Process stream chunks
@@ -352,12 +362,13 @@ export class OpenRouterClient {
 
         if (content) {
           fullContent += content;
-          yield { type: 'content', content };
+          yield { type: "content", content };
         }
 
         // Extract finish reason
         if (chunk.choices[0]?.finish_reason) {
-          finishReason = chunk.choices[0].finish_reason as ChatCompletionResult['finishReason'];
+          finishReason = chunk.choices[0]
+            .finish_reason as ChatCompletionResult["finishReason"];
         }
 
         // Extract usage (usually in final chunk)
@@ -367,7 +378,7 @@ export class OpenRouterClient {
             completionTokens: chunk.usage.completion_tokens,
             totalTokens: chunk.usage.total_tokens,
           };
-          yield { type: 'usage', usage };
+          yield { type: "usage", usage };
         }
 
         // Track actual model used (may differ from requested)
@@ -377,11 +388,11 @@ export class OpenRouterClient {
       }
 
       // Yield done signal
-      yield { type: 'done' };
+      yield { type: "done" };
 
       // Validate we got usage metadata
       if (!usage) {
-        throw new InvalidResponseError('No usage metadata in response');
+        throw new InvalidResponseError("No usage metadata in response");
       }
 
       // Return complete result
@@ -391,7 +402,6 @@ export class OpenRouterClient {
         model: responseModel,
         finishReason,
       };
-
     } catch (error) {
       throw this.handleError(error, model);
     }
@@ -430,7 +440,7 @@ export class OpenRouterClient {
 
       // Rate limiting
       if (status === 429) {
-        const retryAfter = error.headers?.['retry-after'];
+        const retryAfter = error.headers?.["retry-after"];
         return new RateLimitError(
           retryAfter ? parseInt(retryAfter, 10) : undefined
         );
@@ -442,67 +452,61 @@ export class OpenRouterClient {
       }
 
       // Model not available
-      if (status === 400 && error.message?.includes('model')) {
+      if (status === 400 && error.message?.includes("model")) {
         return new ModelNotAvailableError(model);
       }
 
       // Gateway errors
       if (status && status >= 500) {
-        return new AiError(
-          `AI gateway error: ${error.message}`,
-          status,
-          { originalError: error.message }
-        );
+        return new AiError(`AI gateway error: ${error.message}`, status, {
+          originalError: error.message,
+        });
       }
 
       // Other API errors
-      return new AiError(
-        error.message,
-        status ?? 500,
-        { originalError: error.message }
-      );
+      return new AiError(error.message, status ?? 500, {
+        originalError: error.message,
+      });
     }
 
     // Timeout errors
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       return new TimeoutError(aiConfig.AI_REQUEST_TIMEOUT_MS);
     }
 
     // Network errors
-    if (error instanceof Error &&
-        (error.message.includes('ECONNREFUSED') ||
-         error.message.includes('ENOTFOUND'))) {
-      return new AiError(
-        'Network error connecting to AI gateway',
-        503,
-        { originalError: error.message }
-      );
+    if (
+      error instanceof Error &&
+      (error.message.includes("ECONNREFUSED") ||
+        error.message.includes("ENOTFOUND"))
+    ) {
+      return new AiError("Network error connecting to AI gateway", 503, {
+        originalError: error.message,
+      });
     }
 
     // Unknown errors
     if (error instanceof Error) {
-      return new AiError(
-        `Unexpected error: ${error.message}`,
-        500,
-        { originalError: error.message }
-      );
+      return new AiError(`Unexpected error: ${error.message}`, 500, {
+        originalError: error.message,
+      });
     }
 
-    return new AiError('Unknown error occurred', 500);
+    return new AiError("Unknown error occurred", 500);
   }
 }
 
 // Export singleton instance with default config
 export const openRouterClient = new OpenRouterClient();
-```
+````
 
 ### 2.7 Barrel Exports
 
 ```typescript
 // packages/ai/src/index.ts
-export { OpenRouterClient, openRouterClient } from './client.js';
-export { aiConfig, aiConfigSchema } from './config.js';
-export type { AiConfig } from './config.js';
+export { OpenRouterClient, openRouterClient } from "./client.js";
+export { aiConfig, aiConfigSchema } from "./config.js";
+export type { AiConfig } from "./config.js";
 export {
   AiError,
   RateLimitError,
@@ -510,7 +514,7 @@ export {
   InvalidResponseError,
   AuthenticationError,
   ModelNotAvailableError,
-} from './errors.js';
+} from "./errors.js";
 export type {
   MessageRole,
   ChatMessage,
@@ -518,7 +522,7 @@ export type {
   StreamChunk,
   ChatCompletionOptions,
   ChatCompletionResult,
-} from './types.js';
+} from "./types.js";
 ```
 
 ---
@@ -535,19 +539,19 @@ export type {
 
 ```typescript
 // packages/ai/src/__tests__/client.test.ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import OpenAI from 'openai';
-import { OpenRouterClient } from '../client.js';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import OpenAI from "openai";
+import { OpenRouterClient } from "../client.js";
 import {
   RateLimitError,
   TimeoutError,
   AuthenticationError,
   ModelNotAvailableError,
   InvalidResponseError,
-} from '../errors.js';
+} from "../errors.js";
 
 // Mock OpenAI SDK
-vi.mock('openai', () => {
+vi.mock("openai", () => {
   return {
     default: vi.fn(() => ({
       chat: {
@@ -559,7 +563,11 @@ vi.mock('openai', () => {
     APIError: class extends Error {
       status?: number;
       headers?: Record<string, string>;
-      constructor(message: string, status?: number, headers?: Record<string, string>) {
+      constructor(
+        message: string,
+        status?: number,
+        headers?: Record<string, string>
+      ) {
         super(message);
         this.status = status;
         this.headers = headers;
@@ -568,7 +576,7 @@ vi.mock('openai', () => {
   };
 });
 
-describe('OpenRouterClient', () => {
+describe("OpenRouterClient", () => {
   let client: OpenRouterClient;
   let mockCreate: ReturnType<typeof vi.fn>;
 
@@ -578,31 +586,31 @@ describe('OpenRouterClient', () => {
 
     // Create client with test config
     client = new OpenRouterClient({
-      apiKey: 'test-key',
-      baseURL: 'https://test.openrouter.ai',
-      defaultModel: 'test/model',
+      apiKey: "test-key",
+      baseURL: "https://test.openrouter.ai",
+      defaultModel: "test/model",
     });
 
     // Get reference to mocked create method
     mockCreate = (OpenAI as any).mock.results[0].value.chat.completions.create;
   });
 
-  describe('streamChat', () => {
-    it('should stream content chunks', async () => {
+  describe("streamChat", () => {
+    it("should stream content chunks", async () => {
       // Arrange
       const mockStream = [
         {
-          choices: [{ delta: { content: 'Hello' } }],
-          model: 'test/model',
+          choices: [{ delta: { content: "Hello" } }],
+          model: "test/model",
         },
         {
-          choices: [{ delta: { content: ' world' } }],
-          model: 'test/model',
+          choices: [{ delta: { content: " world" } }],
+          model: "test/model",
         },
         {
-          choices: [{ delta: {}, finish_reason: 'stop' }],
+          choices: [{ delta: {}, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'test/model',
+          model: "test/model",
         },
       ];
 
@@ -610,39 +618,37 @@ describe('OpenRouterClient', () => {
 
       // Act
       const chunks: string[] = [];
-      const stream = client.streamChat([
-        { role: 'user', content: 'Hi' },
-      ]);
+      const stream = client.streamChat([{ role: "user", content: "Hi" }]);
 
       for await (const chunk of stream) {
-        if (chunk.type === 'content') {
+        if (chunk.type === "content") {
           chunks.push(chunk.content);
         }
       }
 
       // Assert
-      expect(chunks).toEqual(['Hello', ' world']);
+      expect(chunks).toEqual(["Hello", " world"]);
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'test/model',
-          messages: [{ role: 'user', content: 'Hi' }],
+          model: "test/model",
+          messages: [{ role: "user", content: "Hi" }],
           stream: true,
         }),
         expect.any(Object)
       );
     });
 
-    it('should yield usage metadata', async () => {
+    it("should yield usage metadata", async () => {
       // Arrange
       const mockStream = [
         {
-          choices: [{ delta: { content: 'Test' } }],
-          model: 'test/model',
+          choices: [{ delta: { content: "Test" } }],
+          model: "test/model",
         },
         {
-          choices: [{ delta: {}, finish_reason: 'stop' }],
+          choices: [{ delta: {}, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'test/model',
+          model: "test/model",
         },
       ];
 
@@ -650,10 +656,10 @@ describe('OpenRouterClient', () => {
 
       // Act
       let usage: any;
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
 
       for await (const chunk of stream) {
-        if (chunk.type === 'usage') {
+        if (chunk.type === "usage") {
           usage = chunk.usage;
         }
       }
@@ -666,21 +672,21 @@ describe('OpenRouterClient', () => {
       });
     });
 
-    it('should return complete result', async () => {
+    it("should return complete result", async () => {
       // Arrange
       const mockStream = [
-        { choices: [{ delta: { content: 'Hello' } }], model: 'test/model' },
+        { choices: [{ delta: { content: "Hello" } }], model: "test/model" },
         {
-          choices: [{ delta: {}, finish_reason: 'stop' }],
+          choices: [{ delta: {}, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'test/model',
+          model: "test/model",
         },
       ];
 
       mockCreate.mockResolvedValue(createAsyncIterator(mockStream));
 
       // Act
-      const stream = client.streamChat([{ role: 'user', content: 'Hi' }]);
+      const stream = client.streamChat([{ role: "user", content: "Hi" }]);
       let result: any;
 
       for await (const chunk of stream) {
@@ -688,7 +694,7 @@ describe('OpenRouterClient', () => {
       }
 
       // Get return value
-      const gen = client.streamChat([{ role: 'user', content: 'Hi' }]);
+      const gen = client.streamChat([{ role: "user", content: "Hi" }]);
       for await (const chunk of gen) {
         // Generator completes
       }
@@ -697,15 +703,15 @@ describe('OpenRouterClient', () => {
       // This is a known testing challenge with async generators
     });
 
-    it('should throw RateLimitError on 429', async () => {
+    it("should throw RateLimitError on 429", async () => {
       // Arrange
-      const error = new (OpenAI as any).APIError('Rate limit', 429, {
-        'retry-after': '60',
+      const error = new (OpenAI as any).APIError("Rate limit", 429, {
+        "retry-after": "60",
       });
       mockCreate.mockRejectedValue(error);
 
       // Act & Assert
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -714,13 +720,13 @@ describe('OpenRouterClient', () => {
       }).rejects.toThrow(RateLimitError);
     });
 
-    it('should throw AuthenticationError on 401', async () => {
+    it("should throw AuthenticationError on 401", async () => {
       // Arrange
-      const error = new (OpenAI as any).APIError('Unauthorized', 401);
+      const error = new (OpenAI as any).APIError("Unauthorized", 401);
       mockCreate.mockRejectedValue(error);
 
       // Act & Assert
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -729,16 +735,15 @@ describe('OpenRouterClient', () => {
       }).rejects.toThrow(AuthenticationError);
     });
 
-    it('should throw ModelNotAvailableError on invalid model', async () => {
+    it("should throw ModelNotAvailableError on invalid model", async () => {
       // Arrange
-      const error = new (OpenAI as any).APIError('Invalid model', 400);
+      const error = new (OpenAI as any).APIError("Invalid model", 400);
       mockCreate.mockRejectedValue(error);
 
       // Act & Assert
-      const stream = client.streamChat(
-        [{ role: 'user', content: 'Test' }],
-        { model: 'invalid/model' }
-      );
+      const stream = client.streamChat([{ role: "user", content: "Test" }], {
+        model: "invalid/model",
+      });
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -747,14 +752,14 @@ describe('OpenRouterClient', () => {
       }).rejects.toThrow(ModelNotAvailableError);
     });
 
-    it('should throw TimeoutError on abort', async () => {
+    it("should throw TimeoutError on abort", async () => {
       // Arrange
-      const error = new Error('Aborted');
-      error.name = 'AbortError';
+      const error = new Error("Aborted");
+      error.name = "AbortError";
       mockCreate.mockRejectedValue(error);
 
       // Act & Assert
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -763,18 +768,21 @@ describe('OpenRouterClient', () => {
       }).rejects.toThrow(TimeoutError);
     });
 
-    it('should throw InvalidResponseError when no usage metadata', async () => {
+    it("should throw InvalidResponseError when no usage metadata", async () => {
       // Arrange - stream with no usage
       const mockStream = [
-        { choices: [{ delta: { content: 'Test' } }], model: 'test/model' },
-        { choices: [{ delta: {}, finish_reason: 'stop' }], model: 'test/model' },
+        { choices: [{ delta: { content: "Test" } }], model: "test/model" },
+        {
+          choices: [{ delta: {}, finish_reason: "stop" }],
+          model: "test/model",
+        },
         // No usage!
       ];
 
       mockCreate.mockResolvedValue(createAsyncIterator(mockStream));
 
       // Act & Assert
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
 
       await expect(async () => {
         for await (const chunk of stream) {
@@ -783,53 +791,50 @@ describe('OpenRouterClient', () => {
       }).rejects.toThrow(InvalidResponseError);
     });
 
-    it('should use default model when not specified', async () => {
+    it("should use default model when not specified", async () => {
       // Arrange
       const mockStream = [
         {
-          choices: [{ delta: { content: 'Test' }, finish_reason: 'stop' }],
+          choices: [{ delta: { content: "Test" }, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'test/model',
+          model: "test/model",
         },
       ];
 
       mockCreate.mockResolvedValue(createAsyncIterator(mockStream));
 
       // Act
-      const stream = client.streamChat([{ role: 'user', content: 'Test' }]);
+      const stream = client.streamChat([{ role: "user", content: "Test" }]);
       for await (const chunk of stream) {
         // Consume
       }
 
       // Assert
       expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({ model: 'test/model' }),
+        expect.objectContaining({ model: "test/model" }),
         expect.any(Object)
       );
     });
 
-    it('should pass through completion options', async () => {
+    it("should pass through completion options", async () => {
       // Arrange
       const mockStream = [
         {
-          choices: [{ delta: { content: 'Test' }, finish_reason: 'stop' }],
+          choices: [{ delta: { content: "Test" }, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'custom/model',
+          model: "custom/model",
         },
       ];
 
       mockCreate.mockResolvedValue(createAsyncIterator(mockStream));
 
       // Act
-      const stream = client.streamChat(
-        [{ role: 'user', content: 'Test' }],
-        {
-          model: 'custom/model',
-          maxTokens: 100,
-          temperature: 0.7,
-          topP: 0.9,
-        }
-      );
+      const stream = client.streamChat([{ role: "user", content: "Test" }], {
+        model: "custom/model",
+        maxTokens: 100,
+        temperature: 0.7,
+        topP: 0.9,
+      });
 
       for await (const chunk of stream) {
         // Consume
@@ -838,7 +843,7 @@ describe('OpenRouterClient', () => {
       // Assert
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'custom/model',
+          model: "custom/model",
           max_tokens: 100,
           temperature: 0.7,
           top_p: 0.9,
@@ -848,33 +853,36 @@ describe('OpenRouterClient', () => {
     });
   });
 
-  describe('chat', () => {
-    it('should return complete result from stream', async () => {
+  describe("chat", () => {
+    it("should return complete result from stream", async () => {
       // Arrange
       const mockStream = [
-        { choices: [{ delta: { content: 'Hello world' } }], model: 'test/model' },
         {
-          choices: [{ delta: {}, finish_reason: 'stop' }],
+          choices: [{ delta: { content: "Hello world" } }],
+          model: "test/model",
+        },
+        {
+          choices: [{ delta: {}, finish_reason: "stop" }],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-          model: 'test/model',
+          model: "test/model",
         },
       ];
 
       mockCreate.mockResolvedValue(createAsyncIterator(mockStream));
 
       // Act
-      const result = await client.chat([{ role: 'user', content: 'Hi' }]);
+      const result = await client.chat([{ role: "user", content: "Hi" }]);
 
       // Assert
       expect(result).toMatchObject({
-        content: 'Hello world',
+        content: "Hello world",
         usage: {
           promptTokens: 10,
           completionTokens: 5,
           totalTokens: 15,
         },
-        model: 'test/model',
-        finishReason: 'stop',
+        model: "test/model",
+        finishReason: "stop",
       });
     });
   });
@@ -894,37 +902,35 @@ async function* createAsyncIterator<T>(items: T[]): AsyncGenerator<T> {
 // packages/ai/src/__tests__/fixtures/index.ts
 
 export const mockMessages = {
-  simple: [
-    { role: 'user' as const, content: 'Hello' },
-  ],
+  simple: [{ role: "user" as const, content: "Hello" }],
   conversation: [
-    { role: 'system' as const, content: 'You are a helpful assistant.' },
-    { role: 'user' as const, content: 'What is TypeScript?' },
-    { role: 'assistant' as const, content: 'TypeScript is...' },
-    { role: 'user' as const, content: 'Tell me more' },
+    { role: "system" as const, content: "You are a helpful assistant." },
+    { role: "user" as const, content: "What is TypeScript?" },
+    { role: "assistant" as const, content: "TypeScript is..." },
+    { role: "user" as const, content: "Tell me more" },
   ],
 };
 
 export const mockStreamChunks = {
   complete: [
     {
-      choices: [{ delta: { content: 'Hello' } }],
-      model: 'test/model',
+      choices: [{ delta: { content: "Hello" } }],
+      model: "test/model",
     },
     {
-      choices: [{ delta: { content: ' world' } }],
-      model: 'test/model',
+      choices: [{ delta: { content: " world" } }],
+      model: "test/model",
     },
     {
-      choices: [{ delta: {}, finish_reason: 'stop' }],
+      choices: [{ delta: {}, finish_reason: "stop" }],
       usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-      model: 'test/model',
+      model: "test/model",
     },
   ],
 
   withoutUsage: [
-    { choices: [{ delta: { content: 'Test' } }], model: 'test/model' },
-    { choices: [{ delta: {}, finish_reason: 'stop' }], model: 'test/model' },
+    { choices: [{ delta: { content: "Test" } }], model: "test/model" },
+    { choices: [{ delta: {}, finish_reason: "stop" }], model: "test/model" },
   ],
 };
 ```
@@ -986,15 +992,15 @@ export const mockStreamChunks = {
 ### 4.3 vitest.config.ts
 
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      name: '@raptscallions/ai',
-      environment: 'node',
+      name: "@raptscallions/ai",
+      environment: "node",
     },
   })
 );
@@ -1008,24 +1014,24 @@ export default mergeConfig(
 
 ```typescript
 // Future usage in apps/api/src/services/chat.service.ts
-import { openRouterClient } from '@raptscallions/ai';
+import { openRouterClient } from "@raptscallions/ai";
 
 async function* streamChatResponse(sessionId: string, userMessage: string) {
   // Load session messages from DB
   const messages = await loadSessionMessages(sessionId);
 
   // Add user message
-  messages.push({ role: 'user', content: userMessage });
+  messages.push({ role: "user", content: userMessage });
 
   // Stream response
   const stream = openRouterClient.streamChat(messages, {
-    model: 'anthropic/claude-sonnet-4-20250514',
+    model: "anthropic/claude-sonnet-4-20250514",
   });
 
   for await (const chunk of stream) {
-    if (chunk.type === 'content') {
+    if (chunk.type === "content") {
       yield chunk.content;
-    } else if (chunk.type === 'usage') {
+    } else if (chunk.type === "usage") {
       // Store usage metadata
       await storeUsageMetadata(sessionId, chunk.usage);
     }
@@ -1081,18 +1087,18 @@ AI_DEFAULT_MODEL=test/model
 
 ## 7. Acceptance Criteria Mapping
 
-| AC  | Requirement                                      | Implementation                                              |
-| --- | ------------------------------------------------ | ----------------------------------------------------------- |
-| AC1 | OpenRouterClient class with chat method          | ✅ `OpenRouterClient` class with `streamChat()` and `chat()` |
-| AC2 | Uses openai package with OpenRouter base URL     | ✅ OpenAI SDK initialized with `baseURL` from config        |
-| AC3 | Streaming enabled via stream: true parameter     | ✅ `stream: true` passed to `completions.create()`          |
-| AC4 | Model selection from tool config or env default  | ✅ `options.model` or `defaultModel` from config            |
-| AC5 | Error handling for rate limits, timeouts, etc    | ✅ Typed errors with `handleError()` method                 |
-| AC6 | Returns async generator for streaming chunks     | ✅ `streamChat()` is `AsyncGenerator<StreamChunk>`          |
-| AC7 | Final response includes usage metadata (tokens)  | ✅ `ChatCompletionResult` with `UsageMetadata`              |
-| AC8 | Environment variables setup                      | ✅ Config schema with validation                            |
-| AC9 | Tests verify streaming and error handling        | ✅ Comprehensive test suite with mocked SDK                 |
-| AC10| TypeScript types for responses                   | ✅ Full type definitions in `types.ts`                      |
+| AC   | Requirement                                     | Implementation                                               |
+| ---- | ----------------------------------------------- | ------------------------------------------------------------ |
+| AC1  | OpenRouterClient class with chat method         | ✅ `OpenRouterClient` class with `streamChat()` and `chat()` |
+| AC2  | Uses openai package with OpenRouter base URL    | ✅ OpenAI SDK initialized with `baseURL` from config         |
+| AC3  | Streaming enabled via stream: true parameter    | ✅ `stream: true` passed to `completions.create()`           |
+| AC4  | Model selection from tool config or env default | ✅ `options.model` or `defaultModel` from config             |
+| AC5  | Error handling for rate limits, timeouts, etc   | ✅ Typed errors with `handleError()` method                  |
+| AC6  | Returns async generator for streaming chunks    | ✅ `streamChat()` is `AsyncGenerator<StreamChunk>`           |
+| AC7  | Final response includes usage metadata (tokens) | ✅ `ChatCompletionResult` with `UsageMetadata`               |
+| AC8  | Environment variables setup                     | ✅ Config schema with validation                             |
+| AC9  | Tests verify streaming and error handling       | ✅ Comprehensive test suite with mocked SDK                  |
+| AC10 | TypeScript types for responses                  | ✅ Full type definitions in `types.ts`                       |
 
 ---
 
@@ -1250,6 +1256,7 @@ async *streamChat(): AsyncGenerator<StreamChunk, ChatCompletionResult, undefined
 ```
 
 **Problem:**
+
 ```typescript
 // ❌ Developer cannot easily access the return value
 const stream = client.streamChat(messages);
@@ -1260,6 +1267,7 @@ for await (const chunk of stream) {
 ```
 
 **Impact:**
+
 - Critical metadata (usage tokens, finish reason) is trapped in an inaccessible return value
 - The spec itself acknowledges testing this is "challenging" (section 10.1, line 1158)
 - Developers will be confused and frustrated
@@ -1268,6 +1276,7 @@ for await (const chunk of stream) {
 **Recommendation (Choose One):**
 
 **Option A (Preferred): Yield final result as last chunk**
+
 ```typescript
 export type StreamChunk =
   | { type: 'content'; content: string }
@@ -1281,6 +1290,7 @@ async *streamChat(): AsyncGenerator<StreamChunk> {
 ```
 
 **Option B: Return object with both stream and promise**
+
 ```typescript
 export interface StreamingResponse {
   stream: AsyncGenerator<StreamChunk>;
@@ -1334,11 +1344,13 @@ async chat(messages, options): Promise<ChatCompletionResult> {
 ```
 
 **Problems:**
+
 1. Non-null assertion will crash if generator fails unexpectedly
 2. Discards all streamed chunks without using them
 3. No error handling if stream ends early without usage metadata
 
 **Recommendation:**
+
 ```typescript
 async chat(messages, options): Promise<ChatCompletionResult> {
   const stream = this.streamChat(messages, options);
@@ -1371,11 +1383,12 @@ async chat(messages, options): Promise<ChatCompletionResult> {
 **Issue:** Developers using `AbortSignal` get no indication in the stream when cancellation occurs - the stream just stops.
 
 **Recommendation:**
+
 ```typescript
 export type StreamChunk =
-  | { type: 'content'; content: string }
-  | { type: 'cancelled' } // New type
-  | { type: 'done'; result: ChatCompletionResult };
+  | { type: "content"; content: string }
+  | { type: "cancelled" } // New type
+  | { type: "done"; result: ChatCompletionResult };
 ```
 
 **Verdict:** 🔵 **Suggestion** - Better DX but not critical
@@ -1385,6 +1398,7 @@ export type StreamChunk =
 #### 5. Environment Variable Naming Consistency
 
 **Issue:** Mixing generic (`AI_*`) with specific naming:
+
 ```bash
 AI_GATEWAY_URL=...      # Generic
 AI_DEFAULT_MODEL=...    # Why "DEFAULT"?
@@ -1411,6 +1425,7 @@ AI_MAX_RETRIES=...      # Generic
 ### Consistency with Platform
 
 **Aligned:**
+
 - ✅ Uses Zod for config validation (CLAUDE.md requirement)
 - ✅ Extends `AppError` from `@raptscallions/core`
 - ✅ Follows functional style over OOP
@@ -1418,6 +1433,7 @@ AI_MAX_RETRIES=...      # Generic
 - ✅ AAA test pattern
 
 **Gaps:**
+
 - Telemetry integration mentioned as "future" - should clarify timeline
 - No integration with `@raptscallions/telemetry` logger yet
 
@@ -1430,6 +1446,7 @@ AI_MAX_RETRIES=...      # Generic
 **Blocking Issue:** The async generator return value pattern (Issue #1) must be addressed before implementation. Recommend using Option A (yield final result as last chunk) as it's more idiomatic for Node.js streams.
 
 **Next Steps:**
+
 1. Update `StreamChunk` type to include `done` variant with full result
 2. Update `streamChat()` to yield final result instead of returning it
 3. Update `chat()` implementation to handle new pattern
@@ -1461,6 +1478,7 @@ async *streamChat(): AsyncGenerator<StreamChunk, ChatCompletionResult, undefined
 ```
 
 **Problem:**
+
 - Generator return values are nearly inaccessible in standard JavaScript iteration
 - The `chat()` method uses a dangerous non-null assertion (`result!`)
 - Critical metadata (usage, finish reason) trapped in return value
@@ -1486,6 +1504,7 @@ async *streamChat(): AsyncGenerator<StreamChunk> {
 ```
 
 **Rationale:**
+
 - Idiomatic Node.js/JavaScript streaming pattern
 - Consistent with industry practices (similar to `ReadableStream` done chunks)
 - Easily testable and type-safe
@@ -1493,6 +1512,7 @@ async *streamChat(): AsyncGenerator<StreamChunk> {
 - All consumers can reliably access final metadata
 
 **Impact on Implementation:**
+
 - Update `StreamChunk` discriminated union
 - Remove intermediate `usage` chunk (include only in final `done` chunk)
 - Update `chat()` method to collect result from `done` chunk
@@ -1506,13 +1526,13 @@ async *streamChat(): AsyncGenerator<StreamChunk> {
 
 #### ✅ **Aligned with Technology Stack**
 
-| Requirement | Compliance | Notes |
-|------------|-----------|-------|
-| TypeScript strict mode | ✅ Yes | No `any` types, proper type inference |
-| Zod validation | ✅ Yes | Config validated with Zod schema |
-| Functional style | ✅ Yes | Pure functions, class used appropriately |
-| Typed errors | ✅ Yes | Extends `AppError` from `@raptscallions/core` |
-| OpenRouter gateway | ✅ Yes | OpenAI SDK configured for OpenRouter |
+| Requirement            | Compliance | Notes                                         |
+| ---------------------- | ---------- | --------------------------------------------- |
+| TypeScript strict mode | ✅ Yes     | No `any` types, proper type inference         |
+| Zod validation         | ✅ Yes     | Config validated with Zod schema              |
+| Functional style       | ✅ Yes     | Pure functions, class used appropriately      |
+| Typed errors           | ✅ Yes     | Extends `AppError` from `@raptscallions/core` |
+| OpenRouter gateway     | ✅ Yes     | OpenAI SDK configured for OpenRouter          |
 
 #### ✅ **Package Structure**
 
@@ -1535,6 +1555,7 @@ packages/ai/
 ```
 
 **Recommendation:** Add this package to:
+
 - `pnpm-workspace.yaml`
 - Root `vitest.workspace.ts`
 - Root `tsconfig.json` path mappings
@@ -1551,18 +1572,20 @@ packages/ai/
 ```typescript
 if (error instanceof OpenAI.APIError) {
   // Handles API errors
-} else if (error instanceof Error && error.name === 'AbortError') {
+} else if (error instanceof Error && error.name === "AbortError") {
   // Handles timeouts
 }
 ```
 
 **Architectural Concern:** What about network errors during streaming? The OpenAI SDK can throw various error types:
+
 - `APIConnectionError` - Network/connection failures
 - `APITimeoutError` - Request timeouts (different from AbortError)
 - `APIUserAbortError` - User-initiated cancellation
 - `RateLimitError` - Rate limiting (already handled via status code)
 
 **Recommendation:**
+
 ```typescript
 import OpenAI from 'openai';
 
@@ -1616,11 +1639,13 @@ export const aiConfig = aiConfigSchema.parse({
 ```
 
 **Architectural Concern:**
+
 - Fails on import rather than explicit initialization
 - Makes testing harder (requires env vars to be set before import)
 - Violates dependency injection principles
 
 **Recommendation:**
+
 ```typescript
 // Lazy initialization
 let configInstance: AiConfig | undefined;
@@ -1655,6 +1680,7 @@ export function resetAiConfig(): void {
 **Issue:** The spec mentions telemetry as "future enhancement" (section 11), but `@raptscallions/telemetry` exists and should be integrated from the start.
 
 **Architectural Concern:**
+
 - OpenTelemetry is in the canonical tech stack (ARCHITECTURE.md line 39)
 - AI requests are high-value tracing targets (cost, latency, errors)
 - Adding telemetry later requires touching all methods again
@@ -1703,6 +1729,7 @@ async *streamChat(messages, options) {
 **Issue:** Generic `AI_*` prefix may conflict with other AI integrations in the future.
 
 **Suggestion:** Consider more specific naming:
+
 ```bash
 # Current (generic)
 AI_GATEWAY_URL=...
@@ -1730,12 +1757,14 @@ AI_OPENROUTER_MODEL=...
 **Suggestion:** Add optional model allowlist validation:
 
 ```typescript
-const modelSchema = z.enum([
-  'anthropic/claude-sonnet-4-20250514',
-  'anthropic/claude-opus-4',
-  'openai/gpt-4',
-  // ...
-]).or(z.string()); // Allow arbitrary strings as escape hatch
+const modelSchema = z
+  .enum([
+    "anthropic/claude-sonnet-4-20250514",
+    "anthropic/claude-opus-4",
+    "openai/gpt-4",
+    // ...
+  ])
+  .or(z.string()); // Allow arbitrary strings as escape hatch
 
 export interface ChatCompletionOptions {
   model?: z.infer<typeof modelSchema>;
@@ -1750,24 +1779,29 @@ export interface ChatCompletionOptions {
 ### Strengths of This Design
 
 1. **Clean Separation of Concerns**
+
    - Config, types, errors, client all properly separated
    - Each module has single responsibility
 
 2. **Excellent Type Safety**
+
    - Discriminated union for `StreamChunk`
    - Proper generic constraints
    - No `any` types
 
 3. **Comprehensive Error Handling**
+
    - All error cases mapped to typed exceptions
    - Clear error taxonomy (rate limit, timeout, auth, etc.)
 
 4. **Testability**
+
    - Client accepts config in constructor (dependency injection)
    - Mock-friendly design
    - Comprehensive test plan
 
 5. **Documentation**
+
    - JSDoc comments with examples
    - Clear usage patterns
    - Integration examples for future tasks
@@ -1785,17 +1819,20 @@ export interface ChatCompletionOptions {
 #### Blocking Dependencies
 
 **✅ All dependencies satisfied:**
+
 - E01-T002: Error infrastructure (`@raptscallions/core/errors`) - Completed
 - Monorepo setup with pnpm workspaces - Completed
 
 #### Downstream Dependencies
 
 **Tasks that depend on this client:**
+
 - E04-T003: Chat runtime service (needs `streamChat()` method)
 - E04-T005: Message persistence (needs usage metadata)
 - E04-T004: SSE endpoint (needs streaming chunks)
 
 **Impact of Required Changes:**
+
 - The async generator fix (Issue #1) may require minor updates to E04-T003 spec
 - Usage metadata access pattern will be clearer after fix
 
@@ -1806,6 +1843,7 @@ export interface ChatCompletionOptions {
 #### Docker Compatibility
 
 **✅ Package is fully containerizable:**
+
 - Pure Node.js package, no native dependencies
 - Environment variables for configuration
 - No file system dependencies beyond code
@@ -1814,6 +1852,7 @@ export interface ChatCompletionOptions {
 #### Environment Setup
 
 **Required for all deployments:**
+
 ```bash
 AI_GATEWAY_URL=https://openrouter.ai/api/v1
 AI_API_KEY=sk-or-v1-...
@@ -1821,6 +1860,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 ```
 
 **Recommendation:** Add to:
+
 - `.env.example` (for local dev)
 - Heroku config (for Heroku deployments)
 - Kubernetes ConfigMap/Secret (for K8s deployments)
@@ -1833,6 +1873,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### API Key Handling
 
 **✅ Secure:**
+
 - API key from environment variable (never hardcoded)
 - Not logged in errors or responses
 - Passed to OpenAI SDK securely
@@ -1842,6 +1883,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### Input Validation
 
 **✅ Adequate:**
+
 - Message content validated at service layer (not here)
 - Options validated by TypeScript types
 - Model names validated by OpenRouter API
@@ -1849,6 +1891,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### Error Disclosure
 
 **✅ Safe:**
+
 - Generic error messages for external failures
 - No sensitive data in error details
 - Stack traces not exposed (handled by error middleware)
@@ -1860,6 +1903,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### Streaming Efficiency
 
 **✅ Good design:**
+
 - True streaming (chunks yielded as received)
 - No buffering of entire response
 - Memory-efficient for large responses
@@ -1869,6 +1913,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### Connection Pooling
 
 **Handled by OpenAI SDK:**
+
 - SDK manages HTTP connection pooling
 - No additional implementation needed
 - Max retries (2) prevents cascading failures
@@ -1876,6 +1921,7 @@ AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 #### Timeout Strategy
 
 **✅ Appropriate:**
+
 - 2-minute default timeout (reasonable for LLM requests)
 - Configurable via environment variable
 - Per-request override via `options.timeoutMs`
@@ -1891,6 +1937,7 @@ This specification is architecturally sound and aligns well with the system desi
 **Required Changes Before Implementation:**
 
 1. **Fix Async Generator Pattern** (Critical)
+
    - Adopt Option A from UX review
    - Yield final result as `done` chunk
    - Update `StreamChunk` type definition
@@ -1898,6 +1945,7 @@ This specification is architecturally sound and aligns well with the system desi
    - Update all tests
 
 2. **Enhance Error Handling** (Recommended)
+
    - Add handling for `APIConnectionError`, `APITimeoutError`, `APIUserAbortError`
    - Ensure all OpenAI SDK error types are covered
 
@@ -1906,11 +1954,13 @@ This specification is architecturally sound and aligns well with the system desi
    - Track tokens, latency, errors
 
 **Optional Improvements:**
+
 - Lazy config initialization (better testing DX)
 - More specific environment variable naming
 - Model allowlist validation
 
 **Next Steps:**
+
 1. Update spec to incorporate required changes
 2. Send back to analyst for spec revision
 3. After revision, proceed to implementation

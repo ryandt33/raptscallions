@@ -2,13 +2,14 @@
 
 ## Overview
 
-Define the Drizzle ORM schema for the `groups` table, which provides hierarchical organization for the Raptscallions platform. Groups represent Districts, Schools, and Departments in a tree structure using PostgreSQL's ltree extension. Each group can have its own settings, theme configuration, and enabled AI models.
+Define the Drizzle ORM schema for the `groups` table, which provides hierarchical organization for the RaptScallions platform. Groups represent Districts, Schools, and Departments in a tree structure using PostgreSQL's ltree extension. Each group can have its own settings, theme configuration, and enabled AI models.
 
 ## Approach
 
-The groups schema is the second core table in the `@raptscallions/db` package and introduces hierarchical data modeling using ltree. This schema is foundational for multi-tenancy, permissions, and settings inheritance in the Raptscallions platform.
+The groups schema is the second core table in the `@raptscallions/db` package and introduces hierarchical data modeling using ltree. This schema is foundational for multi-tenancy, permissions, and settings inheritance in the RaptScallions platform.
 
 Key design decisions:
+
 - **ltree for hierarchy** - Enables efficient ancestor/descendant queries (e.g., "all schools in this district")
 - **Slug for URL-friendly identifiers** - Unique, human-readable group identifiers for routing
 - **Type enum** - Enforces three-tier hierarchy: district → school → department
@@ -17,22 +18,23 @@ Key design decisions:
 - **Soft delete support** - Via `deleted_at` for data retention and audit trails
 
 Following the project's strict TypeScript standards:
+
 - Zero use of `any` type
 - Explicit type inference using Drizzle's `$inferSelect` and `$inferInsert`
 - Custom ltree type from E01-T003
 
 ## Files to Create
 
-| File | Purpose |
-| --- | --- |
-| `packages/db/src/schema/groups.ts` | Groups table schema definition with enum, ltree path, indexes, and exported types |
-| `packages/db/src/migrations/0002_create_groups.sql` | Migration to create groups table and enable ltree extension |
-| `packages/db/src/__tests__/schema/groups.test.ts` | Unit tests for groups schema type inference and ltree integration |
+| File                                                | Purpose                                                                           |
+| --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `packages/db/src/schema/groups.ts`                  | Groups table schema definition with enum, ltree path, indexes, and exported types |
+| `packages/db/src/migrations/0002_create_groups.sql` | Migration to create groups table and enable ltree extension                       |
+| `packages/db/src/__tests__/schema/groups.test.ts`   | Unit tests for groups schema type inference and ltree integration                 |
 
 ## Files to Modify
 
-| File | Changes |
-| --- | --- |
+| File                              | Changes                                                      |
+| --------------------------------- | ------------------------------------------------------------ |
 | `packages/db/src/schema/index.ts` | Add export for groups schema: `export * from "./groups.js";` |
 
 ## Dependencies
@@ -69,6 +71,7 @@ Following the project's strict TypeScript standards:
 ## Acceptance Criteria Breakdown
 
 **AC1: groups table defined in src/schema/groups.ts**
+
 - Create new file at `packages/db/src/schema/groups.ts`
 - Import required types from `drizzle-orm/pg-core`
 - Import ltree from `./types.js`
@@ -76,6 +79,7 @@ Following the project's strict TypeScript standards:
 - Export table definition
 
 **AC2: Fields: id, name, slug, type, path, settings, created_at, updated_at, deleted_at**
+
 - `id` - UUID primary key with automatic generation
 - `name` - varchar(100) for group display name
 - `slug` - varchar(100) for URL-friendly identifier
@@ -87,6 +91,7 @@ Following the project's strict TypeScript standards:
 - `deleted_at` - timestamp with timezone for soft delete
 
 **AC3: type enum: district, school, department**
+
 - Define pgEnum before table definition
 - Name: 'group_type'
 - Values: 'district', 'school', 'department'
@@ -94,6 +99,7 @@ Following the project's strict TypeScript standards:
 - Enforces three-tier organizational hierarchy
 
 **AC4: path uses custom ltree type for hierarchy**
+
 - Use ltree() custom type from `schema/types.ts`
 - Path format: "district_slug.school_slug.dept_slug"
 - Examples:
@@ -104,6 +110,7 @@ Following the project's strict TypeScript standards:
 - Path must be updated when group structure changes
 
 **AC5: slug is unique, url-friendly identifier**
+
 - Use varchar with length 100
 - Set unique() constraint
 - Set notNull() constraint
@@ -112,6 +119,7 @@ Following the project's strict TypeScript standards:
 - Used in URLs: `/groups/springfield-district`
 
 **AC6: settings is JSONB for group-specific configuration**
+
 - Use jsonb() type from drizzle-orm/pg-core
 - Set notNull() with default('{}')
 - Type as Record<string, unknown> for flexibility
@@ -123,6 +131,7 @@ Following the project's strict TypeScript standards:
 - Settings inherit down the hierarchy (merged with ancestors)
 
 **AC7: GiST index on path for ltree operations**
+
 - Define index in table's index configuration
 - Use .using("gist") for ltree index type
 - Name: groups_path_gist_idx
@@ -133,18 +142,21 @@ Following the project's strict TypeScript standards:
   - `nlevel()` (depth calculation)
 
 **AC8: Unique index on slug**
+
 - Define index in table's index configuration
 - Name: groups_slug_idx
 - Ensures no duplicate slugs across all groups
 - Enables fast slug-based lookups
 
 **AC9: Exports Group and NewGroup types**
+
 - Export Group: `typeof groups.$inferSelect`
 - Export NewGroup: `typeof groups.$inferInsert`
 - Provides type-safe database operations
 - TypeScript will infer all field types including ltree as string
 
 **AC10: Migration file 0002_create_groups.sql generated**
+
 - Run `pnpm db:generate` to create migration
 - Verify migration creates group_type enum
 - Verify migration creates groups table with all fields
@@ -152,6 +164,7 @@ Following the project's strict TypeScript standards:
 - Migration number follows 0001_create_users.sql
 
 **AC11: Migration enables ltree extension**
+
 - First line of migration: `CREATE EXTENSION IF NOT EXISTS ltree;`
 - Required before ltree columns can be used
 - Safe to run multiple times (IF NOT EXISTS)
@@ -207,7 +220,7 @@ export const groupTypeEnum = pgEnum("group_type", [
 
 ### Groups Table Schema
 
-```typescript
+````typescript
 /**
  * Groups table - hierarchical organization structure using PostgreSQL ltree.
  *
@@ -280,15 +293,16 @@ export type NewGroup = typeof groups.$inferInsert;
 Object.defineProperty(groups, "_", {
   get() {
     return {
-      name: Symbol.for("drizzle:Name") in groups
-        ? (groups as any)[Symbol.for("drizzle:Name")]
-        : "groups",
+      name:
+        Symbol.for("drizzle:Name") in groups
+          ? (groups as any)[Symbol.for("drizzle:Name")]
+          : "groups",
     };
   },
   enumerable: false,
   configurable: true,
 });
-```
+````
 
 ### Schema Index Export
 
@@ -531,9 +545,11 @@ async function createGroup(data: NewGroup): Promise<Group> {
 import { z } from "zod";
 
 const groupSettingsSchema = z.object({
-  theme: z.object({
-    primaryColor: z.string(),
-  }).optional(),
+  theme: z
+    .object({
+      primaryColor: z.string(),
+    })
+    .optional(),
   enabled_models: z.array(z.string()).optional(),
 });
 
@@ -582,7 +598,7 @@ async function getGroupDepth(groupPath: string): Promise<number> {
 async function getChildren(groupPath: string): Promise<Group[]> {
   return db.execute(sql`
     SELECT * FROM groups
-    WHERE path ~ ${groupPath + '.*{1}'}::lquery
+    WHERE path ~ ${groupPath + ".*{1}"}::lquery
     AND deleted_at IS NULL
   `);
 }
@@ -698,6 +714,7 @@ Without the GiST index, ltree queries would require full table scans.
 ### Slug Index
 
 The btree index on slug:
+
 - Enables fast slug-based lookups (O(log n) instead of O(n))
 - Supports unique constraint enforcement
 - Used for URL routing (e.g., `/groups/springfield-district`)
@@ -720,6 +737,7 @@ SELECT * FROM groups WHERE slug = 'springfield-district';
 ### Path Validation
 
 The application layer must validate ltree paths to prevent:
+
 - Path injection attacks (validate format before using in queries)
 - Invalid path syntax (only alphanumeric + underscore, separated by dots)
 - Path depth mismatches with type (district = 1 level, school = 2, department = 3)
@@ -752,18 +770,21 @@ This is a foundational database schema task with no direct user-facing component
 ### Strengths
 
 #### 1. **Clear Naming and Type Safety**
+
 - **Finding:** Schema uses intuitive field names (`name`, `slug`, `type`, `path`) that clearly communicate purpose
 - **Impact:** Developers will quickly understand the data model without extensive documentation
 - **Code Example:** Type exports (`Group`, `NewGroup`) provide IDE autocomplete and catch errors at compile time
 - **Verdict:** ✅ Strong DX foundation
 
 #### 2. **URL-Friendly Slugs**
+
 - **Finding:** Dedicated `slug` field for URL routing (e.g., `/groups/springfield-district`)
 - **Impact:** Enables human-readable URLs that improve end-user navigation and SEO
 - **User Benefit:** Teachers and admins can share intuitive links like `/groups/math-department` instead of `/groups/a4b2c3d4`
 - **Verdict:** ✅ Excellent for future UX
 
 #### 3. **Settings Inheritance Pattern**
+
 - **Finding:** JSONB settings + ltree hierarchy enables theme/config inheritance
 - **Impact:** Child groups automatically inherit parent settings unless overridden
 - **User Benefit:** District admins can set branding once, schools inherit automatically
@@ -772,12 +793,14 @@ This is a foundational database schema task with no direct user-facing component
 - **Verdict:** ⚠️ Needs follow-up UI consideration (not blocking)
 
 #### 4. **Soft Delete Support**
+
 - **Finding:** `deleted_at` timestamp enables recovery
 - **Impact:** Protects users from accidental data loss
 - **User Benefit:** Admins can restore accidentally deleted schools/departments
 - **Verdict:** ✅ Good safety pattern
 
 #### 5. **Comprehensive Documentation**
+
 - **Finding:** Extensive JSDoc comments (lines 182-290) with usage examples
 - **Impact:** Reduces cognitive load for future developers
 - **Verdict:** ✅ Excellent DX
@@ -789,24 +812,30 @@ This is a foundational database schema task with no direct user-facing component
 **Issue:** The spec states "settings JSONB can store: Theme configuration, Enabled AI models, Feature flags, Default quotas" but provides no structured schema or validation at the database level.
 
 **User Impact:**
+
 - **Risk:** Invalid settings could break theme rendering or model access
 - **Example:** District admin enters `{ "theme": "blue" }` instead of `{ "theme": { "primaryColor": "#0066cc" } }` → UI fails to render
 - **Current Mitigation:** Spec notes "application layer will use Zod schemas" (line 175)
 
 **Recommendation:**
+
 ```typescript
 // Future task: Create Zod schema in @raptscallions/core/schemas
 const groupSettingsSchema = z.object({
-  theme: z.object({
-    primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-    logoUrl: z.string().url().optional(),
-  }).optional(),
+  theme: z
+    .object({
+      primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      logoUrl: z.string().url().optional(),
+    })
+    .optional(),
   enabledModels: z.array(z.string()).optional(),
   featureFlags: z.record(z.boolean()).optional(),
-  quotas: z.object({
-    maxUsers: z.number().positive().optional(),
-    maxTokensPerMonth: z.number().positive().optional(),
-  }).optional(),
+  quotas: z
+    .object({
+      maxUsers: z.number().positive().optional(),
+      maxTokensPerMonth: z.number().positive().optional(),
+    })
+    .optional(),
 });
 ```
 
@@ -819,11 +848,13 @@ const groupSettingsSchema = z.object({
 **Issue:** The spec states "Application must ensure type matches path depth (district = 1 level, school = 2 levels, department = 3 levels)" (line 168) but provides no database-level constraint.
 
 **User Impact:**
+
 - **Risk:** Data corruption if application code allows `type: 'district'` with `path: 'district.school'`
 - **Example:** UI shows a school labeled as "District" in navigation menus
 - **Current Mitigation:** Application-layer validation (not enforced at DB level)
 
 **Recommendation:**
+
 ```sql
 -- Future enhancement: Add CHECK constraint
 ALTER TABLE groups ADD CONSTRAINT check_type_matches_path_depth
@@ -843,11 +874,13 @@ CHECK (
 **Issue:** Spec states "slug is generated from name (application layer handles conversion)" (line 173) but doesn't specify collision resolution strategy.
 
 **User Impact:**
+
 - **Risk:** Two groups with name "Math Department" in different schools would collide
 - **Example:** User creates "Math Dept" → slug "math-dept", then creates another "Math Dept" → needs unique slug
 - **Expected Behavior:** Unclear if system should auto-suffix (`math-dept-1`) or reject with error
 
 **Recommendation:**
+
 - **Option A (Auto-suffix):** `math-dept`, `math-dept-1`, `math-dept-2` → less user friction
 - **Option B (Require unique):** Force user to choose different name → clearer intent
 - **Suggested:** Document decision in CONVENTIONS.md before implementing group creation API
@@ -861,15 +894,18 @@ CHECK (
 **Observation:** The ltree `path` structure is optimized for queries but not human-readable in raw form.
 
 **Example:**
+
 - **Path:** `springfield_district.central_high.math_dept`
 - **User-Friendly Display:** "Springfield District → Central High School → Math Department"
 
 **Future UI Need:**
+
 - Breadcrumb navigation (e.g., Home > Springfield District > Central High School > Math Department)
 - Tree view in group management UI
 - Group selector dropdowns with visual hierarchy
 
 **Recommendation:**
+
 - When building group management UI (future epic), implement breadcrumb component that queries ancestors
 - Consider memoizing ancestor lookups since hierarchy rarely changes
 
@@ -882,11 +918,13 @@ CHECK (
 While this is a backend schema task, the following accessibility concerns should inform future UI work:
 
 1. **Screen Reader Support for Hierarchy**
+
    - Tree views must use proper ARIA roles (`role="tree"`, `role="treeitem"`)
    - Breadcrumbs should use `aria-current="page"` for current location
    - Group selection dropdowns should use `aria-level` to indicate hierarchy depth
 
 2. **Keyboard Navigation**
+
    - Future group management UI must support arrow key navigation in tree view
    - Expand/collapse tree nodes with Enter/Space
 
@@ -901,6 +939,7 @@ While this is a backend schema task, the following accessibility concerns should
 ### User Flow Impact Analysis
 
 #### Scenario 1: District Admin Sets Theme
+
 1. Admin navigates to District settings
 2. Selects theme color `#0066cc`
 3. **Expected:** All schools and departments automatically inherit theme
@@ -908,12 +947,14 @@ While this is a backend schema task, the following accessibility concerns should
 5. **UI Consideration:** Show "Inherited from Springfield District" badge in school settings
 
 #### Scenario 2: School Overrides Inherited Model Access
+
 1. School admin disables `gpt-4o` for their school
 2. **Expected:** District default is `gpt-4o` enabled, but school override takes precedence
 3. **Schema Support:** ✅ Settings merge pattern
 4. **UI Consideration:** Highlight overridden settings with visual indicator (e.g., orange badge)
 
 #### Scenario 3: Teacher Browses Groups by URL
+
 1. Teacher receives link `/groups/central-high/math-dept`
 2. **Expected:** Load Math Department page directly
 3. **Schema Support:** ✅ Slug-based routing
@@ -928,11 +969,13 @@ While this is a backend schema task, the following accessibility concerns should
 The spec includes comprehensive unit tests (lines 357-499). Additional test scenarios from UX perspective:
 
 1. **Settings Inheritance Edge Cases**
+
    - Empty parent settings + child settings
    - Parent settings override child settings (unexpected but possible)
    - Deep nesting (district → school → department all have settings)
 
 2. **Slug Collision Handling**
+
    - Two groups with same slug in different branches
    - Slug update when name changes
    - Unicode characters in name → ASCII slug conversion
@@ -953,11 +996,13 @@ The spec includes comprehensive unit tests (lines 357-499). Additional test scen
 - **Large Urban District:** 1 district + 200 schools + 1,000 departments = 1,201 groups
 
 **Analysis:**
+
 - GiST index on `path` (line 242) enables O(log n) ltree queries
 - Slug index (line 243) enables O(log n) lookups
 - Settings JSONB may grow large (theme config + model lists + feature flags)
 
 **Recommendation:**
+
 - If settings exceed 1 KB per group, consider extracting themes to separate table in future
 - Monitor query performance on ltree ancestor/descendant queries at scale
 - Consider materialized view for "groups with inherited settings" if merge becomes bottleneck
@@ -982,13 +1027,13 @@ The spec includes comprehensive unit tests (lines 357-499). Additional test scen
 
 ### Final Recommendations Summary
 
-| Priority | Recommendation | Action | Owner |
-|----------|----------------|--------|-------|
-| **Medium** | Define Zod schema for settings structure | Create schema in `@raptscallions/core/schemas/group-settings.ts` | E01-T009 (theme service) |
-| **Low** | Add CHECK constraint for type/path depth matching | Consider in future DB migration | Future refactoring task |
-| **Low** | Document slug collision resolution strategy | Add to CONVENTIONS.md | Before E01-T010 (API routes) |
-| **Info** | Plan breadcrumb and tree view components | Note in frontend epic planning | Frontend epic (E02 or later) |
-| **Info** | Add integration tests for settings inheritance | Include in E01-T006 or E01-T009 | Next relevant task |
+| Priority   | Recommendation                                    | Action                                                           | Owner                        |
+| ---------- | ------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------- |
+| **Medium** | Define Zod schema for settings structure          | Create schema in `@raptscallions/core/schemas/group-settings.ts` | E01-T009 (theme service)     |
+| **Low**    | Add CHECK constraint for type/path depth matching | Consider in future DB migration                                  | Future refactoring task      |
+| **Low**    | Document slug collision resolution strategy       | Add to CONVENTIONS.md                                            | Before E01-T010 (API routes) |
+| **Info**   | Plan breadcrumb and tree view components          | Note in frontend epic planning                                   | Frontend epic (E02 or later) |
+| **Info**   | Add integration tests for settings inheritance    | Include in E01-T006 or E01-T009                                  | Next relevant task           |
 
 ---
 
@@ -1008,6 +1053,7 @@ This schema provides an excellent foundation for the groups feature. The ltree h
 ## Notes
 
 This spec is ready for implementation. The groups schema provides the foundation for:
+
 - Multi-tenant organization structure
 - Settings and theme inheritance
 - Permission scoping (via group membership)

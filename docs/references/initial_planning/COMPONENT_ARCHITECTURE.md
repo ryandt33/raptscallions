@@ -1,4 +1,4 @@
-# Raptscallions Component Architecture
+# RaptScallions Component Architecture
 
 ## Core Principle
 

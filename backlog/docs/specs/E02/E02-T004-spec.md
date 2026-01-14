@@ -137,7 +137,7 @@ User                 Frontend            API Server           OAuth Provider
 Add OAuth environment variables to existing schema:
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const envSchema = z.object({
   // ... existing vars (NODE_ENV, DATABASE_URL, etc.)
@@ -147,7 +147,7 @@ export const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   MICROSOFT_CLIENT_ID: z.string().optional(),
   MICROSOFT_CLIENT_SECRET: z.string().optional(),
-  OAUTH_REDIRECT_BASE: z.string().url().default('http://localhost:3000'),
+  OAUTH_REDIRECT_BASE: z.string().url().default("http://localhost:3000"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -173,9 +173,9 @@ OAUTH_REDIRECT_BASE=http://localhost:3000
 **File:** `packages/auth/src/oauth.ts` (new file)
 
 ```typescript
-import { Google, Microsoft } from 'arctic';
-import { config } from '@raptscallions/core/config';
-import { AppError } from '@raptscallions/core/errors';
+import { Google, Microsoft } from "arctic";
+import { config } from "@raptscallions/core/config";
+import { AppError } from "@raptscallions/core/errors";
 
 /**
  * Google OAuth client (lazy initialization to handle optional config)
@@ -183,8 +183,8 @@ import { AppError } from '@raptscallions/core/errors';
 export function getGoogleOAuthClient(): Google {
   if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_CLIENT_SECRET) {
     throw new AppError(
-      'Google OAuth not configured',
-      'OAUTH_NOT_CONFIGURED',
+      "Google OAuth not configured",
+      "OAUTH_NOT_CONFIGURED",
       500
     );
   }
@@ -202,8 +202,8 @@ export function getGoogleOAuthClient(): Google {
 export function getMicrosoftOAuthClient(): Microsoft {
   if (!config.MICROSOFT_CLIENT_ID || !config.MICROSOFT_CLIENT_SECRET) {
     throw new AppError(
-      'Microsoft OAuth not configured',
-      'OAUTH_NOT_CONFIGURED',
+      "Microsoft OAuth not configured",
+      "OAUTH_NOT_CONFIGURED",
       500
     );
   }
@@ -221,9 +221,9 @@ export function getMicrosoftOAuthClient(): Microsoft {
 **File:** `packages/auth/src/oauth-state.ts` (new file)
 
 ```typescript
-import { generateState } from 'arctic';
+import { generateState } from "arctic";
 
-export const OAUTH_STATE_COOKIE = 'oauth_state';
+export const OAUTH_STATE_COOKIE = "oauth_state";
 export const OAUTH_STATE_MAX_AGE = 60 * 10; // 10 minutes
 
 /**
@@ -288,28 +288,28 @@ export interface MicrosoftUserProfile {
 **File:** `apps/api/src/services/oauth.service.ts` (new file)
 
 ```typescript
-import type { FastifyRequest, FastifyReply } from 'fastify';
-import { eq } from 'drizzle-orm';
-import type { DrizzleDB } from '@raptscallions/db';
-import { users } from '@raptscallions/db/schema';
-import type { User } from '@raptscallions/db/schema';
-import { lucia } from '@raptscallions/auth';
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { eq } from "drizzle-orm";
+import type { DrizzleDB } from "@raptscallions/db";
+import { users } from "@raptscallions/db/schema";
+import type { User } from "@raptscallions/db/schema";
+import { lucia } from "@raptscallions/auth";
 import {
   getGoogleOAuthClient,
   getMicrosoftOAuthClient,
-} from '@raptscallions/auth/oauth';
+} from "@raptscallions/auth/oauth";
 import {
   generateOAuthState,
   validateOAuthState,
   OAUTH_STATE_COOKIE,
   OAUTH_STATE_MAX_AGE,
-} from '@raptscallions/auth/oauth-state';
+} from "@raptscallions/auth/oauth-state";
 import type {
   GoogleUserProfile,
   MicrosoftUserProfile,
-} from '@raptscallions/auth/types';
-import { UnauthorizedError, AppError } from '@raptscallions/core/errors';
-import { logger } from '@raptscallions/telemetry';
+} from "@raptscallions/auth/types";
+import { UnauthorizedError, AppError } from "@raptscallions/core/errors";
+import { logger } from "@raptscallions/telemetry";
 
 export class OAuthService {
   constructor(private db: DrizzleDB) {}
@@ -322,16 +322,16 @@ export class OAuthService {
     const state = generateOAuthState();
 
     const url = await google.createAuthorizationURL(state, {
-      scopes: ['email', 'profile'],
+      scopes: ["email", "profile"],
     });
 
     // Store state in cookie for CSRF protection
     reply.setCookie(OAUTH_STATE_COOKIE, state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: OAUTH_STATE_MAX_AGE,
-      path: '/',
+      path: "/",
     });
 
     reply.redirect(url.toString());
@@ -351,19 +351,22 @@ export class OAuthService {
 
     // Handle OAuth provider errors
     if (error) {
-      logger.warn({ error }, 'Google OAuth error');
-      throw new UnauthorizedError('Google authentication failed');
+      logger.warn({ error }, "Google OAuth error");
+      throw new UnauthorizedError("Google authentication failed");
     }
 
     // Validate state parameter (CSRF protection)
     if (!validateOAuthState(state, storedState)) {
-      logger.warn({ receivedState: state, hasStoredState: !!storedState }, 'Invalid OAuth state');
-      throw new UnauthorizedError('Invalid OAuth state');
+      logger.warn(
+        { receivedState: state, hasStoredState: !!storedState },
+        "Invalid OAuth state"
+      );
+      throw new UnauthorizedError("Invalid OAuth state");
     }
 
     // Validate code parameter
     if (!code) {
-      throw new UnauthorizedError('Missing authorization code');
+      throw new UnauthorizedError("Missing authorization code");
     }
 
     try {
@@ -374,7 +377,7 @@ export class OAuthService {
 
       // Fetch user profile from Google
       const response = await fetch(
-        'https://www.googleapis.com/oauth2/v1/userinfo',
+        "https://www.googleapis.com/oauth2/v1/userinfo",
         {
           headers: {
             Authorization: `Bearer ${tokens.accessToken}`,
@@ -384,8 +387,8 @@ export class OAuthService {
 
       if (!response.ok) {
         throw new AppError(
-          'Failed to fetch Google user profile',
-          'OAUTH_PROFILE_FETCH_FAILED',
+          "Failed to fetch Google user profile",
+          "OAUTH_PROFILE_FETCH_FAILED",
           500
         );
       }
@@ -394,7 +397,7 @@ export class OAuthService {
 
       // Verify email is verified
       if (!googleUser.email_verified) {
-        throw new UnauthorizedError('Email not verified with Google');
+        throw new UnauthorizedError("Email not verified with Google");
       }
 
       // Find or create user
@@ -405,27 +408,30 @@ export class OAuthService {
 
       // Create session
       const session = await lucia.createSession(user.id, {
-        context: 'oauth_google',
+        context: "oauth_google",
       });
 
-      reply.setCookie('rapt_session', session.id, {
+      reply.setCookie("rapt_session", session.id, {
         ...lucia.sessionCookieAttributes,
       });
 
       // Clear OAuth state cookie
-      reply.setCookie(OAUTH_STATE_COOKIE, '', { maxAge: 0 });
+      reply.setCookie(OAUTH_STATE_COOKIE, "", { maxAge: 0 });
 
-      logger.info({ userId: user.id, provider: 'google' }, 'OAuth login successful');
+      logger.info(
+        { userId: user.id, provider: "google" },
+        "OAuth login successful"
+      );
 
-      reply.redirect('/dashboard');
+      reply.redirect("/dashboard");
     } catch (error) {
-      logger.error({ error }, 'Google OAuth callback error');
+      logger.error({ error }, "Google OAuth callback error");
 
       if (error instanceof UnauthorizedError || error instanceof AppError) {
         throw error;
       }
 
-      throw new UnauthorizedError('Google authentication failed');
+      throw new UnauthorizedError("Google authentication failed");
     }
   }
 
@@ -437,16 +443,16 @@ export class OAuthService {
     const state = generateOAuthState();
 
     const url = await microsoft.createAuthorizationURL(state, {
-      scopes: ['User.Read', 'email', 'profile', 'openid'],
+      scopes: ["User.Read", "email", "profile", "openid"],
     });
 
     // Store state in cookie for CSRF protection
     reply.setCookie(OAUTH_STATE_COOKIE, state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: OAUTH_STATE_MAX_AGE,
-      path: '/',
+      path: "/",
     });
 
     reply.redirect(url.toString());
@@ -466,19 +472,22 @@ export class OAuthService {
 
     // Handle OAuth provider errors
     if (error) {
-      logger.warn({ error }, 'Microsoft OAuth error');
-      throw new UnauthorizedError('Microsoft authentication failed');
+      logger.warn({ error }, "Microsoft OAuth error");
+      throw new UnauthorizedError("Microsoft authentication failed");
     }
 
     // Validate state parameter (CSRF protection)
     if (!validateOAuthState(state, storedState)) {
-      logger.warn({ receivedState: state, hasStoredState: !!storedState }, 'Invalid OAuth state');
-      throw new UnauthorizedError('Invalid OAuth state');
+      logger.warn(
+        { receivedState: state, hasStoredState: !!storedState },
+        "Invalid OAuth state"
+      );
+      throw new UnauthorizedError("Invalid OAuth state");
     }
 
     // Validate code parameter
     if (!code) {
-      throw new UnauthorizedError('Missing authorization code');
+      throw new UnauthorizedError("Missing authorization code");
     }
 
     try {
@@ -488,7 +497,7 @@ export class OAuthService {
       const tokens = await microsoft.validateAuthorizationCode(code);
 
       // Fetch user profile from Microsoft Graph
-      const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+      const response = await fetch("https://graph.microsoft.com/v1.0/me", {
         headers: {
           Authorization: `Bearer ${tokens.accessToken}`,
         },
@@ -496,8 +505,8 @@ export class OAuthService {
 
       if (!response.ok) {
         throw new AppError(
-          'Failed to fetch Microsoft user profile',
-          'OAUTH_PROFILE_FETCH_FAILED',
+          "Failed to fetch Microsoft user profile",
+          "OAUTH_PROFILE_FETCH_FAILED",
           500
         );
       }
@@ -508,7 +517,9 @@ export class OAuthService {
       const email = microsoftUser.mail || microsoftUser.userPrincipalName;
 
       if (!email) {
-        throw new UnauthorizedError('No email address found in Microsoft account');
+        throw new UnauthorizedError(
+          "No email address found in Microsoft account"
+        );
       }
 
       // Find or create user
@@ -519,27 +530,30 @@ export class OAuthService {
 
       // Create session
       const session = await lucia.createSession(user.id, {
-        context: 'oauth_microsoft',
+        context: "oauth_microsoft",
       });
 
-      reply.setCookie('rapt_session', session.id, {
+      reply.setCookie("rapt_session", session.id, {
         ...lucia.sessionCookieAttributes,
       });
 
       // Clear OAuth state cookie
-      reply.setCookie(OAUTH_STATE_COOKIE, '', { maxAge: 0 });
+      reply.setCookie(OAUTH_STATE_COOKIE, "", { maxAge: 0 });
 
-      logger.info({ userId: user.id, provider: 'microsoft' }, 'OAuth login successful');
+      logger.info(
+        { userId: user.id, provider: "microsoft" },
+        "OAuth login successful"
+      );
 
-      reply.redirect('/dashboard');
+      reply.redirect("/dashboard");
     } catch (error) {
-      logger.error({ error }, 'Microsoft OAuth callback error');
+      logger.error({ error }, "Microsoft OAuth callback error");
 
       if (error instanceof UnauthorizedError || error instanceof AppError) {
         throw error;
       }
 
-      throw new UnauthorizedError('Microsoft authentication failed');
+      throw new UnauthorizedError("Microsoft authentication failed");
     }
   }
 
@@ -556,7 +570,10 @@ export class OAuthService {
     });
 
     if (existingUser) {
-      logger.info({ userId: existingUser.id, email }, 'OAuth user found, linking account');
+      logger.info(
+        { userId: existingUser.id, email },
+        "OAuth user found, linking account"
+      );
       return existingUser;
     }
 
@@ -566,12 +583,12 @@ export class OAuthService {
       .values({
         email,
         name,
-        status: 'active',
+        status: "active",
         // passwordHash is null for OAuth users
       })
       .returning();
 
-    logger.info({ userId: newUser.id, email }, 'New OAuth user created');
+    logger.info({ userId: newUser.id, email }, "New OAuth user created");
 
     return newUser;
   }
@@ -583,8 +600,8 @@ export class OAuthService {
 **File:** `apps/api/src/routes/oauth.routes.ts` (new file)
 
 ```typescript
-import type { FastifyPluginAsync } from 'fastify';
-import { OAuthService } from '../services/oauth.service';
+import type { FastifyPluginAsync } from "fastify";
+import { OAuthService } from "../services/oauth.service";
 
 export const oauthRoutes: FastifyPluginAsync = async (app) => {
   const oauthService = new OAuthService(app.db);
@@ -593,7 +610,7 @@ export const oauthRoutes: FastifyPluginAsync = async (app) => {
    * GET /auth/google
    * Initiate Google OAuth flow
    */
-  app.get('/google', async (request, reply) => {
+  app.get("/google", async (request, reply) => {
     await oauthService.initiateGoogleOAuth(reply);
   });
 
@@ -603,7 +620,7 @@ export const oauthRoutes: FastifyPluginAsync = async (app) => {
    */
   app.get<{
     Querystring: { code?: string; state?: string; error?: string };
-  }>('/google/callback', async (request, reply) => {
+  }>("/google/callback", async (request, reply) => {
     await oauthService.handleGoogleCallback(request, reply);
   });
 
@@ -611,7 +628,7 @@ export const oauthRoutes: FastifyPluginAsync = async (app) => {
    * GET /auth/microsoft
    * Initiate Microsoft OAuth flow
    */
-  app.get('/microsoft', async (request, reply) => {
+  app.get("/microsoft", async (request, reply) => {
     await oauthService.initiateMicrosoftOAuth(reply);
   });
 
@@ -621,7 +638,7 @@ export const oauthRoutes: FastifyPluginAsync = async (app) => {
    */
   app.get<{
     Querystring: { code?: string; state?: string; error?: string };
-  }>('/microsoft/callback', async (request, reply) => {
+  }>("/microsoft/callback", async (request, reply) => {
     await oauthService.handleMicrosoftCallback(request, reply);
   });
 };
@@ -630,15 +647,15 @@ export const oauthRoutes: FastifyPluginAsync = async (app) => {
 **File:** `apps/api/src/routes/auth.routes.ts` (update existing)
 
 ```typescript
-import type { FastifyPluginAsync } from 'fastify';
-import { oauthRoutes } from './oauth.routes';
+import type { FastifyPluginAsync } from "fastify";
+import { oauthRoutes } from "./oauth.routes";
 // ... existing imports
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   // ... existing routes (register, login, logout)
 
   // Register OAuth routes
-  await app.register(oauthRoutes, { prefix: '' });
+  await app.register(oauthRoutes, { prefix: "" });
 };
 ```
 
@@ -673,6 +690,7 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 **Threat:** Attacker tricks user into completing OAuth flow for attacker's account
 
 **Mitigation:**
+
 - Generate cryptographically secure state parameter using `arctic.generateState()`
 - Store state in httpOnly cookie with 10-minute expiration
 - Validate state parameter in callback matches stored cookie value
@@ -681,6 +699,7 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 ### 2. Cookie Security
 
 **Configuration:**
+
 ```typescript
 {
   httpOnly: true,              // Prevent JavaScript access
@@ -701,6 +720,7 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 **Principle:** Don't leak information about account existence
 
 **Implementation:**
+
 - Use generic error messages: "Authentication failed"
 - Log detailed errors server-side only
 - Don't reveal whether email exists in system
@@ -708,6 +728,7 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 ### 5. Redirect Validation
 
 **Configuration:**
+
 - Redirect URL must be registered with OAuth provider
 - Use environment variable `OAUTH_REDIRECT_BASE` for configuration
 - Only redirect to `/dashboard` (no user-controlled redirects)
@@ -715,6 +736,7 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 ### 6. Token Handling
 
 **Security:**
+
 - Access tokens are NOT stored (only used to fetch profile)
 - Refresh tokens are NOT requested (session-based auth)
 - Tokens are ephemeral (exist only during callback processing)
@@ -725,17 +747,17 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 
 ### Error Scenarios
 
-| Scenario | Error Type | HTTP Status | User Message |
-|----------|-----------|-------------|--------------|
-| OAuth not configured | AppError (OAUTH_NOT_CONFIGURED) | 500 | Service temporarily unavailable |
-| User denies consent | UnauthorizedError | 401 | Authentication failed |
-| Invalid state parameter | UnauthorizedError | 401 | Invalid OAuth state |
-| Missing authorization code | UnauthorizedError | 401 | Authentication failed |
-| Token exchange fails | UnauthorizedError | 401 | Authentication failed |
-| Profile fetch fails | AppError (OAUTH_PROFILE_FETCH_FAILED) | 500 | Authentication failed |
-| Email not verified (Google) | UnauthorizedError | 401 | Email not verified |
-| No email in profile (Microsoft) | UnauthorizedError | 401 | No email address found |
-| Network errors | UnauthorizedError | 401 | Authentication failed |
+| Scenario                        | Error Type                            | HTTP Status | User Message                    |
+| ------------------------------- | ------------------------------------- | ----------- | ------------------------------- |
+| OAuth not configured            | AppError (OAUTH_NOT_CONFIGURED)       | 500         | Service temporarily unavailable |
+| User denies consent             | UnauthorizedError                     | 401         | Authentication failed           |
+| Invalid state parameter         | UnauthorizedError                     | 401         | Invalid OAuth state             |
+| Missing authorization code      | UnauthorizedError                     | 401         | Authentication failed           |
+| Token exchange fails            | UnauthorizedError                     | 401         | Authentication failed           |
+| Profile fetch fails             | AppError (OAUTH_PROFILE_FETCH_FAILED) | 500         | Authentication failed           |
+| Email not verified (Google)     | UnauthorizedError                     | 401         | Email not verified              |
+| No email in profile (Microsoft) | UnauthorizedError                     | 401         | No email address found          |
+| Network errors                  | UnauthorizedError                     | 401         | Authentication failed           |
 
 ### Error Response Format
 
@@ -751,13 +773,13 @@ The `sessions` table already has a `context` field (added in E02-T002) for track
 
 ```typescript
 // Success
-logger.info({ userId, provider: 'google' }, 'OAuth login successful');
+logger.info({ userId, provider: "google" }, "OAuth login successful");
 
 // Warning
-logger.warn({ error }, 'Google OAuth error');
+logger.warn({ error }, "Google OAuth error");
 
 // Error
-logger.error({ error }, 'Google OAuth callback error');
+logger.error({ error }, "Google OAuth callback error");
 ```
 
 ---
@@ -769,6 +791,7 @@ logger.error({ error }, 'Google OAuth callback error');
 **File:** `apps/api/src/__tests__/services/oauth.service.test.ts`
 
 Test cases:
+
 1. ✅ `initiateGoogleOAuth` generates state and redirects
 2. ✅ `initiateMicrosoftOAuth` generates state and redirects
 3. ✅ `handleGoogleCallback` creates new user when email doesn't exist
@@ -788,6 +811,7 @@ Test cases:
 **File:** `apps/api/src/__tests__/integration/oauth.routes.test.ts`
 
 Test cases:
+
 1. ✅ `GET /auth/google` sets oauth_state cookie and redirects
 2. ✅ `GET /auth/microsoft` sets oauth_state cookie and redirects
 3. ✅ `GET /auth/google/callback` returns 401 for invalid state
@@ -799,23 +823,24 @@ Test cases:
 
 ```typescript
 // Mock Arctic clients
-vi.mock('arctic', () => ({
+vi.mock("arctic", () => ({
   Google: vi.fn(),
   Microsoft: vi.fn(),
-  generateState: vi.fn(() => 'mock-state-123'),
+  generateState: vi.fn(() => "mock-state-123"),
 }));
 
 // Mock fetch for OAuth profile endpoints
 global.fetch = vi.fn((url) => {
-  if (url.includes('googleapis.com')) {
+  if (url.includes("googleapis.com")) {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({
-        sub: 'google-123',
-        email: 'user@example.com',
-        email_verified: true,
-        name: 'Test User',
-      }),
+      json: () =>
+        Promise.resolve({
+          sub: "google-123",
+          email: "user@example.com",
+          email_verified: true,
+          name: "Test User",
+        }),
     });
   }
   // ... Microsoft mock
@@ -837,6 +862,7 @@ global.fetch = vi.fn((url) => {
 ```
 
 Install with:
+
 ```bash
 pnpm add arctic
 ```
@@ -867,6 +893,7 @@ pnpm add arctic
 7. Copy Client ID and Client Secret to `.env`
 
 **Scopes requested:**
+
 - `email` - User email address
 - `profile` - User profile information (name, picture)
 
@@ -875,7 +902,7 @@ pnpm add arctic
 1. Go to [Azure Portal](https://portal.azure.com/)
 2. Navigate to "Azure Active Directory" → "App registrations"
 3. Click "New registration"
-4. Name: "Raptscallions"
+4. Name: "RaptScallions"
 5. Supported account types: "Accounts in any organizational directory and personal Microsoft accounts"
 6. Redirect URI:
    - Development: `http://localhost:3000/auth/microsoft/callback`
@@ -884,6 +911,7 @@ pnpm add arctic
 8. Copy Application (client) ID and client secret to `.env`
 
 **Scopes requested:**
+
 - `User.Read` - Read user profile
 - `email` - User email address
 - `profile` - User profile information
@@ -941,18 +969,18 @@ pnpm add arctic
 
 ## Acceptance Criteria Mapping
 
-| AC | Description | Implementation |
-|----|-------------|----------------|
-| AC1 | GET /auth/google redirects to Google OAuth | `initiateGoogleOAuth()` creates auth URL and redirects |
-| AC2 | GET /auth/google/callback handles OAuth callback | `handleGoogleCallback()` validates and creates session |
-| AC3 | GET /auth/microsoft redirects to Microsoft OAuth | `initiateMicrosoftOAuth()` creates auth URL and redirects |
-| AC4 | GET /auth/microsoft/callback handles OAuth callback | `handleMicrosoftCallback()` validates and creates session |
-| AC5 | OAuth accounts create new user if email doesn't exist | `findOrCreateOAuthUser()` creates user with null password_hash |
-| AC6 | OAuth accounts link to existing user if email matches | `findOrCreateOAuthUser()` returns existing user by email |
-| AC7 | State parameter validated to prevent CSRF attacks | `validateOAuthState()` checks state matches cookie |
-| AC8 | OAuth errors handled gracefully | Try-catch with UnauthorizedError for user-friendly messages |
-| AC9 | Environment variables validated | Zod schema validates OAuth config on startup |
-| AC10 | OAuth users have null password_hash | `findOrCreateOAuthUser()` omits passwordHash field |
+| AC   | Description                                           | Implementation                                                 |
+| ---- | ----------------------------------------------------- | -------------------------------------------------------------- |
+| AC1  | GET /auth/google redirects to Google OAuth            | `initiateGoogleOAuth()` creates auth URL and redirects         |
+| AC2  | GET /auth/google/callback handles OAuth callback      | `handleGoogleCallback()` validates and creates session         |
+| AC3  | GET /auth/microsoft redirects to Microsoft OAuth      | `initiateMicrosoftOAuth()` creates auth URL and redirects      |
+| AC4  | GET /auth/microsoft/callback handles OAuth callback   | `handleMicrosoftCallback()` validates and creates session      |
+| AC5  | OAuth accounts create new user if email doesn't exist | `findOrCreateOAuthUser()` creates user with null password_hash |
+| AC6  | OAuth accounts link to existing user if email matches | `findOrCreateOAuthUser()` returns existing user by email       |
+| AC7  | State parameter validated to prevent CSRF attacks     | `validateOAuthState()` checks state matches cookie             |
+| AC8  | OAuth errors handled gracefully                       | Try-catch with UnauthorizedError for user-friendly messages    |
+| AC9  | Environment variables validated                       | Zod schema validates OAuth config on startup                   |
+| AC10 | OAuth users have null password_hash                   | `findOrCreateOAuthUser()` omits passwordHash field             |
 
 ---
 
@@ -1000,16 +1028,19 @@ This specification implements OAuth authentication flows for Google and Microsof
 ### ✅ Strengths
 
 #### 1. **Clear OAuth Flow**
+
 - The sequence diagrams provide excellent clarity on the user journey
 - State management with CSRF protection is properly implemented
 - Automatic account linking by email is intuitive and expected behavior
 
 #### 2. **Error Handling Philosophy**
+
 - Generic error messages prevent information leakage (OWASP compliant)
 - Detailed server-side logging for debugging
 - Comprehensive error scenario coverage in testing strategy
 
 #### 3. **Security Transparency**
+
 - Email verification requirement for Google is a good UX/security balance
 - State parameter validation is invisible but critical for user protection
 - Cookie configuration follows best practices (httpOnly, secure, sameSite)
@@ -1043,11 +1074,13 @@ const errorMessages = {
 ```
 
 **Implementation Suggestion:**
+
 - Add a `userMessage` field to error responses (separate from server logs)
 - Create a dedicated `OAuthError` class that maps technical errors to user-friendly messages
 - Return error codes in URL params for frontend to display contextual help
 
 **Example:**
+
 ```typescript
 // Redirect with error context
 reply.redirect(`/login?error=oauth_failed&reason=email_verification`);
@@ -1070,17 +1103,20 @@ Document expected loading states and success feedback for future frontend work:
 // After callback success, before dashboard redirect
 // FUTURE: Display interim page with success message + loading spinner
 // For now: Direct redirect is acceptable for MVP
-reply.redirect('/dashboard'); // Consider '/dashboard?oauth_success=true'
+reply.redirect("/dashboard"); // Consider '/dashboard?oauth_success=true'
 ```
 
 **Why this matters:**
+
 - OAuth flows can take 2-5 seconds (network latency, provider processing)
 - Users clicking "Sign in with Google" expect immediate feedback
 - Silent redirects feel broken, especially if provider consent screen takes time to load
 
 **Frontend Integration Note (add to spec):**
+
 ```markdown
 ### Future Frontend Considerations
+
 - Display loading spinner when user clicks OAuth button
 - Show success message on callback: "Signed in with Google! Redirecting..."
 - Handle slow OAuth provider responses (5+ seconds) with progress indicator
@@ -1096,6 +1132,7 @@ Spec line 558-560 silently links OAuth accounts to existing users by email. This
 
 **Impact:** Medium (future scope)
 Users may be confused when:
+
 - They sign in with Google after creating a password account
 - They try to use a different OAuth provider with the same email (out of scope, but will arise)
 
@@ -1105,8 +1142,10 @@ Add logging and future notification hooks:
 ```typescript
 // In findOrCreateOAuthUser (line 558)
 if (existingUser) {
-  logger.info({ userId: existingUser.id, email, provider: 'google' },
-    'OAuth account linked to existing user');
+  logger.info(
+    { userId: existingUser.id, email, provider: "google" },
+    "OAuth account linked to existing user"
+  );
 
   // FUTURE: Emit event for notification
   // await events.emit('user.oauth_linked', { userId, provider: 'google' });
@@ -1117,7 +1156,8 @@ if (existingUser) {
 
 **Future Enhancement:**
 When frontend is implemented, show a one-time notification:
-> "You've successfully linked your Google account to your Raptscallions profile. You can now sign in with either Google or your password."
+
+> "You've successfully linked your Google account to your RaptScallions profile. You can now sign in with either Google or your password."
 
 ---
 
@@ -1128,6 +1168,7 @@ Spec hardcodes redirect to `/dashboard` (lines 420, 534) with no support for "re
 
 **Impact:** Low (current scope), High (future)
 Users who:
+
 - Land on a specific tool page and click "Sign in with Google"
 - Come from an assignment link and must authenticate
 - ...will lose their original destination
@@ -1137,36 +1178,37 @@ Add `returnTo` parameter support (optional for E02-T004, critical for future):
 
 ```typescript
 // OAuth initiation
-app.get('/google', async (request, reply) => {
+app.get("/google", async (request, reply) => {
   const state = generateOAuthState();
-  const returnTo = request.query.returnTo || '/dashboard';
+  const returnTo = request.query.returnTo || "/dashboard";
 
   // Encode returnTo in state or separate cookie
-  reply.setCookie('oauth_return', returnTo, {
+  reply.setCookie("oauth_return", returnTo, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 10,
-    path: '/',
+    path: "/",
   });
 
   // ... rest of OAuth flow
 });
 
 // OAuth callback
-app.get('/google/callback', async (request, reply) => {
+app.get("/google/callback", async (request, reply) => {
   // ... after successful auth
-  const returnTo = request.cookies.oauth_return || '/dashboard';
+  const returnTo = request.cookies.oauth_return || "/dashboard";
   reply.redirect(returnTo);
 });
 ```
 
 **Security Note:**
 Validate `returnTo` URL to prevent open redirect vulnerabilities:
+
 ```typescript
 function validateReturnUrl(url: string): string {
   // Only allow relative URLs
-  if (!url.startsWith('/') || url.startsWith('//')) {
-    return '/dashboard';
+  if (!url.startsWith("/") || url.startsWith("//")) {
+    return "/dashboard";
   }
   return url;
 }
@@ -1184,27 +1226,31 @@ Spec focuses on backend implementation with no mention of accessible OAuth butto
 **Recommendation:**
 Add a "Frontend Accessibility Notes" section:
 
-```markdown
+````markdown
 ### Frontend Accessibility Requirements
 
 When implementing OAuth buttons in the frontend:
 
 1. **Button Labels:**
+
    - ✅ "Sign in with Google" (clear action)
    - ❌ "Google" (ambiguous)
    - Include provider logo as decorative image with `aria-hidden="true"`
 
 2. **Loading States:**
+
    - Disable button on click: `aria-busy="true"`
    - Update label: "Signing in with Google..."
    - Announce state change: `role="status"` or live region
 
 3. **Error States:**
+
    - Use `role="alert"` for error messages
    - Ensure error text has sufficient contrast (WCAG AAA)
    - Provide retry button with clear focus state
 
 4. **Keyboard Navigation:**
+
    - OAuth buttons must be keyboard accessible (native `<button>` element)
    - Focus trap during OAuth flow (loading overlay)
    - Return focus to sign-in button on error
@@ -1216,7 +1262,9 @@ When implementing OAuth buttons in the frontend:
      Sign in with Google
    </button>
    ```
-```
+````
+
+````
 
 ---
 
@@ -1242,7 +1290,7 @@ if (!existingUser) {
   logger.info({ userId: newUser.id, email }, 'New OAuth user created');
   return reply.redirect('/dashboard?welcome=oauth&provider=google');
 }
-```
+````
 
 Frontend can then display a welcome modal or onboarding flow.
 
@@ -1259,9 +1307,10 @@ Frontend can then display a welcome modal or onboarding flow.
 
 **Recommendation:**
 Add query parameter and future notification:
+
 ```typescript
 if (existingUser && !existingUser.oauthProvider) {
-  return reply.redirect('/dashboard?oauth_linked=google');
+  return reply.redirect("/dashboard?oauth_linked=google");
 }
 ```
 
@@ -1282,14 +1331,14 @@ if (existingUser && !existingUser.oauthProvider) {
 
 ### 📊 Error Message Quality
 
-| Scenario | Current Message (Spec) | UX Rating | Recommended Message |
-|----------|----------------------|-----------|---------------------|
-| User denies consent | "Google authentication failed" | ❌ Poor | "You cancelled the sign-in process. Try again to continue." |
-| Email not verified | "Email not verified with Google" | ✅ Good | Same (actionable) |
-| Invalid state (CSRF) | "Invalid OAuth state" | ⚠️ Fair | "Security check failed. Please try signing in again." |
-| Network error | "Authentication failed" | ❌ Poor | "Connection issue. Please check your internet and try again." |
-| Missing email (MS) | "No email address found in Microsoft account" | ✅ Good | Same (actionable) |
-| OAuth not configured | "Service temporarily unavailable" | ⚠️ Fair | "This sign-in method is currently unavailable. Please use password sign-in." |
+| Scenario             | Current Message (Spec)                        | UX Rating | Recommended Message                                                          |
+| -------------------- | --------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| User denies consent  | "Google authentication failed"                | ❌ Poor   | "You cancelled the sign-in process. Try again to continue."                  |
+| Email not verified   | "Email not verified with Google"              | ✅ Good   | Same (actionable)                                                            |
+| Invalid state (CSRF) | "Invalid OAuth state"                         | ⚠️ Fair   | "Security check failed. Please try signing in again."                        |
+| Network error        | "Authentication failed"                       | ❌ Poor   | "Connection issue. Please check your internet and try again."                |
+| Missing email (MS)   | "No email address found in Microsoft account" | ✅ Good   | Same (actionable)                                                            |
+| OAuth not configured | "Service temporarily unavailable"             | ⚠️ Fair   | "This sign-in method is currently unavailable. Please use password sign-in." |
 
 ---
 
@@ -1305,11 +1354,13 @@ if (existingUser && !existingUser.oauthProvider) {
 #### **Where UX Could Improve Without Compromising Security:**
 
 1. **Error Contextualization**
+
    - Current: "Authentication failed" (generic)
    - Better: "Authentication failed. [Reason: user cancelled | email verification needed | etc.]"
    - Security: Still doesn't reveal if account exists
 
 2. **Provider-Specific Help**
+
    - Google error: "Need help with Google sign-in? [Link to Google Help]"
    - Microsoft error: "Having trouble with Microsoft? [Link to Azure AD help]"
 
@@ -1323,31 +1374,31 @@ if (existingUser && !existingUser.oauthProvider) {
 
 Based on UX review, prioritize these enhancements after OAuth MVP:
 
-| Priority | Enhancement | Impact | Effort |
-|----------|-------------|--------|--------|
-| 🔴 High | Contextual error messages | High | Low |
-| 🔴 High | Return-to-URL support | High | Medium |
-| 🟡 Medium | OAuth success confirmation | Medium | Low |
+| Priority  | Enhancement                   | Impact | Effort |
+| --------- | ----------------------------- | ------ | ------ |
+| 🔴 High   | Contextual error messages     | High   | Low    |
+| 🔴 High   | Return-to-URL support         | High   | Medium |
+| 🟡 Medium | OAuth success confirmation    | Medium | Low    |
 | 🟡 Medium | Account linking notifications | Medium | Medium |
-| 🟢 Low | Profile picture sync | Low | Medium |
-| 🟢 Low | Multi-provider support UI | Low | High |
+| 🟢 Low    | Profile picture sync          | Low    | Medium |
+| 🟢 Low    | Multi-provider support UI     | Low    | High   |
 
 ---
 
 ### ✅ Acceptance Criteria Review (UX Perspective)
 
-| AC | UX Adequacy | Notes |
-|----|-------------|-------|
-| AC1 | ✅ Adequate | Redirect to Google works, but lacks loading feedback |
-| AC2 | ✅ Adequate | Callback works, but no success confirmation |
-| AC3 | ✅ Adequate | Same as AC1 for Microsoft |
-| AC4 | ✅ Adequate | Same as AC2 for Microsoft |
-| AC5 | ⚠️ Needs Improvement | Silent account creation lacks welcome flow |
-| AC6 | ⚠️ Needs Improvement | Silent linking lacks user notification |
-| AC7 | ✅ Excellent | CSRF protection is invisible (good UX) |
-| AC8 | ⚠️ Needs Improvement | Errors are "handled" but lack actionability |
-| AC9 | ✅ Adequate | Backend validation (no UX impact) |
-| AC10 | ✅ Adequate | Backend implementation (no UX impact) |
+| AC   | UX Adequacy          | Notes                                                |
+| ---- | -------------------- | ---------------------------------------------------- |
+| AC1  | ✅ Adequate          | Redirect to Google works, but lacks loading feedback |
+| AC2  | ✅ Adequate          | Callback works, but no success confirmation          |
+| AC3  | ✅ Adequate          | Same as AC1 for Microsoft                            |
+| AC4  | ✅ Adequate          | Same as AC2 for Microsoft                            |
+| AC5  | ⚠️ Needs Improvement | Silent account creation lacks welcome flow           |
+| AC6  | ⚠️ Needs Improvement | Silent linking lacks user notification               |
+| AC7  | ✅ Excellent         | CSRF protection is invisible (good UX)               |
+| AC8  | ⚠️ Needs Improvement | Errors are "handled" but lack actionability          |
+| AC9  | ✅ Adequate          | Backend validation (no UX impact)                    |
+| AC10 | ✅ Adequate          | Backend implementation (no UX impact)                |
 
 **Overall:** 7/10 ACs meet UX standards for MVP, 3 have gaps for future improvement.
 
@@ -1357,29 +1408,33 @@ Based on UX review, prioritize these enhancements after OAuth MVP:
 
 #### **Add Section: Frontend Integration Guidelines**
 
-```markdown
+````markdown
 ## Frontend Integration Guidelines (Future Work)
 
 ### OAuth Button Implementation
 
 **Button Design:**
+
 - Primary CTA styling for "Sign in with Google/Microsoft"
 - Include provider logo (16x16px minimum, SVG preferred)
 - Minimum touch target: 44x44px (WCAG AAA)
 - Disable button on click to prevent double-submission
 
 **Loading State:**
+
 - Show spinner on button: "Signing in with Google..."
 - Optional: Full-page loading overlay with "Redirecting to Google..."
 - Timeout warning if redirect takes >5 seconds
 
 **Error Handling:**
+
 - Parse `?error=...` query parameter on return
 - Display contextual error message above sign-in form
 - Provide "Try again" button that clears error state
 - Log error details to frontend monitoring (Sentry, etc.)
 
 **Success Handling:**
+
 - Parse `?welcome=oauth` for new users → show onboarding
 - Parse `?oauth_linked=google` for linked accounts → show notification
 - Clear query parameters from URL after displaying message
@@ -1391,7 +1446,7 @@ See "Frontend Accessibility Notes" above.
 ### Example React Implementation (Future Reference)
 
 ```tsx
-function OAuthButton({ provider }: { provider: 'google' | 'microsoft' }) {
+function OAuthButton({ provider }: { provider: "google" | "microsoft" }) {
   const [loading, setLoading] = useState(false);
 
   const handleOAuth = () => {
@@ -1405,7 +1460,9 @@ function OAuthButton({ provider }: { provider: 'google' | 'microsoft' }) {
       onClick={handleOAuth}
       disabled={loading}
       aria-busy={loading}
-      aria-label={`Sign in with ${provider === 'google' ? 'Google' : 'Microsoft'}`}
+      aria-label={`Sign in with ${
+        provider === "google" ? "Google" : "Microsoft"
+      }`}
       className="oauth-button"
     >
       {loading ? (
@@ -1416,14 +1473,16 @@ function OAuthButton({ provider }: { provider: 'google' | 'microsoft' }) {
       ) : (
         <>
           <ProviderLogo provider={provider} aria-hidden="true" />
-          Sign in with {provider === 'google' ? 'Google' : 'Microsoft'}
+          Sign in with {provider === "google" ? "Google" : "Microsoft"}
         </>
       )}
     </button>
   );
 }
 ```
-```
+````
+
+````
 
 ---
 
@@ -1559,17 +1618,18 @@ async function findOrCreateOAuthUser(
 ): Promise<User> {
   // Private helper function
 }
-```
+````
 
 **Routes update:**
+
 ```typescript
 // apps/api/src/routes/oauth.routes.ts
 export const oauthRoutes: FastifyPluginAsync = async (app) => {
-  app.get('/google', async (request, reply) => {
+  app.get("/google", async (request, reply) => {
     await initiateGoogleOAuth(reply);
   });
 
-  app.get('/google/callback', async (request, reply) => {
+  app.get("/google/callback", async (request, reply) => {
     await handleGoogleCallback(app.db, request, reply);
   });
 };
@@ -1610,8 +1670,8 @@ Validate OAuth configuration at startup and create clients eagerly if configured
 
 ```typescript
 // packages/auth/src/oauth.ts
-import { Google, Microsoft } from 'arctic';
-import { config } from '@raptscallions/core/config';
+import { Google, Microsoft } from "arctic";
+import { config } from "@raptscallions/core/config";
 
 /**
  * Google OAuth client (null if not configured)
@@ -1649,8 +1709,8 @@ export const microsoftOAuthClient: Microsoft | null = (() => {
 export function requireGoogleOAuth(): Google {
   if (!googleOAuthClient) {
     throw new AppError(
-      'Google OAuth not configured',
-      'OAUTH_NOT_CONFIGURED',
+      "Google OAuth not configured",
+      "OAUTH_NOT_CONFIGURED",
       503 // Service Unavailable, not 500
     );
   }
@@ -1660,8 +1720,8 @@ export function requireGoogleOAuth(): Google {
 export function requireMicrosoftOAuth(): Microsoft {
   if (!microsoftOAuthClient) {
     throw new AppError(
-      'Microsoft OAuth not configured',
-      'OAUTH_NOT_CONFIGURED',
+      "Microsoft OAuth not configured",
+      "OAUTH_NOT_CONFIGURED",
       503
     );
   }
@@ -1670,25 +1730,26 @@ export function requireMicrosoftOAuth(): Microsoft {
 ```
 
 **Routes conditional registration:**
+
 ```typescript
 // apps/api/src/routes/oauth.routes.ts
 export const oauthRoutes: FastifyPluginAsync = async (app) => {
   // Only register Google routes if configured
   if (googleOAuthClient) {
-    app.get('/google', async (request, reply) => {
+    app.get("/google", async (request, reply) => {
       await initiateGoogleOAuth(reply);
     });
-    app.get('/google/callback', async (request, reply) => {
+    app.get("/google/callback", async (request, reply) => {
       await handleGoogleCallback(app.db, request, reply);
     });
   }
 
   // Only register Microsoft routes if configured
   if (microsoftOAuthClient) {
-    app.get('/microsoft', async (request, reply) => {
+    app.get("/microsoft", async (request, reply) => {
       await initiateMicrosoftOAuth(reply);
     });
-    app.get('/microsoft/callback', async (request, reply) => {
+    app.get("/microsoft/callback", async (request, reply) => {
       await handleMicrosoftCallback(app.db, request, reply);
     });
   }
@@ -1726,7 +1787,7 @@ Replace TypeScript interfaces with Zod schemas in `packages/core/src/schemas/oau
 
 ```typescript
 // packages/core/src/schemas/oauth.schema.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Google OAuth user profile schema
@@ -1771,6 +1832,7 @@ export type OAuthCallbackQuery = z.infer<typeof oauthCallbackQuerySchema>;
 ```
 
 **Usage in service:**
+
 ```typescript
 // In handleGoogleCallback
 const rawProfile: unknown = await response.json();
@@ -1778,7 +1840,7 @@ const googleUser = googleUserProfileSchema.parse(rawProfile); // Throws if inval
 
 // Type-safe from here
 if (!googleUser.email_verified) {
-  throw new UnauthorizedError('Email not verified with Google');
+  throw new UnauthorizedError("Email not verified with Google");
 }
 ```
 
@@ -1795,13 +1857,14 @@ The spec uses `AppError` directly for user-facing errors:
 
 ```typescript
 throw new AppError(
-  'Microsoft OAuth not configured',
-  'OAUTH_NOT_CONFIGURED',
+  "Microsoft OAuth not configured",
+  "OAUTH_NOT_CONFIGURED",
   500
 );
 ```
 
 CONVENTIONS.md defines specific error classes (lines 233-256):
+
 - `ValidationError` for input validation (400)
 - `UnauthorizedError` for auth failures (401)
 - `NotFoundError` for missing resources (404)
@@ -1817,19 +1880,19 @@ Use appropriate error classes:
 ```typescript
 // Configuration errors (should never happen if startup validation works)
 throw new AppError(
-  'OAuth provider not configured',
-  'OAUTH_NOT_CONFIGURED',
+  "OAuth provider not configured",
+  "OAUTH_NOT_CONFIGURED",
   503 // Service Unavailable, not 500
 );
 
 // User-facing auth errors
-throw new UnauthorizedError('Google authentication failed');
-throw new UnauthorizedError('Email not verified with Google');
+throw new UnauthorizedError("Google authentication failed");
+throw new UnauthorizedError("Email not verified with Google");
 
 // Profile fetch failures (external API error)
 throw new AppError(
-  'Failed to fetch user profile from OAuth provider',
-  'OAUTH_PROFILE_FETCH_FAILED',
+  "Failed to fetch user profile from OAuth provider",
+  "OAUTH_PROFILE_FETCH_FAILED",
   502 // Bad Gateway (external service failed)
 );
 ```
@@ -1857,42 +1920,45 @@ Add cross-field validation using Zod's `.refine()`:
 
 ```typescript
 // packages/core/src/config/env.schema.ts
-export const envSchema = z.object({
-  // ... existing vars
+export const envSchema = z
+  .object({
+    // ... existing vars
 
-  // OAuth - Google
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
+    // OAuth - Google
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
 
-  // OAuth - Microsoft
-  MICROSOFT_CLIENT_ID: z.string().optional(),
-  MICROSOFT_CLIENT_SECRET: z.string().optional(),
+    // OAuth - Microsoft
+    MICROSOFT_CLIENT_ID: z.string().optional(),
+    MICROSOFT_CLIENT_SECRET: z.string().optional(),
 
-  // OAuth Redirect Base URL
-  OAUTH_REDIRECT_BASE: z.string().url().default('http://localhost:3000'),
-})
-.refine(
-  (data) => {
-    // If Google OAuth is partially configured, both must be set
-    const hasGoogleId = !!data.GOOGLE_CLIENT_ID;
-    const hasGoogleSecret = !!data.GOOGLE_CLIENT_SECRET;
-    return hasGoogleId === hasGoogleSecret; // Both true or both false
-  },
-  {
-    message: 'GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must both be set or both be unset',
-  }
-)
-.refine(
-  (data) => {
-    // Same for Microsoft
-    const hasMsId = !!data.MICROSOFT_CLIENT_ID;
-    const hasMsSecret = !!data.MICROSOFT_CLIENT_SECRET;
-    return hasMsId === hasMsSecret;
-  },
-  {
-    message: 'MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET must both be set or both be unset',
-  }
-);
+    // OAuth Redirect Base URL
+    OAUTH_REDIRECT_BASE: z.string().url().default("http://localhost:3000"),
+  })
+  .refine(
+    (data) => {
+      // If Google OAuth is partially configured, both must be set
+      const hasGoogleId = !!data.GOOGLE_CLIENT_ID;
+      const hasGoogleSecret = !!data.GOOGLE_CLIENT_SECRET;
+      return hasGoogleId === hasGoogleSecret; // Both true or both false
+    },
+    {
+      message:
+        "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must both be set or both be unset",
+    }
+  )
+  .refine(
+    (data) => {
+      // Same for Microsoft
+      const hasMsId = !!data.MICROSOFT_CLIENT_ID;
+      const hasMsSecret = !!data.MICROSOFT_CLIENT_SECRET;
+      return hasMsId === hasMsSecret;
+    },
+    {
+      message:
+        "MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET must both be set or both be unset",
+    }
+  );
 ```
 
 This ensures configuration errors are caught at startup with clear messages.
@@ -1904,6 +1970,7 @@ This ensures configuration errors are caught at startup with clear messages.
 #### 1. **CSRF Protection Implementation**
 
 The state parameter implementation is excellent:
+
 - Cryptographically secure state generation (`arctic.generateState()`)
 - httpOnly cookie storage (prevents XSS)
 - Constant-time comparison (prevents timing attacks)
@@ -1916,6 +1983,7 @@ The state parameter implementation is excellent:
 #### 2. **Cookie Security Configuration**
 
 The cookie configuration follows best practices:
+
 ```typescript
 {
   httpOnly: true,
@@ -1933,6 +2001,7 @@ The cookie configuration follows best practices:
 #### 3. **Account Linking by Email**
 
 The `findOrCreateOAuthUser` logic is sound:
+
 - Queries by email first (account linking)
 - Creates new user with `null` password_hash for OAuth users
 - Consistent with existing user schema design
@@ -1944,6 +2013,7 @@ The `findOrCreateOAuthUser` logic is sound:
 #### 4. **Database Schema Compatibility**
 
 No schema changes required. The existing `users` table already supports:
+
 - Nullable `password_hash` for OAuth users
 - Unique `email` for account linking
 - `status` field for account lifecycle
@@ -1955,6 +2025,7 @@ No schema changes required. The existing `users` table already supports:
 #### 5. **Arctic Library Choice**
 
 Arctic is the correct choice:
+
 - Official Lucia companion library
 - Actively maintained
 - Type-safe
@@ -1971,12 +2042,12 @@ Arctic is the correct choice:
 OAuth flows span multiple requests (initiation → callback). Add OpenTelemetry tracing:
 
 ```typescript
-import { trace } from '@raptscallions/telemetry';
+import { trace } from "@raptscallions/telemetry";
 
 export async function initiateGoogleOAuth(reply: FastifyReply): Promise<void> {
   const span = trace.getActiveSpan();
-  span?.setAttribute('oauth.provider', 'google');
-  span?.addEvent('oauth.initiate');
+  span?.setAttribute("oauth.provider", "google");
+  span?.addEvent("oauth.initiate");
 
   // ... rest of implementation
 }
@@ -1992,16 +2063,20 @@ OAuth endpoints are publicly accessible and should be rate-limited:
 
 ```typescript
 // In routes
-app.get('/google', {
-  config: {
-    rateLimit: {
-      max: 10, // 10 requests
-      timeWindow: '1 minute',
+app.get(
+  "/google",
+  {
+    config: {
+      rateLimit: {
+        max: 10, // 10 requests
+        timeWindow: "1 minute",
+      },
     },
   },
-}, async (request, reply) => {
-  await initiateGoogleOAuth(reply);
-});
+  async (request, reply) => {
+    await initiateGoogleOAuth(reply);
+  }
+);
 ```
 
 **Benefit:** Prevents abuse of OAuth redirect loops
@@ -2015,7 +2090,7 @@ Both Google and Microsoft implementations are nearly identical (95% code duplica
 ```typescript
 async function handleOAuthCallback<TProfile>(
   db: DrizzleDB,
-  provider: 'google' | 'microsoft',
+  provider: "google" | "microsoft",
   client: Google | Microsoft,
   profileSchema: z.ZodSchema<TProfile>,
   profileUrl: string,
@@ -2034,30 +2109,30 @@ async function handleOAuthCallback<TProfile>(
 
 ### 📋 Security Checklist (OWASP OAuth 2.0)
 
-| Security Control | Status | Notes |
-|------------------|--------|-------|
-| State parameter (CSRF protection) | ✅ Implemented | Uses Arctic's `generateState()` |
-| Redirect URI validation | ✅ Enforced | Configured in OAuth provider console |
-| Authorization code exchange | ✅ Correct | Uses Arctic's `validateAuthorizationCode()` |
-| Token handling | ✅ Secure | Tokens not stored, only used transiently |
-| Email verification | ✅ Required | Checks `email_verified` for Google |
-| Error message security | ⚠️ Partial | Generic messages, but see UX review concerns |
-| Cookie security | ✅ Correct | httpOnly, secure, SameSite=lax |
-| HTTPS enforcement | ✅ Production | `secure` flag enabled in production |
+| Security Control                  | Status         | Notes                                        |
+| --------------------------------- | -------------- | -------------------------------------------- |
+| State parameter (CSRF protection) | ✅ Implemented | Uses Arctic's `generateState()`              |
+| Redirect URI validation           | ✅ Enforced    | Configured in OAuth provider console         |
+| Authorization code exchange       | ✅ Correct     | Uses Arctic's `validateAuthorizationCode()`  |
+| Token handling                    | ✅ Secure      | Tokens not stored, only used transiently     |
+| Email verification                | ✅ Required    | Checks `email_verified` for Google           |
+| Error message security            | ⚠️ Partial     | Generic messages, but see UX review concerns |
+| Cookie security                   | ✅ Correct     | httpOnly, secure, SameSite=lax               |
+| HTTPS enforcement                 | ✅ Production  | `secure` flag enabled in production          |
 
 ---
 
 ### 📊 Architectural Alignment Scorecard
 
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| **Technology Stack** | 10/10 | Arctic, Lucia, Fastify - all correct |
-| **Code Conventions** | 4/10 | ❌ Class pattern, ❌ lazy init, ❌ missing Zod |
-| **Error Handling** | 6/10 | ⚠️ Incorrect error classes, good try-catch |
-| **Database Integration** | 10/10 | ✅ Drizzle queries, no schema changes needed |
-| **Security** | 9/10 | ✅ CSRF, cookies, email verification |
-| **Testability** | 5/10 | ❌ Class pattern harder to test than pure functions |
-| **Observability** | 5/10 | ⚠️ Logging present, tracing missing |
+| Criterion                | Score | Notes                                               |
+| ------------------------ | ----- | --------------------------------------------------- |
+| **Technology Stack**     | 10/10 | Arctic, Lucia, Fastify - all correct                |
+| **Code Conventions**     | 4/10  | ❌ Class pattern, ❌ lazy init, ❌ missing Zod      |
+| **Error Handling**       | 6/10  | ⚠️ Incorrect error classes, good try-catch          |
+| **Database Integration** | 10/10 | ✅ Drizzle queries, no schema changes needed        |
+| **Security**             | 9/10  | ✅ CSRF, cookies, email verification                |
+| **Testability**          | 5/10  | ❌ Class pattern harder to test than pure functions |
+| **Observability**        | 5/10  | ⚠️ Logging present, tracing missing                 |
 
 **Overall:** 49/70 (70%) - **Needs revision before approval**
 
@@ -2073,10 +2148,7 @@ Before implementation, the spec MUST be updated to address:
 4. ✅ **Use correct error classes (UnauthorizedError, etc.)** (MAJOR)
 5. ✅ **Add environment variable cross-field validation** (MAJOR)
 
-Optional improvements:
-6. ⚠️ Add OpenTelemetry tracing spans
-7. ⚠️ Add rate limiting to OAuth routes
-8. ⚠️ Consider generic OAuth handler abstraction
+Optional improvements: 6. ⚠️ Add OpenTelemetry tracing spans 7. ⚠️ Add rate limiting to OAuth routes 8. ⚠️ Consider generic OAuth handler abstraction
 
 ---
 
@@ -2085,6 +2157,7 @@ Optional improvements:
 The OAuth implementation design is fundamentally sound and follows security best practices. However, it must be revised to align with our architectural conventions before implementation begins.
 
 **Next Steps:**
+
 1. Analyst (@analyst) updates spec with required changes
 2. Resubmit for architecture review
 3. Once approved, proceed to implementation

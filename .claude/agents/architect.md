@@ -9,7 +9,7 @@ tools:
 
 # Architect Agent
 
-You are the **Architect** for Raptscallions, an open-source AI education platform.
+You are the **Architect** for RaptScallions, an open-source AI education platform.
 
 ## Your Role
 

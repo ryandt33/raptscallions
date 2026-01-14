@@ -1,6 +1,6 @@
 # GitHub CI/CD + Workflow Integration - Complete Summary
 
-Complete reference for the GitHub CI/CD integration into the Raptscallions development workflow.
+Complete reference for the GitHub CI/CD integration into the RaptScallions development workflow.
 
 ## ✅ What Was Completed
 
@@ -220,12 +220,14 @@ pnpm workflow:run E01-T001
 ### CI Pipeline
 
 **Local (before commit):**
+
 - `pnpm typecheck` - Zero TypeScript errors
 - `pnpm lint` - Zero warnings
 - `pnpm test` - All tests pass
 - `pnpm build` - Successful build
 
 **GitHub Actions (after PR):**
+
 - Type checking
 - Linting
 - Unit tests (with PostgreSQL/Redis)
@@ -233,6 +235,7 @@ pnpm workflow:run E01-T001
 - Coverage reporting (optional)
 
 **Security Scans:**
+
 - CodeQL static analysis
 - Dependency vulnerability scanning
 - Secret detection
@@ -240,11 +243,13 @@ pnpm workflow:run E01-T001
 ### Auto-Merge Logic
 
 **Low/Medium Priority:**
+
 - Adds `automerge` label
 - Auto-merges when CI passes
 - Task auto-completes
 
 **High/Critical Priority:**
+
 - No `automerge` label
 - Requires manual review
 - Manually merge and complete
@@ -252,6 +257,7 @@ pnpm workflow:run E01-T001
 ### Commit Conventions
 
 Format:
+
 ```
 <type>(<scope>): <subject>
 
@@ -266,23 +272,25 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`
 
 ## 📚 Documentation Quick Links
 
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| [.github/QUICKSTART.md](.github/QUICKSTART.md) | Quick 5-min setup | 5 min |
-| [.github/SETUP.md](.github/SETUP.md) | Detailed configuration | 20 min |
-| [docs/CI_CD.md](docs/CI_CD.md) | Comprehensive CI/CD | 30 min |
-| [docs/WORKFLOW_GITHUB_INTEGRATION.md](docs/WORKFLOW_GITHUB_INTEGRATION.md) | Workflow integration | 15 min |
-| [docs/AUTO_PAUSE_FOR_MERGE.md](docs/AUTO_PAUSE_FOR_MERGE.md) | Auto-pause explained | 5 min |
-| [.claude/commands/commit-and-pr.md](.claude/commands/commit-and-pr.md) | Command spec | 10 min |
+| Document                                                                   | Purpose                | Read Time |
+| -------------------------------------------------------------------------- | ---------------------- | --------- |
+| [.github/QUICKSTART.md](.github/QUICKSTART.md)                             | Quick 5-min setup      | 5 min     |
+| [.github/SETUP.md](.github/SETUP.md)                                       | Detailed configuration | 20 min    |
+| [docs/CI_CD.md](docs/CI_CD.md)                                             | Comprehensive CI/CD    | 30 min    |
+| [docs/WORKFLOW_GITHUB_INTEGRATION.md](docs/WORKFLOW_GITHUB_INTEGRATION.md) | Workflow integration   | 15 min    |
+| [docs/AUTO_PAUSE_FOR_MERGE.md](docs/AUTO_PAUSE_FOR_MERGE.md)               | Auto-pause explained   | 5 min     |
+| [.claude/commands/commit-and-pr.md](.claude/commands/commit-and-pr.md)     | Command spec           | 10 min    |
 
 ## 🔧 Configuration
 
 ### Required GitHub Setup
 
 1. **Enable GitHub Actions**
+
    - Go to Settings → Actions → Enable workflows
 
 2. **Configure Branch Protection**
+
    ```bash
    # Required status checks:
    - typecheck
@@ -293,11 +301,13 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`
    ```
 
 3. **Enable Auto-Merge**
+
    - Settings → Actions → General
    - ✅ Read and write permissions
    - ✅ Allow GitHub Actions to create/approve PRs
 
 4. **Create Label**
+
    ```bash
    gh label create automerge --color "FBCA04"
    ```
@@ -313,24 +323,27 @@ Edit `backlog/docs/.workflow/config.yaml`:
 
 ```yaml
 default_breakpoints:
-  - PR_CREATED  # Pause after PR created
+  - PR_CREATED # Pause after PR created
 ```
 
 ## 🧪 Testing & Verification
 
 ### Tests Pass
+
 ```bash
 npx vitest run scripts/__tests__/orchestrator.test.ts
 # ✓ 60 tests passing
 ```
 
 ### TypeScript Compiles
+
 ```bash
 npx tsc --noEmit scripts/orchestrator.ts
 # No errors
 ```
 
 ### Orchestrator Works
+
 ```bash
 pnpm workflow:help
 # Shows help with new commands

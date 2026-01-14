@@ -3,9 +3,9 @@
 /**
  * Google Fonts Import
  * DM Sans: Body text (weights: 400, 500, 600, 700)
- * DM Serif Display: Headings (weight: 400)
+ * Comfortaa: Logo/Brand text (weight: 600)
  */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 
 /**
  * Font Face Fallbacks
@@ -20,9 +20,9 @@
 }
 
 @font-face {
-  font-family: 'DM Serif Display';
+  font-family: 'Comfortaa';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 300 700;
   font-display: swap;
   src: local('');
 }

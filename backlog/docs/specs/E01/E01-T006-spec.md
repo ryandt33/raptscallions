@@ -2,13 +2,14 @@
 
 ## Overview
 
-Define the Drizzle ORM schema for the `group_members` table, which associates users with groups and assigns roles. This is the join table that enables role-based access control (RBAC) within the Raptscallions platform. Each membership record grants a user a specific role within a specific group, determining their permissions and capabilities within that organizational context.
+Define the Drizzle ORM schema for the `group_members` table, which associates users with groups and assigns roles. This is the join table that enables role-based access control (RBAC) within the RaptScallions platform. Each membership record grants a user a specific role within a specific group, determining their permissions and capabilities within that organizational context.
 
 ## Approach
 
 The group_members schema is the third core table in the `@raptscallions/db` package and establishes the many-to-many relationship between users and groups. This schema is foundational for authentication, authorization (CASL), and permission scoping throughout the platform.
 
 Key design decisions:
+
 - **Join table pattern** - Many users can belong to many groups, each with a specific role
 - **Unique constraint on (user_id, group_id)** - One role per user per group (prevents duplicate memberships)
 - **Role enum** - Four-level permission hierarchy: system_admin, group_admin, teacher, student
@@ -18,25 +19,26 @@ Key design decisions:
 - **Drizzle relations** - Enables type-safe joins and eager loading
 
 Following the project's strict TypeScript standards:
+
 - Zero use of `any` type
 - Explicit type inference using Drizzle's `$inferSelect` and `$inferInsert`
 - Drizzle relations for type-safe queries
 
 ## Files to Create
 
-| File | Purpose |
-| --- | --- |
-| `packages/db/src/schema/group-members.ts` | Group members table schema with enum, foreign keys, indexes, relations, and exported types |
-| `packages/db/src/migrations/0003_create_group_members.sql` | Migration to create group_members table with foreign key constraints |
-| `packages/db/src/__tests__/schema/group-members.test.ts` | Unit tests for group_members schema type inference and relations |
+| File                                                       | Purpose                                                                                    |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `packages/db/src/schema/group-members.ts`                  | Group members table schema with enum, foreign keys, indexes, relations, and exported types |
+| `packages/db/src/migrations/0003_create_group_members.sql` | Migration to create group_members table with foreign key constraints                       |
+| `packages/db/src/__tests__/schema/group-members.test.ts`   | Unit tests for group_members schema type inference and relations                           |
 
 ## Files to Modify
 
-| File | Changes |
-| --- | --- |
-| `packages/db/src/schema/index.ts` | Add export for group_members schema: `export * from "./group-members.js";` |
-| `packages/db/src/schema/users.ts` | Add Drizzle relations for users → groupMembers |
-| `packages/db/src/schema/groups.ts` | Add Drizzle relations for groups → groupMembers |
+| File                               | Changes                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| `packages/db/src/schema/index.ts`  | Add export for group_members schema: `export * from "./group-members.js";` |
+| `packages/db/src/schema/users.ts`  | Add Drizzle relations for users → groupMembers                             |
+| `packages/db/src/schema/groups.ts` | Add Drizzle relations for groups → groupMembers                            |
 
 ## Dependencies
 
@@ -73,6 +75,7 @@ Following the project's strict TypeScript standards:
 ## Acceptance Criteria Breakdown
 
 **AC1: group_members table defined in src/schema/group-members.ts**
+
 - Create new file at `packages/db/src/schema/group-members.ts`
 - Import required types from `drizzle-orm/pg-core`
 - Import users and groups tables for foreign key references
@@ -80,6 +83,7 @@ Following the project's strict TypeScript standards:
 - Export table definition
 
 **AC2: Fields: id, user_id, group_id, role, created_at, updated_at**
+
 - `id` - UUID primary key with automatic generation
 - `user_id` - UUID foreign key to users(id)
 - `group_id` - UUID foreign key to groups(id)
@@ -88,18 +92,21 @@ Following the project's strict TypeScript standards:
 - `updated_at` - timestamp with timezone for last role change
 
 **AC3: Foreign key to users(id) with ON DELETE CASCADE**
+
 - Use `.references(() => users.id)` in Drizzle
 - Configure onDelete: 'cascade' to remove memberships when user is deleted
 - Ensures referential integrity (no orphaned memberships)
 - TypeScript enforces valid user UUID
 
 **AC4: Foreign key to groups(id) with ON DELETE CASCADE**
+
 - Use `.references(() => groups.id)` in Drizzle
 - Configure onDelete: 'cascade' to remove memberships when group is deleted
 - Ensures referential integrity (no orphaned memberships)
 - TypeScript enforces valid group UUID
 
 **AC5: role enum: system_admin, group_admin, teacher, student**
+
 - Define pgEnum before table definition
 - Name: 'member_role'
 - Values match ARCHITECTURE.md role definitions:
@@ -110,30 +117,35 @@ Following the project's strict TypeScript standards:
 - Use enum in table definition with notNull()
 
 **AC6: Unique constraint on (user_id, group_id)**
+
 - Define unique constraint in table definition
 - Prevents duplicate memberships (one role per user per group)
 - If user role changes, update existing record (don't insert new)
 - Enables upsert patterns (INSERT ... ON CONFLICT)
 
 **AC7: Index on user_id for "get user's groups" queries**
+
 - Define index in table's index configuration
 - Name: group_members_user_id_idx
 - Optimizes query: "What groups is this user a member of?"
 - Used frequently in authorization checks
 
 **AC8: Index on group_id for "get group's members" queries**
+
 - Define index in table's index configuration
 - Name: group_members_group_id_idx
 - Optimizes query: "Who are the members of this group?"
 - Used in roster displays, permission checks
 
 **AC9: Exports GroupMember and NewGroupMember types**
+
 - Export GroupMember: `typeof groupMembers.$inferSelect`
 - Export NewGroupMember: `typeof groupMembers.$inferInsert`
 - Provides type-safe database operations
 - TypeScript infers all field types including role enum
 
 **AC10: Migration file 0003_create_group_members.sql generated**
+
 - Run `pnpm db:generate` to create migration
 - Verify migration creates member_role enum
 - Verify migration creates group_members table with all fields
@@ -143,6 +155,7 @@ Following the project's strict TypeScript standards:
 - Migration number follows 0002_create_groups.sql
 
 **AC11: Drizzle relations defined for users and groups**
+
 - Define groupMembersRelations in group-members.ts
 - Define relation from groupMembers → users (many-to-one)
 - Define relation from groupMembers → groups (many-to-one)
@@ -206,11 +219,11 @@ export const memberRoleEnum = pgEnum("member_role", [
 
 ### Group Members Table Schema
 
-```typescript
+````typescript
 /**
  * Group members table - many-to-many relationship between users and groups with roles.
  *
- * This table enables role-based access control (RBAC) in the Raptscallions platform.
+ * This table enables role-based access control (RBAC) in the RaptScallions platform.
  * Each record represents a user's membership in a group with a specific role.
  *
  * Key features:
@@ -299,7 +312,7 @@ Object.defineProperty(groupMembers, "_", {
   enumerable: false,
   configurable: true,
 });
-```
+````
 
 ### Drizzle Relations
 
@@ -609,10 +622,7 @@ async function getMembership(
 
 // CORRECT: Typed insert with NewGroupMember
 async function addMember(data: NewGroupMember): Promise<GroupMember> {
-  const [membership] = await db
-    .insert(groupMembers)
-    .values(data)
-    .returning();
+  const [membership] = await db.insert(groupMembers).values(data).returning();
 
   if (!membership) {
     throw new Error("Failed to add member");
@@ -740,10 +750,7 @@ async function changeRole(
     .update(groupMembers)
     .set({ role: newRole, updatedAt: new Date() })
     .where(
-      and(
-        eq(groupMembers.userId, userId),
-        eq(groupMembers.groupId, groupId)
-      )
+      and(eq(groupMembers.userId, userId), eq(groupMembers.groupId, groupId))
     )
     .returning();
 
@@ -812,6 +819,7 @@ The unique constraint on (user_id, group_id) is automatically indexed by Postgre
 ### CASCADE Delete Performance
 
 When a user or group is deleted, PostgreSQL automatically removes all related group_members records. For users with many group memberships (e.g., 100+), this could be slow. Monitor performance and consider:
+
 - Batch deletion if removing multiple users
 - Background job for large cleanup operations
 - Soft delete for users (defer membership cleanup)
@@ -838,6 +846,7 @@ SELECT * FROM group_members WHERE role = 'teacher';
 ### Authorization Checks
 
 The application layer must enforce:
+
 - Only group_admins and system_admins can add/remove members
 - Only group_admins can promote members to group_admin
 - Only system_admins can grant system_admin role
@@ -846,6 +855,7 @@ The application layer must enforce:
 ### Foreign Key Integrity
 
 Foreign key constraints ensure:
+
 - Cannot add membership with invalid user_id or group_id
 - Orphaned memberships are impossible (CASCADE delete)
 - Referential integrity is enforced at database level
@@ -921,10 +931,7 @@ await db
   .update(groupMembers)
   .set({ role: newRole, updatedAt: new Date() })
   .where(
-    and(
-      eq(groupMembers.userId, userId),
-      eq(groupMembers.groupId, groupId)
-    )
+    and(eq(groupMembers.userId, userId), eq(groupMembers.groupId, groupId))
   );
 ```
 
@@ -973,8 +980,9 @@ Add error handling pattern for duplicate memberships:
 try {
   await db.insert(groupMembers).values(data);
 } catch (error) {
-  if (error.code === '23505') { // PostgreSQL unique violation
-    throw new ValidationError('User is already a member of this group');
+  if (error.code === "23505") {
+    // PostgreSQL unique violation
+    throw new ValidationError("User is already a member of this group");
   }
   throw error;
 }
@@ -1000,7 +1008,7 @@ const systemGroup = await getOrCreateSystemGroup();
 await addMember({
   userId: userId,
   groupId: systemGroup.id,
-  role: 'system_admin'
+  role: "system_admin",
 });
 ```
 
@@ -1020,23 +1028,25 @@ Add complete integration test example for foreign key cascades.
 
 ### Consistency Review
 
-| Pattern | users.ts | groups.ts | group-members.ts | Status |
-|---------|----------|-----------|-------------------|---------|
-| UUID primary key | ✓ | ✓ | ✓ | ✅ Consistent |
-| created_at/updated_at | ✓ | ✓ | ✓ | ✅ Consistent |
-| deleted_at (soft delete) | ✓ | ✓ | ✗ | ⚠️ Intentional divergence |
+| Pattern                  | users.ts | groups.ts | group-members.ts | Status                    |
+| ------------------------ | -------- | --------- | ---------------- | ------------------------- |
+| UUID primary key         | ✓        | ✓         | ✓                | ✅ Consistent             |
+| created_at/updated_at    | ✓        | ✓         | ✓                | ✅ Consistent             |
+| deleted_at (soft delete) | ✓        | ✓         | ✗                | ⚠️ Intentional divergence |
 
 **Soft Delete Divergence:** The decision to hard delete memberships is well-documented and justified. Consider adding schema comment: "No deleted_at field - memberships are hard deleted. Audit trail in separate audit_log table (future)."
 
 ### Developer Journey Assessment
 
 **Scenario: Adding a teacher to a school**
+
 - TypeScript autocomplete for roles: ✅
 - Error handling for duplicates: ⚠️ (see Recommendation #2)
 - Query patterns: ✅
 - **Overall:** 7/10 - Good, could be excellent with better error handling
 
 **Scenario: Checking user permissions**
+
 - Role check helpers: ✅
 - System admin scope handling: ⚠️ (see Recommendation #4)
 - **Overall:** 6/10 - Could lead to authorization bugs without clear system_admin pattern
@@ -1069,22 +1079,22 @@ The implementation spec for the group_members table is architecturally sound and
 
 ### Architectural Compliance
 
-| Category | Status | Notes |
-|----------|--------|-------|
-| Technology Stack | ✅ | Drizzle ORM, PostgreSQL, TypeScript strict mode |
-| Naming Conventions | ✅ | snake_case tables/columns, camelCase TypeScript |
-| Database Design | ✅ | UUID PKs, foreign keys, indexes, unique constraints |
-| Type Safety | ✅ | No `any` types, proper inference, enum safety |
-| Testing Strategy | ✅ | Unit and integration tests planned |
+| Category           | Status | Notes                                               |
+| ------------------ | ------ | --------------------------------------------------- |
+| Technology Stack   | ✅     | Drizzle ORM, PostgreSQL, TypeScript strict mode     |
+| Naming Conventions | ✅     | snake_case tables/columns, camelCase TypeScript     |
+| Database Design    | ✅     | UUID PKs, foreign keys, indexes, unique constraints |
+| Type Safety        | ✅     | No `any` types, proper inference, enum safety       |
+| Testing Strategy   | ✅     | Unit and integration tests planned                  |
 
 ### Consistency Review
 
-| Pattern | users.ts | groups.ts | group-members.ts | Status |
-|---------|----------|-----------|-------------------|---------|
-| UUID primary key | ✅ | ✅ | ✅ | ✅ Consistent |
-| created_at/updated_at | ✅ | ✅ | ✅ | ✅ Consistent |
-| deleted_at (soft delete) | ✅ | ✅ | ❌ | ⚠️ Intentional divergence |
-| Drizzle relations | ✅ | ✅ | ✅ | ✅ Consistent |
+| Pattern                  | users.ts | groups.ts | group-members.ts | Status                    |
+| ------------------------ | -------- | --------- | ---------------- | ------------------------- |
+| UUID primary key         | ✅       | ✅        | ✅               | ✅ Consistent             |
+| created_at/updated_at    | ✅       | ✅        | ✅               | ✅ Consistent             |
+| deleted_at (soft delete) | ✅       | ✅        | ❌               | ⚠️ Intentional divergence |
+| Drizzle relations        | ✅       | ✅        | ✅               | ✅ Consistent             |
 
 **Soft Delete Divergence:** The decision to hard delete memberships is well-documented and justified (audit trail in separate table).
 
@@ -1128,12 +1138,13 @@ Establish architectural guidance for where system_admin roles should be stored:
 
 const SYSTEM_GROUP_ID = "00000000-0000-0000-0000-000000000001"; // Reserved UUID
 await db.insert(groupMembers).values({
-  userId: userId,
-  groupId: SYSTEM_GROUP_ID,
-  role: 'system_admin'
+userId: userId,
+groupId: SYSTEM_GROUP_ID,
+role: 'system_admin'
 });
 
 This convention:
+
 - Provides consistent storage location for system-wide permissions
 - Enables querying all system admins via group membership
 - Supports future requirement to revoke system admin (delete membership)
@@ -1146,27 +1157,24 @@ Add error handling guidance for duplicate membership violations:
 
 ```typescript
 // CORRECT: Handle unique constraint violations gracefully
-import { DatabaseError } from 'pg';
+import { DatabaseError } from "pg";
 
 async function addMember(data: NewGroupMember): Promise<GroupMember> {
   try {
-    const [membership] = await db
-      .insert(groupMembers)
-      .values(data)
-      .returning();
+    const [membership] = await db.insert(groupMembers).values(data).returning();
 
     if (!membership) {
-      throw new Error('Failed to add member');
+      throw new Error("Failed to add member");
     }
 
     return membership;
   } catch (error) {
     // PostgreSQL unique violation error code
-    if (error instanceof DatabaseError && error.code === '23505') {
-      throw new ValidationError(
-        'User is already a member of this group',
-        { userId: data.userId, groupId: data.groupId }
-      );
+    if (error instanceof DatabaseError && error.code === "23505") {
+      throw new ValidationError("User is already a member of this group", {
+        userId: data.userId,
+        groupId: data.groupId,
+      });
     }
     throw error;
   }
@@ -1190,24 +1198,26 @@ DROP TYPE IF EXISTS "public"."member_role";
 
 ### Performance Analysis
 
-| Query Pattern | Index Used | Performance |
-|---------------|------------|-------------|
-| "Get user's groups" | `group_members_user_id_idx` | ✅ O(log n) |
-| "Get group's members" | `group_members_group_id_idx` | ✅ O(log n) |
-| "Check specific membership" | Unique constraint (auto-indexed) | ✅ O(log n) |
-| "Find all teachers" | No index on `role` alone | ⚠️ O(n) full scan |
+| Query Pattern               | Index Used                       | Performance       |
+| --------------------------- | -------------------------------- | ----------------- |
+| "Get user's groups"         | `group_members_user_id_idx`      | ✅ O(log n)       |
+| "Get group's members"       | `group_members_group_id_idx`     | ✅ O(log n)       |
+| "Check specific membership" | Unique constraint (auto-indexed) | ✅ O(log n)       |
+| "Find all teachers"         | No index on `role` alone         | ⚠️ O(n) full scan |
 
 **Note:** "Find all users with role X" query is uncommon (usually filtered by group). Defer role index until performance testing confirms need.
 
 ### Security Review
 
 Schema is secure with database-level enforcement of:
+
 - Foreign key integrity
 - Role enum validation
 - Unique constraint (prevents duplicates)
 - CASCADE delete safety
 
 **Critical:** Application layer must enforce:
+
 - Only `group_admin` can add/remove members
 - Only `group_admin` can promote to `group_admin`
 - Only `system_admin` can grant `system_admin` role
@@ -1218,6 +1228,7 @@ Schema is secure with database-level enforcement of:
 Schema correctly blocks E01-T007+ (auth middleware), E01-T008+ (CASL), E01-T009+ (group management).
 
 **Future Considerations:**
+
 1. **OneRoster Integration** - Will need role mapping (guardian not in current enum)
 2. **Audit Logging** - Consider created_by, role change history (separate table)
 
@@ -1241,6 +1252,7 @@ Schema correctly blocks E01-T007+ (auth middleware), E01-T008+ (CASL), E01-T009+
 The spec is architecturally sound and ready for development. Recommendations above are enhancements that can be incorporated during implementation.
 
 **Priority Actions Before Implementation:**
+
 1. **HIGH:** Add system admin storage convention documentation (Recommendation #2)
 2. **MEDIUM:** Add unique constraint error handling pattern (Recommendation #3)
 3. **MEDIUM:** Add soft delete divergence comment (Recommendation #1)
@@ -1254,6 +1266,7 @@ The spec is architecturally sound and ready for development. Recommendations abo
 ## Notes
 
 This spec is ready for implementation. The group_members schema provides the foundation for:
+
 - Role-based access control (RBAC)
 - CASL authorization
 - Group membership management

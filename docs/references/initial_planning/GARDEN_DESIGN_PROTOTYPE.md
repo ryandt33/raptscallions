@@ -146,6 +146,7 @@ encouraging: { eyes: '◠', mouth: '○' },
 const exp = expressions[emotion];
 
 return (
+
 <div className={`relative ${className}`} style={{ width: size, height: size * 1.5 }}>
 {/_ Body (white part of scallion) _/}
 <div
@@ -253,6 +254,7 @@ lg: { icon: 64, text: 'text-4xl' },
 const s = sizes[size];
 
 return (
+
 <div className="flex items-center gap-3">
 <SproutMascot size={s.icon} emotion="happy" />
 {showText && (
@@ -337,6 +339,7 @@ boxShadow: `0 4px 0 ${tokens.colors.secondary[300]}`,
 };
 
 return (
+
 <div
 className={`rounded-3xl ${hover ? 'hover:-translate-y-1 transition-transform cursor-pointer' : ''} ${className}`}
 style={variants[variant]}
@@ -383,6 +386,7 @@ const stages = [
 const currentStage = [...stages].reverse().find(s => progress >= s.threshold);
 
 return (
+
 <div className="flex flex-col items-center">
 <div
 className="relative flex items-center justify-center rounded-full mb-2"
@@ -421,6 +425,7 @@ eggplant: { emoji: '🍆', color: '#9932cc', name: 'Eggplants' },
 const v = veggies[type];
 
 return (
+
 <div
 className="flex items-center gap-2 px-3 py-2 rounded-2xl"
 style={{ background: `${v.color}20`, border: `2px solid ${v.color}40` }} >
@@ -448,6 +453,7 @@ const navItems = [
 ];
 
 return (
+
 <aside
 className="w-72 h-screen fixed left-0 top-0 flex flex-col"
 style={{
@@ -612,6 +618,7 @@ const recentActivity = [
 ];
 
 return (
+
 <div className="space-y-6">
 {/_ Welcome Banner _/}
 <Card 
@@ -887,6 +894,7 @@ level: 'Beginner',
 ];
 
 return (
+
 <div className="space-y-6">
 {/_ Header _/}
 <div className="flex items-center justify-between">
@@ -1016,6 +1024,7 @@ time: '2:36 PM',
 ];
 
 return (
+
 <div className="h-[calc(100vh-9rem)] flex gap-6">
 {/_ Chat Area _/}
 <div className="flex-1 flex flex-col">
@@ -1201,6 +1210,7 @@ Growing Well!
 
 const LandingPage = ({ onEnterApp }) => {
 return (
+
 <div
 className="min-h-screen relative overflow-hidden"
 style={{ background: `linear-gradient(180deg, ${tokens.colors.sky.light} 0%, ${tokens.colors.cream} 50%, ${tokens.colors.primary[100]} 100%)` }} >
@@ -1279,7 +1289,7 @@ style={{ background: `linear-gradient(180deg, ${tokens.colors.sky.light} 0%, ${t
               className="text-xl mb-8 leading-relaxed"
               style={{ color: tokens.colors.neutral[600], fontFamily: tokens.fonts.body }}
             >
-              Raptscallions is the friendly AI learning garden where teachers plant seeds
+              RaptScallions is the friendly AI learning garden where teachers plant seeds
               of knowledge and watch young minds bloom! 🌻
             </p>
 
@@ -1471,7 +1481,7 @@ style={{ background: `linear-gradient(180deg, ${tokens.colors.sky.light} 0%, ${t
             </span>
           </div>
           <p className="text-sm" style={{ color: tokens.colors.primary[200] }}>
-            © 2025 Raptscallions. Open source under AGPL-3.0. Made with 💚
+            © 2025 RaptScallions. Open source under AGPL-3.0. Made with 💚
           </p>
         </div>
       </footer>
@@ -1484,7 +1494,7 @@ style={{ background: `linear-gradient(180deg, ${tokens.colors.sky.light} 0%, ${t
 // MAIN APP
 // ============================================
 
-export default function RaptscallionsGardenPrototype() {
+export default function RaptScallionsGardenPrototype() {
 const [view, setView] = useState('landing');
 const [currentPage, setCurrentPage] = useState('dashboard');
 
@@ -1519,6 +1529,7 @@ achievements: { title: '🏆 Trophy Garden', subtitle: 'Celebrate your wins!' },
 };
 
 return (
+
 <div
 className="min-h-screen"
 style={{

@@ -1,4 +1,4 @@
-# Raptscallions: Simplified Auth & Events Specification
+# RaptScallions: Simplified Auth & Events Specification
 
 **Version:** 2.0.0 (Simplified)  
 **Status:** Revised Design Specification  
@@ -981,7 +981,7 @@ const worker = new Worker<NotificationJob>(
       case "email":
         const email = recipientEmail || (await getUserEmail(recipientId!));
         await resend.emails.send({
-          from: "Raptscallions <notifications@raptscallions.org>",
+          from: "RaptScallions <notifications@raptscallions.org>",
           to: email,
           subject: getSubject(template, data),
           html: renderTemplate(template, data),

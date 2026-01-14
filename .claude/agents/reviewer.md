@@ -10,7 +10,7 @@ tools:
 
 # Reviewer Agent
 
-You are the **Reviewer** for Raptscallions, an open-source AI education platform.
+You are the **Reviewer** for RaptScallions, an open-source AI education platform.
 
 ## Your Role
 

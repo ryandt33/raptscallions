@@ -1,10 +1,10 @@
 # Complete Development Workflow
 
-This document describes the complete end-to-end workflow for Raptscallions development, from epic planning to completion, including the new epic review process.
+This document describes the complete end-to-end workflow for RaptScallions development, from epic planning to completion, including the new epic review process.
 
 ## Overview
 
-The Raptscallions workflow is fully automated using Claude Code agents and a TypeScript orchestrator. Tasks flow through defined states with agent-based reviews and quality gates.
+The RaptScallions workflow is fully automated using Claude Code agents and a TypeScript orchestrator. Tasks flow through defined states with agent-based reviews and quality gates.
 
 ## Workflow Phases
 
@@ -15,6 +15,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/plan` or `/roadmap plan-next`
 
 **Process:**
+
 1. PM agent reads the goal/feature description
 2. Reviews architectural docs and existing epics
 3. Breaks down into logical epics (1-2 weeks each)
@@ -23,6 +24,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 6. Creates task files in `backlog/tasks/{EPIC-ID}/`
 
 **Outputs:**
+
 - Epic file: `backlog/tasks/{EPIC-ID}/_epic.md`
 - Task files: `backlog/tasks/{EPIC-ID}/{TASK-ID}.md`
 - Dependencies: Updated in `backlog/docs/.workflow/dependencies.yaml`
@@ -34,6 +36,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/analyze {task-id}`
 
 **Process:**
+
 1. Analyst agent reads task description and acceptance criteria
 2. Explores codebase for context and existing patterns
 3. Identifies files to create/modify
@@ -41,6 +44,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 5. Writes detailed spec in `backlog/docs/specs/{EPIC-ID}/{TASK-ID}.md`
 
 **Outputs:**
+
 - Implementation spec with technical details
 - File list (what to create/modify)
 - Step-by-step implementation plan
@@ -52,12 +56,14 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/review-ux {task-id}`
 
 **Process:**
+
 1. Designer agent reviews spec from UX perspective
 2. Checks for usability and accessibility
 3. Validates UI consistency
 4. Can approve or reject with feedback
 
 **Outputs:**
+
 - UX review in task's "Reviews" section
 - Verdict: APPROVED or REJECTED
 - If rejected: Returns to ANALYZING
@@ -69,6 +75,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/review-plan {task-id}`
 
 **Process:**
+
 1. Architect agent reviews implementation plan
 2. Validates against ARCHITECTURE.md and CONVENTIONS.md
 3. Checks for architectural consistency
@@ -76,6 +83,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 5. Can approve or reject with feedback
 
 **Outputs:**
+
 - Architecture review in task's "Reviews" section
 - Verdict: APPROVED or REJECTED
 - If rejected: Returns to ANALYZING
@@ -87,12 +95,14 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/write-tests {task-id}`
 
 **Process:**
+
 1. Developer agent reads approved spec
 2. Writes comprehensive tests (AAA pattern)
 3. Tests fail initially (red phase)
 4. Covers all acceptance criteria
 
 **Outputs:**
+
 - Test files in `{package}/__tests__/`
 - Tests added to task frontmatter
 
@@ -103,6 +113,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **Command:** `/implement {task-id}`
 
 **Process:**
+
 1. Developer agent **validates tests first** - checks if tests use real library APIs
 2. **If tests have API mismatches** → Sets `TESTS_REVISION_NEEDED` and rejects (see below)
 3. **If tests are correct** → Implements code to make tests pass
@@ -111,6 +122,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 6. Runs tests to verify
 
 **Outputs:**
+
 - Implementation files
 - All tests passing
 - Code files added to task frontmatter
@@ -122,11 +134,13 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 **State Transition:** `IMPLEMENTING → TESTS_REVISION_NEEDED → TESTS_READY`
 
 **What triggers rejection:**
+
 - Tests expect methods/properties that don't exist in library
 - Tests use APIs documented differently than library provides
 - Implementation would require "testability hacks" to satisfy tests
 
 **Rejection process:**
+
 1. Developer **stops without implementing**
 2. Sets `workflow_state: TESTS_REVISION_NEEDED`
 3. Documents mismatch in History and Reviews section
@@ -135,6 +149,7 @@ The Raptscallions workflow is fully automated using Claude Code agents and a Typ
 6. Task returns to `TESTS_READY` for re-implementation
 
 **Example:**
+
 ```
 Tests expect: expect(users._).toBeDefined()
 Reality: Drizzle tables don't have `_` property
@@ -154,12 +169,14 @@ This prevents "testability hacks" and keeps implementation clean.
 **Command:** `/review-ui {task-id}`
 
 **Process:**
+
 1. Designer agent reviews implemented UI
 2. Checks design consistency
 3. Validates accessibility
 4. Can approve or reject with feedback
 
 **Outputs:**
+
 - UI review report: `backlog/docs/reviews/{EPIC-ID}/{TASK-ID}-ui-review.md`
 - Verdict: APPROVED or REJECTED
 - If rejected: Returns to IMPLEMENTING
@@ -171,6 +188,7 @@ This prevents "testability hacks" and keeps implementation clean.
 **Command:** `/review-code {task-id}`
 
 **Process:**
+
 1. Reviewer agent (fresh context) reads all code
 2. Checks TypeScript strict mode
 3. Validates conventions and patterns
@@ -178,6 +196,7 @@ This prevents "testability hacks" and keeps implementation clean.
 5. Can approve or reject with feedback
 
 **Outputs:**
+
 - Code review report: `backlog/docs/reviews/{EPIC-ID}/{TASK-ID}-code-review.md`
 - Verdict: APPROVED or REJECTED
 - If rejected: Returns to IMPLEMENTING (with smart re-review, see below)
@@ -189,6 +208,7 @@ This prevents "testability hacks" and keeps implementation clean.
 **Command:** `/qa {task-id}`
 
 **Process:**
+
 1. QA agent validates against acceptance criteria
 2. Runs all tests
 3. Tries to break the implementation
@@ -196,6 +216,7 @@ This prevents "testability hacks" and keeps implementation clean.
 5. Can approve or reject with feedback
 
 **Outputs:**
+
 - QA report: `backlog/docs/reviews/{EPIC-ID}/{TASK-ID}-qa-report.md`
 - Verdict: APPROVED or REJECTED
 - If rejected: Returns to IMPLEMENTING (with smart re-review, see below)
@@ -211,6 +232,7 @@ When a post-implementation review (UI_REVIEW, CODE_REVIEW, or QA_REVIEW) rejects
 3. **Skipping Passed Reviews**: After the fix, previously-passed reviews are skipped
 
 **Example Flow:**
+
 ```
 1. UI_REVIEW passes       → reviews_passed: [UI_REVIEW]
 2. CODE_REVIEW rejects    → rejected_from: CODE_REVIEW, state → IMPLEMENTING
@@ -222,12 +244,14 @@ When a post-implementation review (UI_REVIEW, CODE_REVIEW, or QA_REVIEW) rejects
 ```
 
 **Benefits:**
+
 - No redundant UI reviews when code review rejects
 - No redundant UI + code reviews when QA rejects
 - Faster iteration on fixes
 - Clear tracking of what needs re-review
 
 **Task Frontmatter Fields:**
+
 ```yaml
 reviews_passed:
   - UI_REVIEW
@@ -244,12 +268,14 @@ These fields are automatically managed by the orchestrator and cleared when all 
 **Command:** `/update-docs {task-id}`
 
 **Process:**
+
 1. Writer agent reviews implementation
 2. Updates relevant documentation
 3. Adds usage examples
 4. Ensures consistency with code
 
 **Outputs:**
+
 - Updated documentation files
 - Task marked as DONE
 
@@ -260,6 +286,7 @@ These fields are automatically managed by the orchestrator and cleared when all 
 **Command:** `/epic-review {epic-id} --create --threshold high` (automatic in orchestrator)
 
 **Process:**
+
 1. PM agent verifies all tasks complete
 2. Reads all review documents:
    - All code reviews (`*-code-review.md`)
@@ -276,6 +303,7 @@ These fields are automatically managed by the orchestrator and cleared when all 
 7. Documents lessons learned
 
 **Outputs:**
+
 - Epic review report: `backlog/docs/reviews/{EPIC-ID}/_epic-review.md`
 - Follow-up task files: `backlog/tasks/{EPIC-ID}/{TASK-ID}.md` (with `follow-up` label)
 - Updated epic file with follow-up tasks listed
@@ -283,18 +311,21 @@ These fields are automatically managed by the orchestrator and cleared when all 
 **Follow-up Task Creation Criteria:**
 
 **Create if:**
+
 - Marked "Must Fix" or "Should Fix" in any review
 - Relates to correctness, security, or data integrity
 - Technical debt that will block future work
 - Medium or high effort (can't fix in < 30 min)
 
 **Don't create if:**
+
 - Purely cosmetic with no impact
 - Speculative or future-looking
 - Quick fix (< 30 min)
 - Preference without clear benefit
 
 **Threshold Levels:**
+
 - `--threshold critical`: Only critical "Must Fix" issues
 - `--threshold high` (default): Critical + high priority
 - `--threshold medium`: Critical + high + medium
@@ -305,6 +336,7 @@ These fields are automatically managed by the orchestrator and cleared when all 
 **Trigger:** Follow-up tasks created from epic review
 
 **Process:**
+
 1. Orchestrator reloads task list
 2. Identifies new ready tasks (follow-ups)
 3. Processes each follow-up through normal workflow
@@ -319,6 +351,7 @@ These fields are automatically managed by the orchestrator and cleared when all 
 **Command:** `/roadmap plan-next` (automatic in orchestrator)
 
 **Process:**
+
 1. PM agent reads roadmap
 2. Identifies next unstarted epic
 3. Creates tasks for next epic
@@ -524,23 +557,27 @@ The workflow includes multiple quality gates:
 ## Benefits
 
 ### Automation
+
 - Zero manual state transitions
 - Automatic dependency management
 - Continuous integration possible
 
 ### Quality
+
 - Multiple review checkpoints
 - TDD enforced
 - Comprehensive issue tracking via epic review
 - No issues lost between epics
 
 ### Traceability
+
 - Every state change logged
 - Every review documented
 - Complete audit trail
 - Epic review provides historical record
 
 ### Efficiency
+
 - Parallel work on independent tasks
 - Automatic priority ordering
 - Follow-up tasks processed immediately

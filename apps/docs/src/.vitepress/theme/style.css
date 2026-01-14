@@ -1,7 +1,7 @@
 /* apps/docs/.vitepress/theme/style.css */
 
 /**
- * Raptscallions Knowledge Base Theme
+ * RaptScallions Knowledge Base Theme
  * Modern Agricultural Design System
  *
  * Sections:
@@ -21,30 +21,22 @@
   --vp-font-family-base: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --vp-font-family-mono: Monaco, Consolas, "Courier New", monospace;
 
-  /* Custom heading font (not a VitePress default, used in custom CSS) */
-  --raptscallions-font-display: "DM Serif Display", Georgia, serif;
+  /* Custom logo font */
+  --raptscallions-font-logo: "Comfortaa", "Nunito", "Varela Round", sans-serif;
 
   /* Font Sizes - VitePress defaults are good, but we can adjust if needed */
   /* --vp-font-size-root: 16px; */
   /* --vp-font-size-md: 15px; */
 }
 
-/* Apply display font to headings */
-h1, h2, h3, h4, h5, h6,
-.VPHero .name,
-.VPFeature .title {
-  font-family: var(--raptscallions-font-display);
-  font-weight: 400; /* DM Serif Display is elegant at normal weight */
-}
-
 /* ========================================
-   2. LIGHT THEME COLORS
+   2. LIGHT THEME COLORS (Warm Earth Tones)
    ======================================== */
 
 :root {
-  /* Brand Colors - Green Palette */
-  --vp-c-brand-1: #16a34a;  /* Green-600 - Primary brand (darker for better contrast) */
-  --vp-c-brand-2: #15803d;  /* Green-700 - Hover states */
+  /* Brand Colors - Green Palette (darker for light mode contrast) */
+  --vp-c-brand-1: #15803d;  /* Green-700 - Primary brand */
+  --vp-c-brand-2: #166534;  /* Green-800 - Hover states */
   --vp-c-brand-3: #14532d;  /* Green-900 - Active states */
   --vp-c-brand-soft: #dcfce7; /* Green-100 - Soft backgrounds */
 
@@ -53,6 +45,10 @@ h1, h2, h3, h4, h5, h6,
   --vp-c-bg-soft: #f5f5f4;   /* Stone-100 - Card backgrounds */
   --vp-c-bg-alt: #ffffff;    /* White - Elevated surfaces */
   --vp-c-bg-elv: #ffffff;    /* White - Elevated surfaces (same as alt) */
+
+  /* Hero Background - Warm Earth Tones */
+  --raptscallions-hero-bg: linear-gradient(180deg, #fef7ed 0%, #fafaf9 100%);
+  --raptscallions-hero-title-color: #166534; /* Green-800 */
 
   /* Text Colors */
   --vp-c-text-1: #1c1917;    /* Stone-900 - Primary text */
@@ -87,7 +83,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* ========================================
-   3. DARK THEME COLORS
+   3. DARK THEME COLORS (Golden Wheat Accent)
    ======================================== */
 
 .dark {
@@ -97,11 +93,14 @@ h1, h2, h3, h4, h5, h6,
   --vp-c-brand-3: #16a34a;  /* Green-600 - Active */
   --vp-c-brand-soft: #14532d; /* Green-900 - Soft backgrounds (dark) */
 
-  /* Backgrounds - Warm Brown-Blacks (Option B: Moderate Warmth) */
+  /* Backgrounds - Warm Brown-Blacks */
   --vp-c-bg: #120f0c;        /* Rich Brown-Black - Main background */
-  --vp-c-bg-soft: #211d18;   /* Rich Brown-900 - Card backgrounds */
-  --vp-c-bg-alt: #2f2a24;    /* Rich Brown-800 - Elevated surfaces */
-  --vp-c-bg-elv: #2f2a24;    /* Rich Brown-800 - Elevated surfaces */
+  --vp-c-bg-soft: #1a1512;   /* Brown-900 - Card backgrounds */
+  --vp-c-bg-alt: #2a2420;    /* Brown-800 - Elevated surfaces */
+  --vp-c-bg-elv: #2a2420;    /* Brown-800 - Elevated surfaces */
+
+  /* Hero Background - Warm Browns */
+  --raptscallions-hero-bg: linear-gradient(180deg, #1a1512 0%, #120f0c 100%);
 
   /* Text Colors - Light grays */
   --vp-c-text-1: #f5f5f4;    /* Stone-100 - Primary text */
@@ -109,8 +108,8 @@ h1, h2, h3, h4, h5, h6,
   --vp-c-text-3: #78716c;    /* Stone-500 - Tertiary text */
 
   /* Borders and Dividers */
-  --vp-c-divider: #2f2a24;   /* Rich Brown-800 - Divider lines */
-  --vp-c-border: #3a3430;    /* Rich Brown-700 - Border color */
+  --vp-c-divider: #2a2420;   /* Brown-800 - Divider lines */
+  --vp-c-border: #3d3530;    /* Brown-700 - Border color */
 
   /* Accent Colors (adjust for dark mode) */
   --vp-c-info: #38bdf8;      /* Sky Blue-400 - Lighter for contrast */
@@ -123,11 +122,11 @@ h1, h2, h3, h4, h5, h6,
   --vp-c-link-hover: #7dd3fc; /* Blue-300 */
 
   /* Sidebar */
-  --vp-c-sidebar-bg: #120f0c; /* Rich Brown-Black - Matches main bg */
+  --vp-c-sidebar-bg: #120f0c; /* Brown-Black - Matches main bg */
   --vp-sidebar-bg-color: #120f0c;
 
   /* Code Blocks */
-  --vp-code-bg: #211d18;     /* Rich Brown-900 - Inline code background */
+  --vp-code-bg: #1a1512;     /* Brown-900 - Inline code background */
   --vp-code-color: #4ade80;  /* Green-400 - Inline code text (lighter) */
 
   /* Custom Shadows */
@@ -139,43 +138,36 @@ h1, h2, h3, h4, h5, h6,
    4. COMPONENT STYLING
    ======================================== */
 
-/* Hero Section - Agricultural Gradient */
+/* Hero Section - Warm Earth Tones (Light) / Golden Wheat (Dark) */
 .VPHero {
-  background: #16a34a; /* Fallback solid color */
-  background: linear-gradient(135deg, #15803d 0%, #22c55e 50%, #4ade80 100%);
+  background: var(--raptscallions-hero-bg);
   border-radius: 16px;
   padding: 4rem 2rem;
   margin-bottom: 2rem;
   position: relative;
 }
 
-/* Add dark overlay for better text contrast */
-.VPHero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 16px;
-  pointer-events: none;
+/* Hero Title - Comfortaa font with solid green (light mode) */
+.VPHero .name {
+  font-family: var(--raptscallions-font-logo);
+  font-weight: 600;
+  color: var(--raptscallions-hero-title-color, #166534);
 }
 
-.VPHero .container {
-  position: relative;
-  z-index: 1;
+/* Dark mode hero title - Golden Wheat gradient */
+.dark .VPHero .name {
+  background: linear-gradient(135deg, #fbbf24 0%, #fde68a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.VPHero .name,
 .VPHero .text {
-  color: white;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  color: var(--vp-c-text-1);
 }
 
 .VPHero .tagline {
-  color: #f0fdf4; /* Green-50 - lighter for better contrast */
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: var(--vp-c-text-2);
 }
 
 /* Sidebar Navigation - Rounded Cards */
@@ -198,6 +190,30 @@ h1, h2, h3, h4, h5, h6,
   box-shadow: var(--raptscallions-shadow-sm);
 }
 
+/* Sidebar link items - Add padding for hover backgrounds */
+.VPSidebarItem .item {
+  border-radius: 8px;
+  margin: 2px 4px;
+  padding: 4px 8px;
+  transition: background-color 0.2s ease;
+}
+
+.VPSidebarItem .item:hover {
+  background: var(--vp-c-bg-alt);
+}
+
+.VPSidebarItem .item.is-active {
+  background: var(--vp-c-brand-soft);
+}
+
+/* Nested sidebar items */
+.VPSidebarItem.level-1 .item,
+.VPSidebarItem.level-2 .item {
+  border-radius: 6px;
+  margin: 1px 4px;
+  padding: 4px 8px;
+}
+
 /* Navigation Bar */
 .VPNavBar {
   border-bottom: 1px solid var(--vp-c-divider);
@@ -206,7 +222,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .dark .VPNavBar {
-  background: rgba(12, 10, 9, 0.9);
+  background: rgba(18, 15, 12, 0.9);
 }
 
 /* Buttons - Rounded Style */
@@ -225,6 +241,16 @@ h1, h2, h3, h4, h5, h6,
 .VPButton.brand:hover {
   box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
   transform: translateY(-2px);
+}
+
+/* Dark mode brand button - Amber accent */
+.dark .VPButton.brand {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
+}
+
+.dark .VPButton.brand:hover {
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.35);
 }
 
 /* Code Blocks - Improved Styling */
@@ -252,9 +278,9 @@ div[class*='language-'] {
    5. CUSTOM ENHANCEMENTS
    ======================================== */
 
-/* Logo/Brand Area */
+/* Logo/Brand Area - Navbar */
 .VPNavBarTitle .title {
-  font-family: var(--raptscallions-font-display);
+  font-family: var(--raptscallions-font-logo);
   font-weight: 600;
   background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
   -webkit-background-clip: text;
@@ -263,7 +289,7 @@ div[class*='language-'] {
 }
 
 .dark .VPNavBarTitle .title {
-  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  background: linear-gradient(135deg, #fbbf24 0%, #fde68a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

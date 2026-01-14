@@ -1,6 +1,6 @@
-# Raptscallions Backend Implementation Guide
+# RaptScallions Backend Implementation Guide
 
-Complete implementation guide for the Raptscallions backend using Node.js, TypeScript, Fastify, and Drizzle ORM.
+Complete implementation guide for the RaptScallions backend using Node.js, TypeScript, Fastify, and Drizzle ORM.
 
 ---
 

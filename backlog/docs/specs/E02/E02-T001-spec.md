@@ -10,7 +10,7 @@
 
 ## Overview
 
-This task establishes the foundational Fastify API server for Raptscallions. It implements the minimal server infrastructure required for all subsequent API features including health checks, structured error handling, request logging, graceful shutdown, and environment configuration.
+This task establishes the foundational Fastify API server for RaptScallions. It implements the minimal server infrastructure required for all subsequent API features including health checks, structured error handling, request logging, graceful shutdown, and environment configuration.
 
 This is the first task in Epic E02 and blocks all other API development work (E02-T002, E02-T007). The implementation must follow the strict TypeScript conventions (zero `any`, strict mode) and use Fastify-specific patterns (not Express).
 
@@ -23,6 +23,7 @@ This is the first task in Epic E02 and blocks all other API development work (E0
 **What:** Create new package `apps/api` with complete TypeScript configuration
 
 **Details:**
+
 - Create package.json with Fastify 4.x as primary dependency
 - Configure TypeScript with strict mode settings matching root config
 - Set up package exports and build scripts
@@ -30,6 +31,7 @@ This is the first task in Epic E02 and blocks all other API development work (E0
 - Add dev dependencies: `@types/node`, `tsx`, `typescript`, `vitest`
 
 **Files Created:**
+
 - `apps/api/package.json`
 - `apps/api/tsconfig.json`
 - `apps/api/src/index.ts` (entry point)
@@ -37,6 +39,7 @@ This is the first task in Epic E02 and blocks all other API development work (E0
 - `apps/api/src/config.ts` (environment validation)
 
 **Success Criteria:**
+
 - `pnpm install` succeeds with no warnings
 - `pnpm --filter @raptscallions/api build` succeeds with zero TypeScript errors
 - Package resolves internal workspace dependencies correctly
@@ -48,6 +51,7 @@ This is the first task in Epic E02 and blocks all other API development work (E0
 **What:** Server listens on configurable port with environment validation
 
 **Details:**
+
 - Read `PORT` from environment (type: number)
 - Default to 3000 if not provided
 - Use Zod coercion: `z.coerce.number().default(3000)`
@@ -55,14 +59,17 @@ This is the first task in Epic E02 and blocks all other API development work (E0
 - Log startup message with bound address
 
 **Implementation Pattern:**
+
 ```typescript
 // src/config.ts
 export const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
-  CORS_ORIGINS: z.string().default('http://localhost:5173'),
+  CORS_ORIGINS: z.string().default("http://localhost:5173"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -70,6 +77,7 @@ export const config = envSchema.parse(process.env);
 ```
 
 **Success Criteria:**
+
 - Server starts on default port 3000 when PORT is unset
 - Server starts on custom port when PORT=4000 is set
 - Server throws validation error on invalid port (e.g., PORT=-1)
@@ -82,6 +90,7 @@ export const config = envSchema.parse(process.env);
 **What:** Basic health check endpoint for load balancers and monitoring
 
 **Details:**
+
 - Route: `GET /health`
 - Response: `{ status: 'ok', timestamp: ISO8601 string }`
 - Status code: 200
@@ -89,14 +98,15 @@ export const config = envSchema.parse(process.env);
 - Always responds (even if DB/Redis are down)
 
 **Implementation Pattern:**
+
 ```typescript
 // src/routes/health.routes.ts
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync } from "fastify";
 
 export const healthRoutes: FastifyPluginAsync = async (app) => {
-  app.get('/health', async (_request, reply) => {
+  app.get("/health", async (_request, reply) => {
     return reply.send({
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
     });
   });
@@ -104,6 +114,7 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
 ```
 
 **Success Criteria:**
+
 - `curl http://localhost:3000/health` returns 200 with JSON body
 - Response matches exact schema: `{ status: string, timestamp: string }`
 - Endpoint responds in < 10ms
@@ -116,6 +127,7 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
 **What:** Readiness probe that verifies critical dependencies
 
 **Details:**
+
 - Route: `GET /ready`
 - Checks database connectivity (simple query: `SELECT 1`)
 - Returns 200 if ready, 503 if not ready
@@ -124,22 +136,23 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
 - Use queryClient from `@raptscallions/db`
 
 **Implementation Pattern:**
+
 ```typescript
 // src/routes/health.routes.ts
-app.get('/ready', async (_request, reply) => {
+app.get("/ready", async (_request, reply) => {
   const checks = {
-    database: 'error' as 'ok' | 'error',
+    database: "error" as "ok" | "error",
   };
 
   try {
     // Simple connectivity check
-    await queryClient.unsafe('SELECT 1');
-    checks.database = 'ok';
+    await queryClient.unsafe("SELECT 1");
+    checks.database = "ok";
   } catch (error) {
-    logger.error({ error }, 'Database readiness check failed');
+    logger.error({ error }, "Database readiness check failed");
   }
 
-  const ready = checks.database === 'ok';
+  const ready = checks.database === "ok";
   const statusCode = ready ? 200 : 503;
 
   return reply.status(statusCode).send({
@@ -150,6 +163,7 @@ app.get('/ready', async (_request, reply) => {
 ```
 
 **Success Criteria:**
+
 - Returns 200 when database is connected
 - Returns 503 when database is unavailable
 - Kubernetes readiness probe can use this endpoint
@@ -162,6 +176,7 @@ app.get('/ready', async (_request, reply) => {
 **What:** Centralized error handling middleware using typed errors from `@raptscallions/core`
 
 **Details:**
+
 - Handle `AppError` subclasses (ValidationError, NotFoundError, UnauthorizedError)
 - Map error classes to appropriate HTTP status codes
 - Format all errors consistently as `{ error: string, code: string, details?: unknown }`
@@ -169,13 +184,14 @@ app.get('/ready', async (_request, reply) => {
 - Never expose internal error details in production
 
 **Implementation Pattern:**
+
 ```typescript
 // src/middleware/error-handler.ts
-import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { AppError } from '@raptscallions/core/errors';
-import { getLogger } from '@raptscallions/telemetry';
+import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import { AppError } from "@raptscallions/core/errors";
+import { getLogger } from "@raptscallions/telemetry";
 
-const logger = getLogger('api:error-handler');
+const logger = getLogger("api:error-handler");
 
 export function errorHandler(
   error: FastifyError,
@@ -204,24 +220,26 @@ export function errorHandler(
       method: request.method,
       url: request.url,
     },
-    'Unhandled error'
+    "Unhandled error"
   );
 
   // Generic 500 response
   void reply.status(500).send({
-    error: 'Internal server error',
-    code: 'INTERNAL_ERROR',
+    error: "Internal server error",
+    code: "INTERNAL_ERROR",
   });
 }
 ```
 
 **Register in server:**
+
 ```typescript
 // src/server.ts
 app.setErrorHandler(errorHandler);
 ```
 
 **Success Criteria:**
+
 - `ValidationError` returns 400 with code `VALIDATION_ERROR`
 - `NotFoundError` returns 404 with code `NOT_FOUND`
 - `UnauthorizedError` returns 401 with code `UNAUTHORIZED`
@@ -235,6 +253,7 @@ app.setErrorHandler(errorHandler);
 **What:** Log every HTTP request with timing and metadata
 
 **Details:**
+
 - Log request start (method, url, requestId)
 - Log request completion (status, duration, userAgent)
 - Use structured logging format compatible with telemetry package
@@ -242,26 +261,27 @@ app.setErrorHandler(errorHandler);
 - Use `@raptscallions/telemetry` logger
 
 **Implementation Pattern:**
+
 ```typescript
 // src/middleware/request-logger.ts
-import type { FastifyPluginAsync } from 'fastify';
-import { getLogger } from '@raptscallions/telemetry';
+import type { FastifyPluginAsync } from "fastify";
+import { getLogger } from "@raptscallions/telemetry";
 
-const logger = getLogger('api:request');
+const logger = getLogger("api:request");
 
 export const requestLogger: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', async (request, _reply) => {
+  app.addHook("onRequest", async (request, _reply) => {
     logger.info(
       {
         requestId: request.id,
         method: request.method,
         url: request.url,
       },
-      'Request started'
+      "Request started"
     );
   });
 
-  app.addHook('onResponse', async (request, reply) => {
+  app.addHook("onResponse", async (request, reply) => {
     const responseTime = reply.getResponseTime();
 
     logger.info(
@@ -271,15 +291,16 @@ export const requestLogger: FastifyPluginAsync = async (app) => {
         url: request.url,
         statusCode: reply.statusCode,
         responseTime: Math.round(responseTime),
-        userAgent: request.headers['user-agent'],
+        userAgent: request.headers["user-agent"],
       },
-      'Request completed'
+      "Request completed"
     );
   });
 };
 ```
 
 **Success Criteria:**
+
 - Every request generates two log entries (start, completion)
 - Logs include request ID for tracing
 - Response time measured in milliseconds
@@ -293,6 +314,7 @@ export const requestLogger: FastifyPluginAsync = async (app) => {
 **What:** Handle SIGINT/SIGTERM signals and clean up resources
 
 **Details:**
+
 - Listen for `SIGINT` (Ctrl+C) and `SIGTERM` (Docker stop)
 - Close Fastify server (waits for in-flight requests)
 - Close database connection pool
@@ -300,13 +322,14 @@ export const requestLogger: FastifyPluginAsync = async (app) => {
 - Log shutdown reason and completion
 
 **Implementation Pattern:**
+
 ```typescript
 // src/index.ts
-import { getLogger } from '@raptscallions/telemetry';
-import { queryClient } from '@raptscallions/db';
-import { createServer } from './server.js';
+import { getLogger } from "@raptscallions/telemetry";
+import { queryClient } from "@raptscallions/db";
+import { createServer } from "./server.js";
 
-const logger = getLogger('api');
+const logger = getLogger("api");
 
 async function start(): Promise<void> {
   const app = await createServer();
@@ -314,34 +337,34 @@ async function start(): Promise<void> {
   try {
     await app.listen({
       port: config.PORT,
-      host: '0.0.0.0',
+      host: "0.0.0.0",
     });
 
-    logger.info({ port: config.PORT }, 'Server listening');
+    logger.info({ port: config.PORT }, "Server listening");
   } catch (error) {
-    logger.fatal({ error }, 'Failed to start server');
+    logger.fatal({ error }, "Failed to start server");
     process.exit(1);
   }
 
   // Graceful shutdown handlers
-  const signals = ['SIGINT', 'SIGTERM'] as const;
+  const signals = ["SIGINT", "SIGTERM"] as const;
   signals.forEach((signal) => {
     process.on(signal, () => {
       void (async () => {
-        logger.info({ signal }, 'Shutting down gracefully');
+        logger.info({ signal }, "Shutting down gracefully");
 
         try {
           // Close server (wait for in-flight requests)
           await app.close();
-          logger.info('Server closed');
+          logger.info("Server closed");
 
           // Close database connections
           await queryClient.end();
-          logger.info('Database connections closed');
+          logger.info("Database connections closed");
 
           process.exit(0);
         } catch (error) {
-          logger.error({ error }, 'Error during shutdown');
+          logger.error({ error }, "Error during shutdown");
           process.exit(1);
         }
       })();
@@ -353,6 +376,7 @@ void start();
 ```
 
 **Success Criteria:**
+
 - Ctrl+C in terminal triggers graceful shutdown
 - Docker stop triggers graceful shutdown (max 10s before SIGKILL)
 - Server waits for in-flight requests to complete
@@ -366,6 +390,7 @@ void start();
 **What:** Fail-fast validation of required environment configuration
 
 **Details:**
+
 - Validate all required env vars on startup (before server starts)
 - Throw clear error messages for missing/invalid values
 - Use Zod schema with helpful error messages
@@ -373,14 +398,15 @@ void start();
 - Required vars: `DATABASE_URL`, `REDIS_URL`
 
 **Implementation Pattern:**
+
 ```typescript
 // src/config.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const envSchema = z.object({
   NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
+    .enum(["development", "test", "production"])
+    .default("development"),
 
   PORT: z.coerce
     .number()
@@ -388,22 +414,19 @@ export const envSchema = z.object({
     .min(1)
     .max(65535)
     .default(3000)
-    .describe('Port to listen on'),
+    .describe("Port to listen on"),
 
   DATABASE_URL: z
     .string()
     .url()
-    .describe('PostgreSQL connection string (required)'),
+    .describe("PostgreSQL connection string (required)"),
 
-  REDIS_URL: z
-    .string()
-    .url()
-    .describe('Redis connection string (required)'),
+  REDIS_URL: z.string().url().describe("Redis connection string (required)"),
 
   CORS_ORIGINS: z
     .string()
-    .default('http://localhost:5173')
-    .describe('Comma-separated list of allowed origins'),
+    .default("http://localhost:5173")
+    .describe("Comma-separated list of allowed origins"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -413,15 +436,16 @@ export const config = envSchema.parse(process.env);
 ```
 
 **Error Handling:**
+
 ```typescript
 // src/index.ts
 try {
   const config = envSchema.parse(process.env);
 } catch (error) {
   if (error instanceof z.ZodError) {
-    console.error('❌ Invalid environment configuration:');
+    console.error("❌ Invalid environment configuration:");
     error.issues.forEach((issue) => {
-      console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+      console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
     });
     process.exit(1);
   }
@@ -430,6 +454,7 @@ try {
 ```
 
 **Success Criteria:**
+
 - Server refuses to start with missing `DATABASE_URL`
 - Server refuses to start with invalid URL format
 - Clear error messages indicate which env vars are invalid
@@ -443,6 +468,7 @@ try {
 **What:** Enable cross-origin requests from frontend
 
 **Details:**
+
 - Use `@fastify/cors` plugin
 - Parse allowed origins from `CORS_ORIGINS` env var (comma-separated)
 - Allow credentials (cookies)
@@ -450,22 +476,23 @@ try {
 - Development default: `http://localhost:5173` (Vite)
 
 **Implementation Pattern:**
+
 ```typescript
 // src/server.ts
-import cors from '@fastify/cors';
+import cors from "@fastify/cors";
 
 export async function createServer(): Promise<FastifyInstance> {
   const app = fastify({
     logger: false, // Using custom logger
-    requestIdHeader: 'x-request-id',
-    requestIdLogLabel: 'requestId',
+    requestIdHeader: "x-request-id",
+    requestIdLogLabel: "requestId",
   });
 
   // Register CORS
   await app.register(cors, {
-    origin: config.CORS_ORIGINS.split(',').map((s) => s.trim()),
+    origin: config.CORS_ORIGINS.split(",").map((s) => s.trim()),
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   });
 
   // ... rest of setup
@@ -473,6 +500,7 @@ export async function createServer(): Promise<FastifyInstance> {
 ```
 
 **Success Criteria:**
+
 - Preflight OPTIONS requests return correct CORS headers
 - Frontend at localhost:5173 can make requests
 - Credentials (cookies) are allowed
@@ -486,6 +514,7 @@ export async function createServer(): Promise<FastifyInstance> {
 **What:** End-to-end verification of package setup
 
 **Details:**
+
 - `pnpm install` succeeds
 - `pnpm build` succeeds with zero TypeScript errors
 - `pnpm dev` starts server successfully
@@ -493,6 +522,7 @@ export async function createServer(): Promise<FastifyInstance> {
 - No runtime warnings or errors
 
 **Success Criteria:**
+
 - Build completes in < 10 seconds
 - No TypeScript errors (`pnpm typecheck` passes)
 - Server starts in < 2 seconds
@@ -527,6 +557,7 @@ apps/api/
 ### Dependencies
 
 **Runtime:**
+
 - `fastify@^4.28.0` - API framework
 - `@fastify/cors@^10.0.1` - CORS plugin
 - `@raptscallions/core` - Typed errors, schemas
@@ -535,6 +566,7 @@ apps/api/
 - `zod@^3.22.4` - Schema validation
 
 **Development:**
+
 - `@types/node@^20.10.0` - Node.js types
 - `tsx@^4.7.0` - TypeScript executor for dev mode
 - `typescript@^5.3.0` - TypeScript compiler
@@ -574,6 +606,7 @@ apps/api/
 ### Step 1: Create Package Structure
 
 **Files to create:**
+
 ```bash
 mkdir -p apps/api/src/{routes,middleware}
 mkdir -p apps/api/__tests__/integration
@@ -583,6 +616,7 @@ touch apps/api/src/middleware/{error-handler,request-logger}.ts
 ```
 
 **package.json:**
+
 ```json
 {
   "name": "@raptscallions/api",
@@ -618,6 +652,7 @@ touch apps/api/src/middleware/{error-handler,request-logger}.ts
 ```
 
 **tsconfig.json:**
+
 ```json
 {
   "extends": "../../tsconfig.json",
@@ -635,17 +670,18 @@ touch apps/api/src/middleware/{error-handler,request-logger}.ts
 ### Step 2: Environment Configuration
 
 **src/config.ts:**
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const envSchema = z.object({
   NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
+    .enum(["development", "test", "production"])
+    .default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
-  CORS_ORIGINS: z.string().default('http://localhost:5173'),
+  CORS_ORIGINS: z.string().default("http://localhost:5173"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -659,12 +695,13 @@ export const config = envSchema.parse(process.env);
 ### Step 3: Error Handler Middleware
 
 **src/middleware/error-handler.ts:**
-```typescript
-import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { AppError } from '@raptscallions/core/errors';
-import { getLogger } from '@raptscallions/telemetry';
 
-const logger = getLogger('api:error-handler');
+```typescript
+import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import { AppError } from "@raptscallions/core/errors";
+import { getLogger } from "@raptscallions/telemetry";
+
+const logger = getLogger("api:error-handler");
 
 export function errorHandler(
   error: FastifyError,
@@ -691,12 +728,12 @@ export function errorHandler(
       method: request.method,
       url: request.url,
     },
-    'Unhandled error'
+    "Unhandled error"
   );
 
   void reply.status(500).send({
-    error: 'Internal server error',
-    code: 'INTERNAL_ERROR',
+    error: "Internal server error",
+    code: "INTERNAL_ERROR",
   });
 }
 ```
@@ -706,25 +743,26 @@ export function errorHandler(
 ### Step 4: Request Logger Middleware
 
 **src/middleware/request-logger.ts:**
-```typescript
-import type { FastifyPluginAsync } from 'fastify';
-import { getLogger } from '@raptscallions/telemetry';
 
-const logger = getLogger('api:request');
+```typescript
+import type { FastifyPluginAsync } from "fastify";
+import { getLogger } from "@raptscallions/telemetry";
+
+const logger = getLogger("api:request");
 
 export const requestLogger: FastifyPluginAsync = async (app) => {
-  app.addHook('onRequest', async (request, _reply) => {
+  app.addHook("onRequest", async (request, _reply) => {
     logger.info(
       {
         requestId: request.id,
         method: request.method,
         url: request.url,
       },
-      'Request started'
+      "Request started"
     );
   });
 
-  app.addHook('onResponse', async (request, reply) => {
+  app.addHook("onResponse", async (request, reply) => {
     const responseTime = reply.getResponseTime();
 
     logger.info(
@@ -734,9 +772,9 @@ export const requestLogger: FastifyPluginAsync = async (app) => {
         url: request.url,
         statusCode: reply.statusCode,
         responseTime: Math.round(responseTime),
-        userAgent: request.headers['user-agent'],
+        userAgent: request.headers["user-agent"],
       },
-      'Request completed'
+      "Request completed"
     );
   });
 };
@@ -747,36 +785,37 @@ export const requestLogger: FastifyPluginAsync = async (app) => {
 ### Step 5: Health Check Routes
 
 **src/routes/health.routes.ts:**
-```typescript
-import type { FastifyPluginAsync } from 'fastify';
-import { getLogger } from '@raptscallions/telemetry';
-import { queryClient } from '@raptscallions/db';
 
-const logger = getLogger('api:health');
+```typescript
+import type { FastifyPluginAsync } from "fastify";
+import { getLogger } from "@raptscallions/telemetry";
+import { queryClient } from "@raptscallions/db";
+
+const logger = getLogger("api:health");
 
 export const healthRoutes: FastifyPluginAsync = async (app) => {
   // Basic health check
-  app.get('/health', async (_request, reply) => {
+  app.get("/health", async (_request, reply) => {
     return reply.send({
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
     });
   });
 
   // Readiness check (validates dependencies)
-  app.get('/ready', async (_request, reply) => {
+  app.get("/ready", async (_request, reply) => {
     const checks = {
-      database: 'error' as 'ok' | 'error',
+      database: "error" as "ok" | "error",
     };
 
     try {
-      await queryClient.unsafe('SELECT 1');
-      checks.database = 'ok';
+      await queryClient.unsafe("SELECT 1");
+      checks.database = "ok";
     } catch (error) {
-      logger.error({ error }, 'Database readiness check failed');
+      logger.error({ error }, "Database readiness check failed");
     }
 
-    const ready = checks.database === 'ok';
+    const ready = checks.database === "ok";
     const statusCode = ready ? 200 : 503;
 
     return reply.status(statusCode).send({
@@ -792,26 +831,27 @@ export const healthRoutes: FastifyPluginAsync = async (app) => {
 ### Step 6: Server Factory
 
 **src/server.ts:**
+
 ```typescript
-import fastify, { type FastifyInstance } from 'fastify';
-import cors from '@fastify/cors';
-import { config } from './config.js';
-import { errorHandler } from './middleware/error-handler.js';
-import { requestLogger } from './middleware/request-logger.js';
-import { healthRoutes } from './routes/health.routes.js';
+import fastify, { type FastifyInstance } from "fastify";
+import cors from "@fastify/cors";
+import { config } from "./config.js";
+import { errorHandler } from "./middleware/error-handler.js";
+import { requestLogger } from "./middleware/request-logger.js";
+import { healthRoutes } from "./routes/health.routes.js";
 
 export async function createServer(): Promise<FastifyInstance> {
   const app = fastify({
     logger: false, // Using custom logger
-    requestIdHeader: 'x-request-id',
-    requestIdLogLabel: 'requestId',
+    requestIdHeader: "x-request-id",
+    requestIdLogLabel: "requestId",
   });
 
   // Register CORS
   await app.register(cors, {
-    origin: config.CORS_ORIGINS.split(',').map((s) => s.trim()),
+    origin: config.CORS_ORIGINS.split(",").map((s) => s.trim()),
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   });
 
   // Register request logger
@@ -832,13 +872,14 @@ export async function createServer(): Promise<FastifyInstance> {
 ### Step 7: Entry Point with Graceful Shutdown
 
 **src/index.ts:**
-```typescript
-import { getLogger } from '@raptscallions/telemetry';
-import { queryClient } from '@raptscallions/db';
-import { config } from './config.js';
-import { createServer } from './server.js';
 
-const logger = getLogger('api');
+```typescript
+import { getLogger } from "@raptscallions/telemetry";
+import { queryClient } from "@raptscallions/db";
+import { config } from "./config.js";
+import { createServer } from "./server.js";
+
+const logger = getLogger("api");
 
 async function start(): Promise<void> {
   const app = await createServer();
@@ -846,7 +887,7 @@ async function start(): Promise<void> {
   try {
     await app.listen({
       port: config.PORT,
-      host: '0.0.0.0',
+      host: "0.0.0.0",
     });
 
     logger.info(
@@ -854,30 +895,30 @@ async function start(): Promise<void> {
         port: config.PORT,
         env: config.NODE_ENV,
       },
-      'Server listening'
+      "Server listening"
     );
   } catch (error) {
-    logger.fatal({ error }, 'Failed to start server');
+    logger.fatal({ error }, "Failed to start server");
     process.exit(1);
   }
 
   // Graceful shutdown handlers
-  const signals = ['SIGINT', 'SIGTERM'] as const;
+  const signals = ["SIGINT", "SIGTERM"] as const;
   signals.forEach((signal) => {
     process.on(signal, () => {
       void (async () => {
-        logger.info({ signal }, 'Shutting down gracefully');
+        logger.info({ signal }, "Shutting down gracefully");
 
         try {
           await app.close();
-          logger.info('Server closed');
+          logger.info("Server closed");
 
           await queryClient.end();
-          logger.info('Database connections closed');
+          logger.info("Database connections closed");
 
           process.exit(0);
         } catch (error) {
-          logger.error({ error }, 'Error during shutdown');
+          logger.error({ error }, "Error during shutdown");
           process.exit(1);
         }
       })();
@@ -889,7 +930,7 @@ async function start(): Promise<void> {
 try {
   void start();
 } catch (error) {
-  logger.fatal({ error }, 'Startup failed');
+  logger.fatal({ error }, "Startup failed");
   process.exit(1);
 }
 ```
@@ -903,6 +944,7 @@ try {
 **Test File:** `__tests__/server.test.ts`
 
 **Test Cases:**
+
 1. Server creation succeeds
 2. Error handler formats AppError correctly
 3. Error handler formats unknown errors as 500
@@ -910,12 +952,13 @@ try {
 5. CORS configuration applied
 
 **Example:**
-```typescript
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createServer } from '../src/server.js';
-import type { FastifyInstance } from 'fastify';
 
-describe('Server', () => {
+```typescript
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { createServer } from "../src/server.js";
+import type { FastifyInstance } from "fastify";
+
+describe("Server", () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {
@@ -926,20 +969,20 @@ describe('Server', () => {
     await app.close();
   });
 
-  it('should create server instance', () => {
+  it("should create server instance", () => {
     expect(app).toBeDefined();
     expect(app.server).toBeDefined();
   });
 
-  it('should have health routes registered', async () => {
+  it("should have health routes registered", async () => {
     const response = await app.inject({
-      method: 'GET',
-      url: '/health',
+      method: "GET",
+      url: "/health",
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
-      status: 'ok',
+      status: "ok",
       timestamp: expect.any(String),
     });
   });
@@ -953,6 +996,7 @@ describe('Server', () => {
 **Test File:** `__tests__/integration/health.test.ts`
 
 **Test Cases:**
+
 1. GET /health returns 200 with status and timestamp
 2. GET /ready returns 200 when database is connected
 3. GET /ready returns 503 when database is unavailable
@@ -960,12 +1004,13 @@ describe('Server', () => {
 5. Request logging generates structured logs
 
 **Example:**
-```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from '../../src/server.js';
-import type { FastifyInstance } from 'fastify';
 
-describe('Health Endpoints', () => {
+```typescript
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { createServer } from "../../src/server.js";
+import type { FastifyInstance } from "fastify";
+
+describe("Health Endpoints", () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
@@ -976,31 +1021,31 @@ describe('Health Endpoints', () => {
     await app.close();
   });
 
-  describe('GET /health', () => {
-    it('should return 200 with status and timestamp', async () => {
+  describe("GET /health", () => {
+    it("should return 200 with status and timestamp", async () => {
       const response = await app.inject({
-        method: 'GET',
-        url: '/health',
+        method: "GET",
+        url: "/health",
       });
 
       expect(response.statusCode).toBe(200);
       const body = response.json();
-      expect(body.status).toBe('ok');
+      expect(body.status).toBe("ok");
       expect(body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
   });
 
-  describe('GET /ready', () => {
-    it('should return 200 when database is ready', async () => {
+  describe("GET /ready", () => {
+    it("should return 200 when database is ready", async () => {
       const response = await app.inject({
-        method: 'GET',
-        url: '/ready',
+        method: "GET",
+        url: "/ready",
       });
 
       expect(response.statusCode).toBe(200);
       const body = response.json();
       expect(body.ready).toBe(true);
-      expect(body.checks.database).toBe('ok');
+      expect(body.checks.database).toBe("ok");
     });
   });
 });
@@ -1025,13 +1070,13 @@ describe('Health Endpoints', () => {
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-|------|-----------|
-| **Database connection fails on startup** | Server starts but `/ready` returns 503 (health check still works) |
-| **Port already in use** | Log clear error message, exit with code 1 |
-| **Invalid environment variables** | Zod validation provides clear error messages before server starts |
-| **Unhandled promise rejections** | Error handler catches all async route errors |
-| **Memory leaks from unclosed connections** | Graceful shutdown closes DB pool and server |
+| Risk                                       | Mitigation                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| **Database connection fails on startup**   | Server starts but `/ready` returns 503 (health check still works) |
+| **Port already in use**                    | Log clear error message, exit with code 1                         |
+| **Invalid environment variables**          | Zod validation provides clear error messages before server starts |
+| **Unhandled promise rejections**           | Error handler catches all async route errors                      |
+| **Memory leaks from unclosed connections** | Graceful shutdown closes DB pool and server                       |
 
 ---
 
@@ -1049,10 +1094,12 @@ describe('Health Endpoints', () => {
 ## Follow-up Tasks
 
 This task blocks:
+
 - **E02-T002:** Sessions table and Lucia setup (requires server foundation)
 - **E02-T007:** Rate limiting middleware (requires server foundation)
 
 After completion, the API server will be ready for:
+
 - Authentication routes (E02-T003)
 - OAuth integration (E02-T004)
 - Permission middleware (E02-T005)
@@ -1086,24 +1133,28 @@ This specification provides a solid foundation for the API server with good atte
 ### Strengths
 
 #### 1. **Clear Error Messages**
+
 - ✅ Zod validation provides helpful error context (AC8:422-428)
 - ✅ Structured error format `{ error, code, details }` is consistent and predictable
 - ✅ AppError subclasses map to appropriate HTTP status codes
 - ✅ Logs include requestId for tracing errors across systems
 
 #### 2. **Operational Visibility**
+
 - ✅ Structured logging at all key lifecycle points (request start, completion, errors)
 - ✅ Separate `/health` (always up) and `/ready` (dependency check) endpoints
 - ✅ Readiness check provides granular status: `{ ready: boolean, checks: { database: 'ok' | 'error' } }`
 - ✅ Response time tracking built into request logging
 
 #### 3. **Developer-Friendly Patterns**
+
 - ✅ Server factory pattern (`createServer()`) enables testability
 - ✅ Type-safe configuration with Zod inference
 - ✅ Graceful shutdown prevents data loss and connection leaks
 - ✅ Hot reload support via `tsx watch` for development
 
 #### 4. **Fail-Fast Philosophy**
+
 - ✅ Environment validation happens before server starts
 - ✅ Clear exit codes (0 for graceful, 1 for errors)
 - ✅ Startup errors logged with `fatal` level before exit
@@ -1119,18 +1170,20 @@ This specification provides a solid foundation for the API server with good atte
 
 **Problem:**
 When environment validation fails, error messages are written to `console.error` instead of the structured logger. This creates inconsistent operational experience:
+
 - Development: Errors appear in terminal but not in log aggregation tools
 - Production: Operators may miss critical startup failures if only monitoring structured logs
 
 **Current Pattern:**
+
 ```typescript
 try {
   const config = envSchema.parse(process.env);
 } catch (error) {
   if (error instanceof z.ZodError) {
-    console.error('❌ Invalid environment configuration:');
+    console.error("❌ Invalid environment configuration:");
     error.issues.forEach((issue) => {
-      console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+      console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
     });
     process.exit(1);
   }
@@ -1140,9 +1193,10 @@ try {
 
 **Recommendation:**
 Use the logger for consistency:
+
 ```typescript
-import { getLogger } from '@raptscallions/telemetry';
-const logger = getLogger('api:config');
+import { getLogger } from "@raptscallions/telemetry";
+const logger = getLogger("api:config");
 
 try {
   const config = envSchema.parse(process.env);
@@ -1151,17 +1205,17 @@ try {
     logger.fatal(
       {
         issues: error.issues.map((issue) => ({
-          path: issue.path.join('.'),
+          path: issue.path.join("."),
           message: issue.message,
           code: issue.code,
         })),
       },
-      'Invalid environment configuration'
+      "Invalid environment configuration"
     );
     // Also print to console for development visibility
-    console.error('❌ Invalid environment configuration:');
+    console.error("❌ Invalid environment configuration:");
     error.issues.forEach((issue) => {
-      console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+      console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
     });
     process.exit(1);
   }
@@ -1177,38 +1231,40 @@ try {
 **Location:** AC4:126-149
 
 **Problem:**
-The `/ready` endpoint catches database errors and returns `{ checks: { database: 'error' } }`, but provides no information about *why* the check failed. Operators debugging a 503 response have no context.
+The `/ready` endpoint catches database errors and returns `{ checks: { database: 'error' } }`, but provides no information about _why_ the check failed. Operators debugging a 503 response have no context.
 
 **Current Pattern:**
+
 ```typescript
 try {
-  await queryClient.unsafe('SELECT 1');
-  checks.database = 'ok';
+  await queryClient.unsafe("SELECT 1");
+  checks.database = "ok";
 } catch (error) {
-  logger.error({ error }, 'Database readiness check failed');
+  logger.error({ error }, "Database readiness check failed");
 }
 ```
 
 **Recommendation:**
 Include error context in the response for operational visibility:
+
 ```typescript
 const checks: {
-  database: 'ok' | 'error';
+  database: "ok" | "error";
   databaseError?: string;
 } = {
-  database: 'error',
+  database: "error",
 };
 
 try {
-  await queryClient.unsafe('SELECT 1');
-  checks.database = 'ok';
+  await queryClient.unsafe("SELECT 1");
+  checks.database = "ok";
 } catch (error) {
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
   checks.databaseError = errorMessage;
-  logger.error({ error }, 'Database readiness check failed');
+  logger.error({ error }, "Database readiness check failed");
 }
 
-const ready = checks.database === 'ok';
+const ready = checks.database === "ok";
 const statusCode = ready ? 200 : 503;
 
 return reply.status(statusCode).send({
@@ -1231,32 +1287,34 @@ When a frontend makes a request from an unauthorized origin, the CORS error mess
 
 **Recommendation:**
 Add a diagnostic endpoint (only in development mode):
+
 ```typescript
-if (config.NODE_ENV === 'development') {
-  app.get('/debug/cors', async (_request, reply) => {
+if (config.NODE_ENV === "development") {
+  app.get("/debug/cors", async (_request, reply) => {
     return reply.send({
-      allowedOrigins: config.CORS_ORIGINS.split(',').map((s) => s.trim()),
+      allowedOrigins: config.CORS_ORIGINS.split(",").map((s) => s.trim()),
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     });
   });
 }
 ```
 
 **Alternate:** Log rejected CORS requests at `warn` level with the rejected origin:
+
 ```typescript
 await app.register(cors, {
   origin: (origin, callback) => {
-    const allowed = config.CORS_ORIGINS.split(',').map((s) => s.trim());
+    const allowed = config.CORS_ORIGINS.split(",").map((s) => s.trim());
     if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {
-      logger.warn({ origin, allowed }, 'CORS request rejected');
-      callback(new Error('Not allowed by CORS'), false);
+      logger.warn({ origin, allowed }, "CORS request rejected");
+      callback(new Error("Not allowed by CORS"), false);
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 });
 ```
 
@@ -1272,29 +1330,30 @@ Graceful shutdown waits indefinitely for `app.close()` and `queryClient.end()`. 
 
 **Recommendation:**
 Add shutdown timeout enforcement:
+
 ```typescript
 const SHUTDOWN_TIMEOUT = 10000; // 10 seconds
 
 process.on(signal, () => {
   void (async () => {
-    logger.info({ signal }, 'Shutting down gracefully');
+    logger.info({ signal }, "Shutting down gracefully");
 
     const shutdownTimer = setTimeout(() => {
-      logger.error('Shutdown timeout exceeded, forcing exit');
+      logger.error("Shutdown timeout exceeded, forcing exit");
       process.exit(1);
     }, SHUTDOWN_TIMEOUT);
 
     try {
       await app.close();
-      logger.info('Server closed');
+      logger.info("Server closed");
 
       await queryClient.end();
-      logger.info('Database connections closed');
+      logger.info("Database connections closed");
 
       clearTimeout(shutdownTimer);
       process.exit(0);
     } catch (error) {
-      logger.error({ error }, 'Error during shutdown');
+      logger.error({ error }, "Error during shutdown");
       clearTimeout(shutdownTimer);
       process.exit(1);
     }
@@ -1311,24 +1370,26 @@ process.on(signal, () => {
 
 **Problem:**
 When the server starts, logs show port and environment but don't clearly indicate important development-mode behaviors:
+
 - CORS accepting localhost origins
 - Detailed error stacks being returned to clients
 - Debug endpoints available
 
 **Recommendation:**
 Enhance startup logging to provide context:
+
 ```typescript
 logger.info(
   {
     port: config.PORT,
     env: config.NODE_ENV,
-    corsOrigins: config.CORS_ORIGINS.split(',').map((s) => s.trim()),
+    corsOrigins: config.CORS_ORIGINS.split(",").map((s) => s.trim()),
   },
-  'Server listening'
+  "Server listening"
 );
 
-if (config.NODE_ENV === 'development') {
-  logger.info('Development mode: detailed errors and debug endpoints enabled');
+if (config.NODE_ENV === "development") {
+  logger.info("Development mode: detailed errors and debug endpoints enabled");
 }
 ```
 
@@ -1343,25 +1404,27 @@ Currently spec provides `/health` (basic) and `/ready` (validates dependencies).
 
 **Suggestion #2: Include Server Metadata in Health Response**
 Add version, uptime, and commit hash to `/health` response for operational visibility:
+
 ```typescript
-app.get('/health', async (_request, reply) => {
+app.get("/health", async (_request, reply) => {
   return reply.send({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || 'unknown',
+    version: process.env.npm_package_version || "unknown",
     uptime: process.uptime(),
-    commit: process.env.GIT_COMMIT || 'unknown',
+    commit: process.env.GIT_COMMIT || "unknown",
   });
 });
 ```
 
 **Suggestion #3: Add Request Size Limits**
 Document or specify request body size limits to prevent abuse:
+
 ```typescript
 const app = fastify({
   logger: false,
-  requestIdHeader: 'x-request-id',
-  requestIdLogLabel: 'requestId',
+  requestIdHeader: "x-request-id",
+  requestIdLogLabel: "requestId",
   bodyLimit: 1048576, // 1MB
 });
 ```
@@ -1371,6 +1434,7 @@ const app = fastify({
 ### Accessibility Considerations (N/A)
 
 This is a backend API with no user-facing UI. Accessibility concerns don't apply, but equivalents for operational access:
+
 - ✅ Structured logs are machine-readable (JSON format)
 - ✅ Error codes enable programmatic error handling
 - ✅ Health endpoints follow industry standards (compatible with monitoring tools)
@@ -1380,16 +1444,19 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 ### Consistency Review
 
 #### Naming Conventions
+
 - ✅ File names follow patterns: `*.routes.ts`, `*.middleware.ts` (per CONVENTIONS.md)
 - ✅ snake_case not applicable (this is TypeScript, not database schema)
 - ✅ HTTP method naming consistent: `app.get`, `app.post` (Fastify standard)
 
 #### Response Formats
+
 - ✅ Success responses: `{ data: T }` or plain object for health checks
 - ✅ Error responses: `{ error: string, code: string, details?: any }`
 - ✅ Consistent HTTP status code usage
 
 #### Logging Patterns
+
 - ✅ All loggers use `getLogger('namespace')` pattern
 - ✅ Structured context objects used consistently
 - ✅ Log levels appropriate (info, error, fatal, warn)
@@ -1399,6 +1466,7 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 ### User Flow Analysis (Developer Journey)
 
 #### Flow 1: First-Time Setup
+
 1. Clone repository
 2. Copy `.env.example` (assumed to exist, not in this spec)
 3. Run `pnpm install`
@@ -1409,6 +1477,7 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 **Resolution:** Out of scope for this task. Documentation task should handle.
 
 #### Flow 2: Debugging a 503 Response
+
 1. Check logs → see "Request completed" with 503 status
 2. Check `/ready` endpoint → see `{ ready: false, checks: { database: 'error' } }`
 3. Check logs → see "Database readiness check failed" with error context
@@ -1416,6 +1485,7 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 **With Issue #2 fixed:** Developer can check `/ready` response body directly without log access.
 
 #### Flow 3: Production Deployment Failure
+
 1. Deploy to Kubernetes
 2. Pod fails to start (CrashLoopBackOff)
 3. Check pod logs → see Zod validation errors
@@ -1429,9 +1499,11 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 ### Security & Privacy Considerations
 
 #### Potential Information Disclosure
+
 ⚠️ **Concern:** Error responses may leak internal details in production
 
 **Current Mitigation:**
+
 - AppError instances control what details are exposed
 - Generic 500 errors only return "Internal server error"
 - Stack traces only logged, never returned to client
@@ -1439,6 +1511,7 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 **Recommendation:** Add explicit note in implementation that `AppError.details` should never contain sensitive information (passwords, tokens, PII).
 
 #### CORS Configuration
+
 ✅ **Adequate:** Credentials allowed only for explicitly configured origins, no wildcard.
 
 ---
@@ -1446,11 +1519,13 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 ### Performance Considerations
 
 #### Request Logging Overhead
+
 - **Concern:** Logging every request (onRequest + onResponse) could impact performance at high scale
 - **Assessment:** Acceptable for initial implementation. Structured logs are efficient.
 - **Future:** Consider sampling or log level controls for high-traffic routes
 
 #### Readiness Check Performance
+
 - **Concern:** Every `/ready` call executes `SELECT 1` query
 - **Assessment:** Simple query is fast (<5ms) and readiness checks are infrequent (Kubernetes default: 10s interval)
 - **Future:** Consider caching readiness state with TTL if checks become expensive
@@ -1459,16 +1534,16 @@ This is a backend API with no user-facing UI. Accessibility concerns don't apply
 
 ### Recommendations Summary
 
-| Issue                                  | Severity  | Effort | Impact  |
-| -------------------------------------- | --------- | ------ | ------- |
-| #1: Startup errors not logged          | Must Fix  | Low    | High    |
-| #2: Readiness check lacks error detail | Must Fix  | Low    | High    |
-| #3: CORS errors opaque                 | Should Fix| Low    | Medium  |
-| #4: Shutdown timeout not enforced      | Should Fix| Low    | Medium  |
-| #5: Missing dev mode indicators        | Should Fix| Low    | Low     |
-| Suggestion #1: Add /live endpoint      | Nice      | Low    | Low     |
-| Suggestion #2: Add version to /health  | Nice      | Low    | Low     |
-| Suggestion #3: Document body limits    | Nice      | Low    | Low     |
+| Issue                                  | Severity   | Effort | Impact |
+| -------------------------------------- | ---------- | ------ | ------ |
+| #1: Startup errors not logged          | Must Fix   | Low    | High   |
+| #2: Readiness check lacks error detail | Must Fix   | Low    | High   |
+| #3: CORS errors opaque                 | Should Fix | Low    | Medium |
+| #4: Shutdown timeout not enforced      | Should Fix | Low    | Medium |
+| #5: Missing dev mode indicators        | Should Fix | Low    | Low    |
+| Suggestion #1: Add /live endpoint      | Nice       | Low    | Low    |
+| Suggestion #2: Add version to /health  | Nice       | Low    | Low    |
+| Suggestion #3: Document body limits    | Nice       | Low    | Low    |
 
 ---
 
@@ -1480,9 +1555,10 @@ The specification is **ready for architecture review** with the understanding th
 2. **Should Fix issues are recommended but not blocking** (Issues #3-5)
 3. **Nice to Have suggestions are optional enhancements** (Suggestions 1-3)
 
-The foundation is solid, error handling is thoughtful, and operational visibility is good. The recommendations focus on improving the *developer experience* of debugging and operating the API server.
+The foundation is solid, error handling is thoughtful, and operational visibility is good. The recommendations focus on improving the _developer experience_ of debugging and operating the API server.
 
 **Next Steps:**
+
 - Proceed to architecture review (`/review-plan`)
 - During implementation, incorporate Must Fix recommendations
 - Consider Should Fix recommendations based on time constraints
@@ -1504,6 +1580,7 @@ The foundation is solid, error handling is thoughtful, and operational visibilit
 The implementation specification is **architecturally sound** and ready for implementation. The plan demonstrates strong alignment with the project's architectural decisions, technology stack, and coding conventions. The foundation is well-designed for future extensibility.
 
 **Key Strengths:**
+
 - Correct Fastify-centric approach (not Express patterns)
 - Proper use of Drizzle ORM integration
 - Strong fail-fast validation strategy
@@ -1530,21 +1607,23 @@ The implementation specification is **architecturally sound** and ready for impl
 **Location:** AC5 error handler implementation
 
 **Problem:** Error handler signature uses `FastifyError` specifically:
+
 ```typescript
 export function errorHandler(
-  error: FastifyError,  // ← Too specific
+  error: FastifyError, // ← Too specific
   request: FastifyRequest,
   reply: FastifyReply
-): void
+): void;
 ```
 
 **Fix:** Fastify's error handler receives `Error | FastifyError`, not just `FastifyError`. Update to:
+
 ```typescript
 export function errorHandler(
-  error: Error | FastifyError,  // ← Correct union type
+  error: Error | FastifyError, // ← Correct union type
   request: FastifyRequest,
   reply: FastifyReply
-): void
+): void;
 ```
 
 **Impact:** Type safety improvement. Logic already handles this correctly with instanceof checks.
@@ -1556,12 +1635,14 @@ export function errorHandler(
 **Location:** AC4 readiness check, Step 5 (health routes)
 
 **Problem:** Spec references `queryClient` from `@raptscallions/db`:
+
 ```typescript
-import { queryClient } from '@raptscallions/db';
-await queryClient.unsafe('SELECT 1');
+import { queryClient } from "@raptscallions/db";
+await queryClient.unsafe("SELECT 1");
 ```
 
 **Action Required:** Verify the actual export name in `packages/db/src/client.ts` (from E01-T001). The spec should use the correct import that matches the db package's public API. Common options:
+
 - `import { pool } from '@raptscallions/db/client'` + `pool.query('SELECT 1')`
 - `import { db } from '@raptscallions/db'` + `db.execute(sql\`SELECT 1\`)`
 
@@ -1574,13 +1655,11 @@ await queryClient.unsafe('SELECT 1');
 The UX review provided excellent operational improvements. All recommendations are architecturally compatible:
 
 **Must Address During Implementation:**
+
 1. ✅ Startup error logging (UX Issue #1) - Use structured logger for config errors
 2. ✅ Readiness check error detail (UX Issue #2) - Include error message in response
 
-**Strongly Recommended:**
-3. ✅ Shutdown timeout enforcement (UX Issue #4) - Prevent zombie processes
-4. ✅ CORS debugging endpoint (UX Issue #3) - Add `/debug/cors` in development
-5. ✅ Dev mode indicators (UX Issue #5) - Log development mode status
+**Strongly Recommended:** 3. ✅ Shutdown timeout enforcement (UX Issue #4) - Prevent zombie processes 4. ✅ CORS debugging endpoint (UX Issue #3) - Add `/debug/cors` in development 5. ✅ Dev mode indicators (UX Issue #5) - Log development mode status
 
 ---
 
@@ -1620,6 +1699,7 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 ✅ **Blocked Tasks Ready:** E02-T002 (Auth) and E02-T007 (Rate limiting) can build on this foundation
 
 **Future Plugin Registration Points:**
+
 - Authentication middleware (E02-T002)
 - Rate limiting plugin (E02-T007)
 - Domain route handlers (users, groups, tools)
@@ -1630,17 +1710,20 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 ### Risk Assessment
 
 **Low Risk Areas:**
+
 - Fastify setup (well-documented, simple)
 - Zod validation (straightforward schema)
 - Health checks (minimal logic)
 - CORS (official plugin, standard config)
 
 **Medium Risk Areas:**
+
 - Database connection (depends on E01-T001 completion - verify exports first)
 - Graceful shutdown (test with long-running requests - add timeout per UX rec)
 - Error handler (test all error types comprehensively)
 
 **Mitigations:**
+
 - Mock database for tests to avoid E01 dependency
 - Add shutdown timeout enforcement (10s)
 - Comprehensive error handler test cases
@@ -1650,6 +1733,7 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 ### Production Readiness
 
 **Included (Appropriate for Foundation Task):**
+
 - ✅ Graceful shutdown (Kubernetes compatible)
 - ✅ Health and readiness probes
 - ✅ Structured logging (OpenTelemetry compatible)
@@ -1658,6 +1742,7 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 - ✅ Request ID tracking
 
 **Missing (Acceptable - Follow-up Tasks):**
+
 - Dockerfile and docker-compose.yml (create soon)
 - Metrics endpoint (/metrics)
 - Rate limiting (E02-T007)
@@ -1670,6 +1755,7 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 **✅ APPROVED FOR IMPLEMENTATION**
 
 **Conditions:**
+
 1. Fix error handler type signature (Issue #1) - 1 minute
 2. Clarify and verify database client import (Issue #2) - 5 minutes
 3. Incorporate UX "Must Fix" items during implementation - 15 minutes
@@ -1683,6 +1769,7 @@ docker run --rm -v $(pwd):/app -w /app node:20 sh -c "
 This specification provides a solid foundation for the API server with excellent extensibility. The design follows all architectural guidelines and establishes patterns that future tasks will build upon.
 
 **Next Steps:**
+
 1. Address Issues #1 and #2 (update spec or verify during implementation)
 2. Proceed to implementation: `/implement E02-T001`
 3. Create Docker deployment task after this completes

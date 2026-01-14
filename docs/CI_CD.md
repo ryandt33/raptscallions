@@ -1,6 +1,6 @@
 # CI/CD Documentation
 
-Comprehensive guide to Continuous Integration and Continuous Deployment for Raptscallions.
+Comprehensive guide to Continuous Integration and Continuous Deployment for RaptScallions.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ Comprehensive guide to Continuous Integration and Continuous Deployment for Rapt
 
 ## Overview
 
-Raptscallions uses GitHub Actions for CI/CD with the following goals:
+RaptScallions uses GitHub Actions for CI/CD with the following goals:
 
 - **Zero tolerance for errors** — TypeScript, linting, and tests must pass
 - **Fast feedback** — Parallel jobs, caching, fail-fast
@@ -29,6 +29,7 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 ### CI Workflow (`.github/workflows/ci.yml`)
 
 **Triggers:**
+
 - Push to `main` or `develop`
 - Pull requests to `main` or `develop`
 - Manual dispatch
@@ -36,35 +37,42 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 **Jobs:**
 
 #### 1. Type Check
+
 - Runs `pnpm typecheck`
 - Must pass with zero errors
 - Cached pnpm store for speed
 
 #### 2. Lint
+
 - Runs `pnpm lint`
 - Must pass with zero warnings
 - Enforces code style consistency
 
 #### 3. Test
+
 - Runs `pnpm test`
 - Uses PostgreSQL 16 and Redis 7 services
 - Uploads test results as artifacts
 
 #### 4. Test Coverage
+
 - Runs `pnpm test:coverage`
 - Uploads coverage to Codecov
 - Does not block merge (informational)
 
 #### 5. Build
+
 - Runs `pnpm build`
 - Verifies all packages build successfully
 - Uploads build artifacts
 
 #### 6. All Checks Passed
+
 - Summary job that depends on all others
 - Used as required status check for merging
 
 **Optimizations:**
+
 - Parallel job execution
 - pnpm store caching
 - 10-15 minute timeouts
@@ -73,6 +81,7 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 ### Security Workflow (`.github/workflows/security.yml`)
 
 **Triggers:**
+
 - Push to `main` or `develop`
 - Pull requests
 - Weekly schedule (Mondays 9am UTC)
@@ -81,16 +90,19 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 **Jobs:**
 
 #### 1. CodeQL Analysis
+
 - Static code analysis for security issues
 - Scans JavaScript/TypeScript code
 - Creates security alerts in GitHub
 
 #### 2. Dependency Audit
+
 - Runs `pnpm audit`
 - Checks for known vulnerabilities in dependencies
 - Creates artifact report
 
 #### 3. Secret Scanning
+
 - Uses TruffleHog to detect exposed secrets
 - Scans commit history
 - Blocks commits with verified secrets
@@ -98,10 +110,12 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 ### Dependency Update Workflow (`.github/workflows/dependency-update.yml`)
 
 **Triggers:**
+
 - Weekly schedule (Mondays 10am UTC)
 - Manual dispatch
 
 **Process:**
+
 1. Updates all dependencies to latest compatible versions
 2. Runs tests to verify compatibility
 3. Creates PR with changes
@@ -110,18 +124,21 @@ Raptscallions uses GitHub Actions for CI/CD with the following goals:
 ### Auto-Merge Workflow (`.github/workflows/auto-merge.yml`)
 
 **Triggers:**
+
 - PR labeled/unlabeled
 - PR ready for review
 - PR review submitted
 - Check suite completed
 
 **Process:**
+
 1. Verifies PR has `automerge` label
 2. Checks all required status checks passed
 3. Automatically merges using squash method
 4. Posts status comment
 
 **Requirements:**
+
 - PR not in draft mode
 - `automerge` label applied
 - All required checks passing (typecheck, lint, test, build)
@@ -189,17 +206,17 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 ### Types
 
-| Type       | Description                                | Semantic Version |
-| ---------- | ------------------------------------------ | ---------------- |
-| `feat`     | New feature                                | Minor            |
-| `fix`      | Bug fix                                    | Patch            |
-| `refactor` | Code change (no bug fix or feature)        | Patch            |
-| `perf`     | Performance improvement                    | Patch            |
-| `test`     | Add/update tests                           | -                |
-| `docs`     | Documentation only                         | -                |
-| `chore`    | Maintenance (deps, config)                 | -                |
-| `ci`       | CI/CD changes                              | -                |
-| `breaking` | Breaking change (append `!` after type)    | Major            |
+| Type       | Description                             | Semantic Version |
+| ---------- | --------------------------------------- | ---------------- |
+| `feat`     | New feature                             | Minor            |
+| `fix`      | Bug fix                                 | Patch            |
+| `refactor` | Code change (no bug fix or feature)     | Patch            |
+| `perf`     | Performance improvement                 | Patch            |
+| `test`     | Add/update tests                        | -                |
+| `docs`     | Documentation only                      | -                |
+| `chore`    | Maintenance (deps, config)              | -                |
+| `ci`       | CI/CD changes                           | -                |
+| `breaking` | Breaking change (append `!` after type) | Major            |
 
 ### Scopes
 
@@ -208,6 +225,7 @@ Common scopes: `auth`, `chat`, `api`, `db`, `ui`, `module`, `test`, `workflow`
 ### Examples
 
 **Feature:**
+
 ```
 feat(auth): implement OAuth providers
 
@@ -219,6 +237,7 @@ Refs: E01-T002
 ```
 
 **Fix:**
+
 ```
 fix(chat): prevent message loss on reconnect
 
@@ -229,6 +248,7 @@ Fixes: E03-T010
 ```
 
 **Breaking Change:**
+
 ```
 feat(api)!: change user authentication response format
 
@@ -280,6 +300,7 @@ Refs: E01-T001"
 ```
 
 Or use the helper:
+
 ```bash
 ./scripts/commit-msg-helper.sh
 ```
@@ -306,15 +327,18 @@ git push
 Once approved and all checks pass:
 
 **Manual:**
+
 - Click "Merge" button in GitHub UI
 - Select "Squash and merge"
 
 **Auto-merge:**
+
 ```bash
 gh pr merge --auto --squash
 ```
 
 **With label:**
+
 ```bash
 gh pr edit <PR_NUMBER> --add-label automerge
 ```
@@ -332,11 +356,13 @@ git branch -d feature/E01-T001-user-authentication
 ### Method 1: GitHub Built-in
 
 **Enable on PR:**
+
 ```bash
 gh pr merge --auto --squash <PR_NUMBER>
 ```
 
 **Requirements:**
+
 - All required checks pass
 - Required reviews approved
 - No blocking conversations
@@ -344,11 +370,13 @@ gh pr merge --auto --squash <PR_NUMBER>
 ### Method 2: Workflow Label
 
 **Add `automerge` label:**
+
 ```bash
 gh pr edit <PR_NUMBER> --add-label automerge
 ```
 
 **Workflow automatically:**
+
 1. Monitors PR status
 2. Waits for all checks to pass
 3. Merges when ready
@@ -377,6 +405,7 @@ Dependency PRs automatically merge when tests pass.
 ### Secret Management
 
 **Never commit:**
+
 - `.env` files
 - API keys
 - Passwords
@@ -384,12 +413,14 @@ Dependency PRs automatically merge when tests pass.
 - OAuth secrets
 
 **Use GitHub Secrets:**
+
 ```yaml
 env:
   API_KEY: ${{ secrets.API_KEY }}
 ```
 
 **Add secrets:**
+
 ```bash
 gh secret set API_KEY < api-key.txt
 ```
@@ -397,12 +428,14 @@ gh secret set API_KEY < api-key.txt
 ### Dependency Auditing
 
 **Manual check:**
+
 ```bash
 pnpm audit
 pnpm audit --fix  # Auto-fix where possible
 ```
 
 **CI automatically runs:**
+
 - `pnpm audit` on every PR
 - Weekly scheduled scan
 - Uploads report as artifact
@@ -422,12 +455,14 @@ pnpm audit --fix  # Auto-fix where possible
 ### Secret Scanning
 
 **TruffleHog OSS:**
+
 - Scans commit history
 - Detects exposed secrets
 - Blocks verified secrets
 - Runs on every push
 
 **If secret detected:**
+
 1. Revoke compromised secret immediately
 2. Remove from git history (careful!)
 3. Update in secret management
@@ -438,6 +473,7 @@ pnpm audit --fix  # Auto-fix where possible
 ### Current: Manual
 
 **To staging:**
+
 ```bash
 git checkout develop
 git pull
@@ -445,6 +481,7 @@ git pull
 ```
 
 **To production:**
+
 ```bash
 git checkout main
 git pull
@@ -475,6 +512,7 @@ jobs:
 ### Deployment Targets
 
 **Planned:**
+
 - Docker Compose (development)
 - Heroku (simple deployment)
 - Kubernetes (production scale)
@@ -489,10 +527,11 @@ jobs:
 **Cause:** pnpm not installed or wrong version
 
 **Fix:**
+
 ```yaml
 - uses: pnpm/action-setup@v3
   with:
-    version: 9  # Must match package.json
+    version: 9 # Must match package.json
 ```
 
 #### "Type errors in CI but not locally"
@@ -500,6 +539,7 @@ jobs:
 **Cause:** Local cache or different dependencies
 
 **Fix:**
+
 ```bash
 pnpm clean
 rm -rf node_modules
@@ -512,12 +552,14 @@ pnpm typecheck
 **Cause:** Environment differences
 
 **Check:**
+
 - Environment variables
 - Database/Redis connection
 - Time zones
 - File paths
 
 **Fix:**
+
 ```yaml
 env:
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
@@ -531,6 +573,7 @@ env:
 **Cause:** Build step failed or path incorrect
 
 **Fix:**
+
 ```yaml
 - name: Upload artifacts
   uses: actions/upload-artifact@v4
@@ -546,12 +589,14 @@ env:
 #### "Auto-merge button disabled"
 
 **Causes:**
+
 - Draft PR
 - Checks not passing
 - Merge conflicts
 - Branch not up to date
 
 **Fix:**
+
 1. Mark PR as ready
 2. Resolve conflicts
 3. Update branch
@@ -560,11 +605,13 @@ env:
 #### "Workflow not triggering"
 
 **Check:**
+
 1. Label spelled correctly (`automerge`)
 2. Workflow permissions in Settings → Actions
 3. Workflow file syntax
 
 **Fix:**
+
 ```bash
 # Check workflow syntax
 gh workflow view auto-merge
@@ -578,11 +625,13 @@ gh run list --workflow=auto-merge.yml
 #### "pnpm audit found vulnerabilities"
 
 **Check severity:**
+
 ```bash
 pnpm audit
 ```
 
 **Fix:**
+
 ```bash
 # Auto-fix where possible
 pnpm audit --fix
@@ -602,6 +651,7 @@ pnpm update <package-name>
 #### "CodeQL alert"
 
 **Process:**
+
 1. Review alert in Security tab
 2. Assess severity and exploitability
 3. Fix in code or mark as false positive
@@ -610,6 +660,7 @@ pnpm update <package-name>
 #### "Secret detected"
 
 **Immediate action:**
+
 1. Revoke secret (API keys, tokens, etc.)
 2. Generate new secret
 3. Update in GitHub Secrets
@@ -620,6 +671,7 @@ pnpm update <package-name>
 ### Local Development
 
 **Before committing:**
+
 ```bash
 pnpm typecheck  # Zero errors
 pnpm lint       # Zero warnings
@@ -627,6 +679,7 @@ pnpm test       # All passing
 ```
 
 **Install pre-commit hook:**
+
 ```bash
 cp .github/hooks/pre-commit .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
@@ -635,11 +688,13 @@ chmod +x .git/hooks/pre-commit
 ### Pull Requests
 
 **Keep PRs small:**
+
 - < 400 lines changed (ideal)
 - One feature/fix per PR
 - Easy to review and test
 
 **Write clear descriptions:**
+
 - What changed
 - Why it changed
 - How to test
@@ -647,6 +702,7 @@ chmod +x .git/hooks/pre-commit
 - Deployment notes
 
 **Request reviews:**
+
 - Tag relevant experts
 - Respond to comments promptly
 - Don't merge without approval
@@ -654,16 +710,19 @@ chmod +x .git/hooks/pre-commit
 ### Merging
 
 **Squash merge (default):**
+
 - Clean commit history
 - One commit per PR
 - Descriptive commit message
 
 **Rebase merge (alternative):**
+
 - Keep all commits
 - Linear history
 - Good for well-structured commits
 
 **Merge commit (avoid):**
+
 - Creates merge commits
 - Cluttered history
 - Use only when necessary
@@ -671,16 +730,19 @@ chmod +x .git/hooks/pre-commit
 ### Maintenance
 
 **Weekly:**
+
 - Review dependency update PRs
 - Check security alerts
 - Update documentation
 
 **Monthly:**
+
 - Review workflow efficiency
 - Update CI cache strategies
 - Audit secret usage
 
 **Quarterly:**
+
 - Review branch protection rules
 - Update Node.js version
 - Audit dependencies

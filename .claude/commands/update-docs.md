@@ -22,6 +22,7 @@ Update documentation to reflect new implementation, including both legacy docs (
 ## Overview
 
 This command updates all relevant documentation after a task is implemented:
+
 1. **VitePress KB** — Domain-organized documentation in `apps/docs/src/`
 2. **Legacy Docs** — High-level reference docs in `docs/` directory
 3. **Task Metadata** — Documentation Updates section with verification results
@@ -42,17 +43,18 @@ The command automatically detects which KB domains are affected, finds existing 
 
 Parse `code_files` from task frontmatter and map to KB domains:
 
-| Code Path Pattern | KB Domain | Example |
-|-------------------|-----------|---------|
-| `packages/auth/` | `auth/` | Session management, permissions, OAuth |
-| `packages/db/` | `database/` | Drizzle schemas, migrations, queries |
-| `apps/api/src/routes/` | `api/` | Route handlers, validation |
-| `apps/api/src/services/` | `api/` | Business logic services |
-| `apps/api/src/middleware/` | `api/` | Request middleware |
-| `packages/ai/` | `ai/` | OpenRouter client, streaming |
-| `apps/docs/` | `contributing/` | KB infrastructure, design system |
+| Code Path Pattern          | KB Domain       | Example                                |
+| -------------------------- | --------------- | -------------------------------------- |
+| `packages/auth/`           | `auth/`         | Session management, permissions, OAuth |
+| `packages/db/`             | `database/`     | Drizzle schemas, migrations, queries   |
+| `apps/api/src/routes/`     | `api/`          | Route handlers, validation             |
+| `apps/api/src/services/`   | `api/`          | Business logic services                |
+| `apps/api/src/middleware/` | `api/`          | Request middleware                     |
+| `packages/ai/`             | `ai/`           | OpenRouter client, streaming           |
+| `apps/docs/`               | `contributing/` | KB infrastructure, design system       |
 
 **Edge Cases:**
+
 - No `code_files` → Skip KB updates, proceed with legacy docs only
 - Multiple domains → Update all relevant domains
 - Unknown domain (e.g., `apps/worker/`) → Log info, continue with known domains
@@ -75,12 +77,14 @@ For each detected KB domain:
 For each KB page identified:
 
 **4.1 Read and Analyze:**
+
 - Read existing page content
 - Parse frontmatter metadata
 - Understand current structure and content
 
 **4.2 Determine Update Type:**
 Writer agent decides what to update:
+
 - Add new code example from task implementation
 - Update existing example with improved pattern
 - Add new subsection for new feature/pattern
@@ -88,6 +92,7 @@ Writer agent decides what to update:
 - Add cross-reference to newly created related page
 
 **4.3 Apply Updates Following KB Patterns:**
+
 - Maintain heading hierarchy (H1 → H2 → H3, never skip levels)
 - Use proper code block syntax with language tags
 - Add custom containers if appropriate (tip, info, warning, danger)
@@ -96,25 +101,28 @@ Writer agent decides what to update:
 - Preserve existing content (extend, don't replace)
 
 **4.4 Update Frontmatter:**
+
 ```yaml
 ---
 title: Existing Title (unchanged)
 description: Existing description (unchanged)
 related_code:
-  - packages/auth/src/session.service.ts  # existing
-  - apps/api/src/middleware/session.middleware.ts  # NEW from task
-implements_task: E02-T002  # original task ID (if present)
-last_verified: 2026-01-13  # UPDATED to today's date (YYYY-MM-DD)
+  - packages/auth/src/session.service.ts # existing
+  - apps/api/src/middleware/session.middleware.ts # NEW from task
+implements_task: E02-T002 # original task ID (if present)
+last_verified: 2026-01-13 # UPDATED to today's date (YYYY-MM-DD)
 ---
 ```
 
 **Important:**
+
 - Add new `related_code` entries for files from this task
 - Update `last_verified` to today's date (ISO 8601 format: YYYY-MM-DD)
 - Preserve `implements_task` if already present
 - Do NOT change title or description unless content significantly changed
 
 **4.5 Code Example Guidelines:**
+
 - Copy code directly from implementation files
 - Keep examples concise (5-15 lines ideal, max 50 lines)
 - Use line highlighting for important lines: ` ```typescript{2,4-6} `
@@ -128,6 +136,7 @@ If no existing KB pages match task's code files:
 
 **5.1 Analyze Task Scope:**
 Determine if new KB page would be valuable:
+
 - ✅ New concept introduced (e.g., two-factor authentication)
 - ✅ New pattern implemented (e.g., guard middleware)
 - ✅ New troubleshooting guidance (e.g., session expiry debugging)
@@ -138,6 +147,7 @@ Determine if new KB page would be valuable:
 
 **5.2 If Valuable, Ask User:**
 Use clear prompt format:
+
 ```
 No existing KB pages found for this task's code changes.
 
@@ -157,6 +167,7 @@ Choice: [1/2]
 ```
 
 **5.3 If User Approves, Create New Page:**
+
 - Use template from `apps/docs/src/contributing/kb-page-design.md` (lines 647-729)
 - Set frontmatter with `related_code` and `last_verified`
 - Add `implements_task: {TASK-ID}` to track origin
@@ -166,6 +177,7 @@ Choice: [1/2]
 
 **5.4 Update Sidebar Config:**
 If new page created, update `.vitepress/config.ts`:
+
 - Find relevant domain section
 - Add new page entry in appropriate content type array
 - Replace "Coming Soon" placeholder if present
@@ -176,19 +188,23 @@ If new page created, update `.vitepress/config.ts`:
 After KB updates complete:
 
 **6.1 Run Staleness Check:**
+
 ```bash
 pnpm --filter @raptscallions/docs check-staleness --format markdown
 ```
 
 **6.2 Verify Results:**
+
 - Confirm updated pages show `last_verified: TODAY`
 - Confirm no stale entries for updated pages
 - If staleness issues detected, review and fix before proceeding
 
 **6.3 Verify Build:**
+
 ```bash
 pnpm docs:build
 ```
+
 - Catches broken internal links
 - Validates markdown syntax
 - Confirms frontmatter is valid YAML
@@ -199,25 +215,30 @@ pnpm docs:build
 After KB updates complete, update legacy docs:
 
 **7.1 Identify Relevant Sections:**
+
 - **ARCHITECTURE.md** — High-level system design, technology choices
 - **CONVENTIONS.md** — Code style, patterns, file naming
 - **README.md** — Project overview, getting started
 
 **7.2 Update Content:**
+
 - Update relevant sections with new patterns/changes
 - Keep content high-level (details belong in KB)
 - Add cross-references to KB for details:
+
   ```markdown
   ## Authentication
 
-  Raptscallions uses Lucia for session-based authentication with support for OAuth providers.
+  RaptScallions uses Lucia for session-based authentication with support for OAuth providers.
 
   For detailed patterns and examples, see:
+
   - [Session Lifecycle](/auth/concepts/session-lifecycle) in the Knowledge Base
   - [Permission Guards](/auth/patterns/permission-guards)
   ```
 
 **7.3 Avoid Duplication:**
+
 - Legacy docs = overview + links to KB
 - KB = detailed patterns + code examples
 - Don't duplicate code examples in both places
@@ -226,10 +247,12 @@ After KB updates complete, update legacy docs:
 
 **8.1 Add Documentation Updates Section:**
 Add new section to task file:
+
 ```markdown
 ## Documentation Updates
 
 **KB Documentation:**
+
 - Updated: `apps/docs/src/auth/patterns/session-guards.md`
   - Added example for role-based guards
   - Updated `related_code` with new middleware file
@@ -239,15 +262,18 @@ Add new section to task file:
   - Updated frontmatter
 
 **Legacy Documentation:**
+
 - Updated: `docs/CONVENTIONS.md` section "Middleware Patterns"
 - Added cross-reference to KB guard pattern
 
 **Verification:**
+
 - ✅ Staleness check passed (0 stale docs)
 - ✅ Build check passed (no broken links)
 ```
 
 **8.2 Update Task Frontmatter:**
+
 ```yaml
 workflow_state: PR_READY
 status: in-progress
@@ -261,14 +287,15 @@ Task moves to `completed/` only after PR is merged (handled by `/commit-and-pr`)
 
 When updating or creating KB pages, follow these content types:
 
-| Content Type | Purpose | Example Topics |
-|--------------|---------|----------------|
-| **concepts/** | Core ideas, mental models | Session lifecycle, CASL abilities, ltree hierarchy |
-| **patterns/** | Reusable implementation patterns | Guard middleware, error handling, query builders |
-| **decisions/** | Architecture decision records (ADRs) | Why Drizzle over Prisma, why Fastify over Express |
-| **troubleshooting/** | Problem → solution guides | Session expiry debugging, permission denied errors |
+| Content Type         | Purpose                              | Example Topics                                     |
+| -------------------- | ------------------------------------ | -------------------------------------------------- |
+| **concepts/**        | Core ideas, mental models            | Session lifecycle, CASL abilities, ltree hierarchy |
+| **patterns/**        | Reusable implementation patterns     | Guard middleware, error handling, query builders   |
+| **decisions/**       | Architecture decision records (ADRs) | Why Drizzle over Prisma, why Fastify over Express  |
+| **troubleshooting/** | Problem → solution guides            | Session expiry debugging, permission denied errors |
 
 **Choosing Content Type:**
+
 - New mental model or concept? → `concepts/`
 - Reusable code pattern? → `patterns/`
 - Explaining a tech choice? → `decisions/`
@@ -297,6 +324,7 @@ Never expose session secrets in client-side code or logs.
 ```
 
 **When to use:**
+
 - **tip** — Best practices, recommendations, helpful hints
 - **info** — Additional context, FYI, related information
 - **warning** — Potential pitfalls, deprecated features, breaking changes
@@ -305,44 +333,48 @@ Never expose session secrets in client-side code or logs.
 ## Code Example Patterns
 
 ### Basic Example
-```markdown
+
+````markdown
 \```typescript
 export async function validateSession(sessionId: string): Promise<Session | null> {
-  const session = await db.query.sessions.findFirst({
-    where: eq(sessions.id, sessionId)
-  });
-  return session;
+const session = await db.query.sessions.findFirst({
+where: eq(sessions.id, sessionId)
+});
+return session;
 }
 \```
-```
+````
 
 ### With File Path
-```markdown
+
+````markdown
 \```typescript [packages/auth/src/session.service.ts]
 export async function validateSession(sessionId: string): Promise<Session | null> {
-  // Implementation...
+// Implementation...
 }
 \```
-```
+````
 
 ### With Line Highlighting
-```markdown
+
+````markdown
 \```typescript{2,4-6}
 export function createUser(data: CreateUserInput) {
-  const hashedPassword = await hashPassword(data.password); // highlighted
+const hashedPassword = await hashPassword(data.password); // highlighted
 
-  const user = await db.insert(users).values({ // highlighted
-    ...data,                                    // highlighted
-    passwordHash: hashedPassword                // highlighted
-  });
+const user = await db.insert(users).values({ // highlighted
+...data, // highlighted
+passwordHash: hashedPassword // highlighted
+});
 
-  return user;
+return user;
 }
 \```
-```
+````
 
 ### Code Groups (Multiple Languages)
-```markdown
+
+````markdown
 ::: code-group
 \```typescript [TypeScript]
 const user: User = { id: "123", name: "Alice" };
@@ -352,7 +384,7 @@ const user: User = { id: "123", name: "Alice" };
 const user = { id: "123", name: "Alice" };
 \```
 :::
-```
+````
 
 ## Verification Checklist
 
@@ -374,22 +406,26 @@ Before completing the command, verify:
 ## Integration with Other Commands
 
 ### After `/update-docs` Completes:
+
 ```
 Task state: PR_READY
 Next step: /commit-and-pr
 ```
 
 The `/commit-and-pr` command will:
+
 1. Commit all changes (code + KB docs + legacy docs)
 2. Create PR with documentation updates included
 3. Single review covers implementation + documentation
 
 ### Relation to `/document`:
+
 - `/document` — For dedicated KB documentation tasks (E06 epic)
 - `/update-docs` — For implementation tasks that also update KB
 - No conflict, complementary purposes
 
 ### Relation to Epic Review:
+
 - Epic review checks if KB docs exist for completed tasks
 - `/update-docs` reduces need for follow-up doc tasks
 - If docs still missing, epic review creates follow-up tasks
@@ -397,28 +433,36 @@ The `/commit-and-pr` command will:
 ## Troubleshooting
 
 ### No KB Pages Found
+
 If no KB pages match task's code files and no new page seems needed:
+
 - This is normal for internal refactoring
 - Skip KB updates gracefully
 - Proceed with legacy doc updates only
 - Document in task: "No KB updates needed (internal changes only)"
 
 ### Staleness Check Fails
+
 If staleness check reports issues after update:
+
 - Verify `last_verified` date is today (YYYY-MM-DD format)
 - Verify `related_code` paths are correct (relative to repo root)
 - Check for typos in file paths
 - Re-run check after fixing
 
 ### Build Check Fails
+
 If `pnpm docs:build` fails:
+
 - Check for broken internal links (use absolute paths like `/auth/concepts/...`)
 - Verify frontmatter YAML is valid (no syntax errors)
 - Check for unclosed code blocks or custom containers
 - Fix issues and re-run build
 
 ### Multiple Domains Detected
+
 If task touches multiple domains:
+
 - Update all relevant domains (don't skip any)
 - Group updates by domain in Documentation Updates section
 - Verify each domain's pages independently

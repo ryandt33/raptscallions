@@ -1,6 +1,6 @@
-# Raptscallions Theme System Documentation
+# RaptScallions Theme System Documentation
 
-Complete guide to the hierarchical, customizable theme system that allows organizations to brand Raptscallions at any level.
+Complete guide to the hierarchical, customizable theme system that allows organizations to brand RaptScallions at any level.
 
 ---
 
@@ -18,7 +18,7 @@ Complete guide to the hierarchical, customizable theme system that allows organi
 
 ## Overview
 
-Raptscallions’s theme system enables multi-tenant branding with hierarchical inheritance. Each group (district, school, class) can customize the platform’s appearance while maintaining visual consistency with parent organizations.
+RaptScallions’s theme system enables multi-tenant branding with hierarchical inheritance. Each group (district, school, class) can customize the platform’s appearance while maintaining visual consistency with parent organizations.
 
 ### Hierarchy Example
 
@@ -470,7 +470,7 @@ Returns all pre-built theme templates.
 ```json
 {
   "default": {
-    "name": "Raptscallions Default",
+    "name": "RaptScallions Default",
     "primary": "#0066CC",
     "secondary": "#64748B",
     "accent": "#10B981",
@@ -774,7 +774,7 @@ https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap
 
 ## Summary
 
-Raptscallions’s theme system provides:
+RaptScallions’s theme system provides:
 
 ✅ **Hierarchical inheritance** - Set once, apply everywhere
 ✅ **Visual editor** - No coding required
@@ -787,7 +787,7 @@ Raptscallions’s theme system provides:
 **Key Advantage over Moodle:**
 
 - Moodle: Upload CSS file → Restart server → Hope it works
-- Raptscallions: Visual editor → Live preview → Instant deployment
+- RaptScallions: Visual editor → Live preview → Instant deployment
 
 **Getting Started:**
 

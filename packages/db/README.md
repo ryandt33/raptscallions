@@ -1,6 +1,6 @@
 # @raptscallions/db
 
-Database package for Raptscallions, providing Drizzle ORM schema definitions, migrations, and a configured PostgreSQL client.
+Database package for RaptScallions, providing Drizzle ORM schema definitions, migrations, and a configured PostgreSQL client.
 
 ## Features
 
@@ -13,7 +13,7 @@ Database package for Raptscallions, providing Drizzle ORM schema definitions, mi
 
 ## Installation
 
-This package is part of the Raptscallions monorepo and uses pnpm workspaces.
+This package is part of the RaptScallions monorepo and uses pnpm workspaces.
 
 ```bash
 pnpm install
@@ -67,13 +67,17 @@ const user = await db.query.users.findFirst({
 const allUsers = await db.select().from(users);
 
 // Insert
-const [newUser] = await db.insert(users).values({
-  email: "new@example.com",
-  name: "New User",
-}).returning();
+const [newUser] = await db
+  .insert(users)
+  .values({
+    email: "new@example.com",
+    name: "New User",
+  })
+  .returning();
 
 // Update
-await db.update(users)
+await db
+  .update(users)
   .set({ name: "Updated Name" })
   .where(eq(users.id, userId));
 
@@ -204,20 +208,26 @@ The users table is the foundational entity for authentication and authorization:
 import { users, type User, type NewUser } from "@raptscallions/db/schema";
 
 // Create a user with email/password
-const newUser = await db.insert(users).values({
-  email: "user@example.com",
-  name: "Jane Doe",
-  passwordHash: hashedPassword,
-  status: "pending_verification",
-}).returning();
+const newUser = await db
+  .insert(users)
+  .values({
+    email: "user@example.com",
+    name: "Jane Doe",
+    passwordHash: hashedPassword,
+    status: "pending_verification",
+  })
+  .returning();
 
 // Create an OAuth user (no password)
-const oauthUser = await db.insert(users).values({
-  email: "oauth@example.com",
-  name: "OAuth User",
-  // passwordHash omitted - null for OAuth users
-  status: "active",
-}).returning();
+const oauthUser = await db
+  .insert(users)
+  .values({
+    email: "oauth@example.com",
+    name: "OAuth User",
+    // passwordHash omitted - null for OAuth users
+    status: "active",
+  })
+  .returning();
 
 // Query active users only (soft delete pattern)
 import { isNull } from "drizzle-orm";
@@ -227,7 +237,8 @@ const activeUsers = await db.query.users.findMany({
 });
 
 // Soft delete a user
-await db.update(users)
+await db
+  .update(users)
   .set({ deletedAt: new Date() })
   .where(eq(users.id, userId));
 ```
@@ -255,7 +266,7 @@ All user queries should filter out soft-deleted users:
 import { isNull } from "drizzle-orm";
 
 // Always include this in queries unless specifically querying deleted users
-where: isNull(users.deletedAt)
+where: isNull(users.deletedAt);
 ```
 
 ### Type Inference
@@ -296,11 +307,11 @@ export type NewUser = typeof users.$inferInsert;
 
 The database client is configured with sensible defaults:
 
-| Setting           | Default | Description |
-| ----------------- | ------- | ----------- |
-| `max`             | 10      | Maximum connections in pool |
-| `idle_timeout`    | 30s     | Close idle connections after 30 seconds |
-| `connect_timeout` | 2s      | Connection timeout |
+| Setting           | Default | Description                                              |
+| ----------------- | ------- | -------------------------------------------------------- |
+| `max`             | 10      | Maximum connections in pool                              |
+| `idle_timeout`    | 30s     | Close idle connections after 30 seconds                  |
+| `connect_timeout` | 2s      | Connection timeout                                       |
 | `prepare`         | false   | Disabled for connection pooler compatibility (PgBouncer) |
 
 Pool size follows the rule: `(cpu_cores * 2) + spindle_count`. Default of 10 works for typical cloud instances.
@@ -400,17 +411,17 @@ pnpm --filter @raptscallions/db clean
 
 ## Scripts
 
-| Script         | Description |
-| -------------- | ----------- |
-| `build`        | Compile TypeScript to dist/ |
-| `dev`          | Watch mode for development |
-| `clean`        | Remove build artifacts |
-| `test`         | Run test suite |
-| `test:watch`   | Run tests in watch mode |
-| `db:generate`  | Generate migration from schema changes |
-| `db:migrate`   | Apply pending migrations |
-| `db:push`      | Push schema directly (dev only) |
-| `db:studio`    | Open Drizzle Studio GUI |
+| Script        | Description                            |
+| ------------- | -------------------------------------- |
+| `build`       | Compile TypeScript to dist/            |
+| `dev`         | Watch mode for development             |
+| `clean`       | Remove build artifacts                 |
+| `test`        | Run test suite                         |
+| `test:watch`  | Run tests in watch mode                |
+| `db:generate` | Generate migration from schema changes |
+| `db:migrate`  | Apply pending migrations               |
+| `db:push`     | Push schema directly (dev only)        |
+| `db:studio`   | Open Drizzle Studio GUI                |
 
 ## Dependencies
 

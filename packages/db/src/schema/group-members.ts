@@ -31,7 +31,7 @@ export const memberRoleEnum = pgEnum("member_role", [
 /**
  * Group members table - many-to-many relationship between users and groups with roles.
  *
- * This table enables role-based access control (RBAC) in the Raptscallions platform.
+ * This table enables role-based access control (RBAC) in the RaptScallions platform.
  * Each record represents a user's membership in a group with a specific role.
  *
  * Note: This table does NOT use soft deletes (no deleted_at field).

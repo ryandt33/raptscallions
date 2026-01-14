@@ -6,7 +6,7 @@
 
 ## Overview
 
-Set up the foundational pnpm workspace monorepo structure for Raptscallions. This includes configuring the workspace with apps/ and packages/ directories, establishing shared TypeScript configuration with strict mode, and creating placeholder packages with proper naming conventions. This task is the critical first step that unblocks all subsequent development tasks.
+Set up the foundational pnpm workspace monorepo structure for RaptScallions. This includes configuring the workspace with apps/ and packages/ directories, establishing shared TypeScript configuration with strict mode, and creating placeholder packages with proper naming conventions. This task is the critical first step that unblocks all subsequent development tasks.
 
 ## Approach
 
@@ -18,30 +18,30 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
 
 ## Files to Create
 
-| File | Purpose |
-| ---- | ------- |
-| `pnpm-workspace.yaml` | Define workspace globs for apps/* and packages/* |
-| `tsconfig.json` | Base TypeScript configuration with strict mode |
-| `.nvmrc` | Specify Node.js 20 LTS version |
-| `.gitignore` | Ignore node_modules, dist, .env, and other build artifacts |
-| `apps/.gitkeep` | Placeholder to ensure apps/ directory is tracked |
-| `packages/core/package.json` | Package manifest for @raptscallions/core |
-| `packages/core/tsconfig.json` | TypeScript config extending base |
-| `packages/core/src/index.ts` | Entry point placeholder |
-| `packages/db/package.json` | Package manifest for @raptscallions/db |
-| `packages/db/tsconfig.json` | TypeScript config extending base |
-| `packages/db/src/index.ts` | Entry point placeholder |
-| `packages/telemetry/package.json` | Package manifest for @raptscallions/telemetry |
-| `packages/telemetry/tsconfig.json` | TypeScript config extending base |
-| `packages/telemetry/src/index.ts` | Entry point placeholder |
-| `packages/modules/package.json` | Package manifest for @raptscallions/modules |
-| `packages/modules/tsconfig.json` | TypeScript config extending base |
-| `packages/modules/src/index.ts` | Entry point placeholder |
+| File                               | Purpose                                                    |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `pnpm-workspace.yaml`              | Define workspace globs for apps/_ and packages/_           |
+| `tsconfig.json`                    | Base TypeScript configuration with strict mode             |
+| `.nvmrc`                           | Specify Node.js 20 LTS version                             |
+| `.gitignore`                       | Ignore node_modules, dist, .env, and other build artifacts |
+| `apps/.gitkeep`                    | Placeholder to ensure apps/ directory is tracked           |
+| `packages/core/package.json`       | Package manifest for @raptscallions/core                   |
+| `packages/core/tsconfig.json`      | TypeScript config extending base                           |
+| `packages/core/src/index.ts`       | Entry point placeholder                                    |
+| `packages/db/package.json`         | Package manifest for @raptscallions/db                     |
+| `packages/db/tsconfig.json`        | TypeScript config extending base                           |
+| `packages/db/src/index.ts`         | Entry point placeholder                                    |
+| `packages/telemetry/package.json`  | Package manifest for @raptscallions/telemetry              |
+| `packages/telemetry/tsconfig.json` | TypeScript config extending base                           |
+| `packages/telemetry/src/index.ts`  | Entry point placeholder                                    |
+| `packages/modules/package.json`    | Package manifest for @raptscallions/modules                |
+| `packages/modules/tsconfig.json`   | TypeScript config extending base                           |
+| `packages/modules/src/index.ts`    | Entry point placeholder                                    |
 
 ## Files to Modify
 
-| File | Changes |
-| ---- | ------- |
+| File           | Changes                                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `package.json` | Update name to `@raptscallions/root`, add workspace scripts (`dev`, `build`, `test`, `lint`, `clean`), merge existing workflow scripts, add pnpm engine requirement |
 
 ## Dependencies
@@ -57,18 +57,21 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
 ## Implementation Steps
 
 1. **Create `.nvmrc`**
+
    ```
    20
    ```
 
 2. **Create `pnpm-workspace.yaml`**
+
    ```yaml
    packages:
-     - 'apps/*'
-     - 'packages/*'
+     - "apps/*"
+     - "packages/*"
    ```
 
 3. **Update root `package.json`**
+
    - Change `name` from `@raptscallions/workflow` to `@raptscallions/root`
    - Add `engines` field requiring Node.js 20.x and pnpm 8.x
    - Add workspace management scripts:
@@ -80,6 +83,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    - Keep existing workflow scripts
 
 4. **Create `tsconfig.json` (base config)**
+
    ```json
    {
      "compilerOptions": {
@@ -109,6 +113,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    ```
 
 5. **Create `.gitignore`**
+
    ```
    # Dependencies
    node_modules/
@@ -147,6 +152,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    ```
 
 6. **Create `apps/.gitkeep`**
+
    - Empty file to track the apps directory
 
 7. **Create package structure for each package** (`core`, `db`, `telemetry`, `modules`)
@@ -154,6 +160,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    Each package follows the same pattern:
 
    **package.json** (example for core):
+
    ```json
    {
      "name": "@raptscallions/core",
@@ -177,6 +184,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    ```
 
    **tsconfig.json** (example for core):
+
    ```json
    {
      "extends": "../../tsconfig.json",
@@ -189,6 +197,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
    ```
 
    **src/index.ts**:
+
    ```typescript
    // @raptscallions/core - Shared types and schemas
    export {};
@@ -209,10 +218,12 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
 ### Validation Tests
 
 1. **Workspace Resolution Test**
+
    - Run `pnpm install` from root - should complete without errors
    - Run `pnpm ls -r` - should list all 4 packages
 
 2. **TypeScript Compilation Test**
+
    - Run `pnpm -r build` - should compile all packages without errors
    - Each package should produce `dist/index.js` and `dist/index.d.ts`
 
@@ -222,27 +233,27 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
 
 ## Acceptance Criteria Verification
 
-| AC | How to Verify |
-| -- | ------------- |
-| AC1: pnpm-workspace.yaml configured | File exists at root with `apps/*` and `packages/*` globs |
+| AC                                           | How to Verify                                                                                       |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| AC1: pnpm-workspace.yaml configured          | File exists at root with `apps/*` and `packages/*` globs                                            |
 | AC2: Root package.json with name and scripts | Check `name` is `@raptscallions/root`, verify `dev`, `build`, `test`, `lint`, `clean` scripts exist |
-| AC3: Base tsconfig.json with strict mode | Verify `strict: true`, `target: ES2022`, path aliases configured |
-| AC4: apps/ directory created | Directory exists (can be empty with .gitkeep) |
-| AC5: packages/ directory with subdirs | Verify `packages/core`, `packages/db`, `packages/telemetry`, `packages/modules` exist |
-| AC6: Each package has package.json | All 4 packages have `package.json` with `@raptscallions/*` naming |
-| AC7: Each package has tsconfig.json | All 4 packages have `tsconfig.json` extending `../../tsconfig.json` |
-| AC8: `pnpm install` runs without errors | Execute command and verify exit code 0 |
-| AC9: .gitignore includes required entries | File contains `node_modules`, `dist`, `.env`, etc. |
-| AC10: Node version specified | `.nvmrc` exists with `20` |
+| AC3: Base tsconfig.json with strict mode     | Verify `strict: true`, `target: ES2022`, path aliases configured                                    |
+| AC4: apps/ directory created                 | Directory exists (can be empty with .gitkeep)                                                       |
+| AC5: packages/ directory with subdirs        | Verify `packages/core`, `packages/db`, `packages/telemetry`, `packages/modules` exist               |
+| AC6: Each package has package.json           | All 4 packages have `package.json` with `@raptscallions/*` naming                                   |
+| AC7: Each package has tsconfig.json          | All 4 packages have `tsconfig.json` extending `../../tsconfig.json`                                 |
+| AC8: `pnpm install` runs without errors      | Execute command and verify exit code 0                                                              |
+| AC9: .gitignore includes required entries    | File contains `node_modules`, `dist`, `.env`, etc.                                                  |
+| AC10: Node version specified                 | `.nvmrc` exists with `20`                                                                           |
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| pnpm not installed globally | Document requirement in README; consider adding installation check script |
-| Existing package.json conflicts | Carefully merge existing workflow scripts into new structure |
-| Path aliases not resolving in IDE | Include VSCode workspace settings recommendation in follow-up task |
-| Different pnpm versions causing lockfile issues | Specify exact pnpm version in `packageManager` field and `engines` |
+| Risk                                            | Mitigation                                                                |
+| ----------------------------------------------- | ------------------------------------------------------------------------- |
+| pnpm not installed globally                     | Document requirement in README; consider adding installation check script |
+| Existing package.json conflicts                 | Carefully merge existing workflow scripts into new structure              |
+| Path aliases not resolving in IDE               | Include VSCode workspace settings recommendation in follow-up task        |
+| Different pnpm versions causing lockfile issues | Specify exact pnpm version in `packageManager` field and `engines`        |
 
 ## Open Questions
 
@@ -268,7 +279,7 @@ Set up the foundational pnpm workspace monorepo structure for Raptscallions. Thi
 
 - [x] Follows monorepo structure - apps/ and packages/ directories match ARCHITECTURE.md
 - [x] Uses correct technology stack - pnpm workspaces, TypeScript 5.3+ strict mode, Node.js 20 LTS
-- [x] Naming conventions correct - @raptscallions/* package naming
+- [x] Naming conventions correct - @raptscallions/\* package naming
 - [x] No security concerns - .gitignore properly excludes .env files
 - [x] No performance concerns - Standard monorepo setup
 - [x] Dependencies appropriate - No task dependencies (E01-T001 is the root task)

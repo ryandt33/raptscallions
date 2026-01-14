@@ -1,12 +1,13 @@
 # @raptscallions/ai
 
-OpenRouter AI client with streaming support for Raptscallions platform.
+OpenRouter AI client with streaming support for RaptScallions platform.
 
 ## Overview
 
 This package provides a TypeScript-first client for OpenRouter's AI gateway, built on the OpenAI SDK. It supports streaming responses, comprehensive error handling, and full type safety.
 
 **Key Features:**
+
 - ✅ Streaming-first design with async generators
 - ✅ Full TypeScript support with strict types
 - ✅ Typed error classes for all failure modes
@@ -41,21 +42,21 @@ AI_MAX_RETRIES=2               # Default: 2
 ### Streaming (Recommended for Chat)
 
 ```typescript
-import { openRouterClient } from '@raptscallions/ai';
+import { openRouterClient } from "@raptscallions/ai";
 
 const stream = openRouterClient.streamChat(
-  [{ role: 'user', content: 'Hello!' }],
-  { model: 'anthropic/claude-sonnet-4-20250514' }
+  [{ role: "user", content: "Hello!" }],
+  { model: "anthropic/claude-sonnet-4-20250514" }
 );
 
 for await (const chunk of stream) {
-  if (chunk.type === 'content') {
+  if (chunk.type === "content") {
     // Stream content to user
     process.stdout.write(chunk.content);
-  } else if (chunk.type === 'done') {
+  } else if (chunk.type === "done") {
     // Final result with usage metadata
-    console.log('Tokens:', chunk.result.usage);
-    console.log('Finish reason:', chunk.result.finishReason);
+    console.log("Tokens:", chunk.result.usage);
+    console.log("Finish reason:", chunk.result.finishReason);
   }
 }
 ```
@@ -63,15 +64,15 @@ for await (const chunk of stream) {
 ### Non-Streaming (Convenience)
 
 ```typescript
-import { openRouterClient } from '@raptscallions/ai';
+import { openRouterClient } from "@raptscallions/ai";
 
 const result = await openRouterClient.chat(
-  [{ role: 'user', content: 'Generate a quiz' }],
-  { model: 'anthropic/claude-sonnet-4-20250514' }
+  [{ role: "user", content: "Generate a quiz" }],
+  { model: "anthropic/claude-sonnet-4-20250514" }
 );
 
 console.log(result.content);
-console.log('Tokens used:', result.usage.totalTokens);
+console.log("Tokens used:", result.usage.totalTokens);
 ```
 
 ### Custom Client Instance
@@ -79,12 +80,12 @@ console.log('Tokens used:', result.usage.totalTokens);
 For testing or custom configuration:
 
 ```typescript
-import { OpenRouterClient } from '@raptscallions/ai';
+import { OpenRouterClient } from "@raptscallions/ai";
 
 const customClient = new OpenRouterClient({
-  apiKey: 'test-key',
-  baseURL: 'https://test.openrouter.ai',
-  defaultModel: 'test/model',
+  apiKey: "test-key",
+  baseURL: "https://test.openrouter.ai",
+  defaultModel: "test/model",
   timeout: 60000,
   maxRetries: 3,
 });
@@ -95,11 +96,11 @@ const customClient = new OpenRouterClient({
 ```typescript
 const stream = openRouterClient.streamChat(
   [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Explain TypeScript' },
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: "Explain TypeScript" },
   ],
   {
-    model: 'anthropic/claude-sonnet-4-20250514',
+    model: "anthropic/claude-sonnet-4-20250514",
     maxTokens: 1000,
     temperature: 0.7,
     topP: 0.9,
@@ -118,7 +119,7 @@ setTimeout(() => controller.abort(), 10000);
 
 try {
   const stream = openRouterClient.streamChat(
-    [{ role: 'user', content: 'Long request...' }],
+    [{ role: "user", content: "Long request..." }],
     { signal: controller.signal }
   );
 
@@ -127,7 +128,7 @@ try {
   }
 } catch (error) {
   if (error instanceof TimeoutError) {
-    console.log('Request cancelled');
+    console.log("Request cancelled");
   }
 }
 ```
@@ -138,7 +139,7 @@ try {
 
 ```typescript
 interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 ```
@@ -147,8 +148,8 @@ interface ChatMessage {
 
 ```typescript
 type StreamChunk =
-  | { type: 'content'; content: string }
-  | { type: 'done'; result: ChatCompletionResult };
+  | { type: "content"; content: string }
+  | { type: "done"; result: ChatCompletionResult };
 ```
 
 ### ChatCompletionResult
@@ -158,7 +159,7 @@ interface ChatCompletionResult {
   content: string;
   usage: UsageMetadata;
   model: string;
-  finishReason: 'stop' | 'length' | 'content_filter' | 'error' | null;
+  finishReason: "stop" | "length" | "content_filter" | "error" | null;
 }
 ```
 
@@ -197,23 +198,23 @@ import {
   TimeoutError,
   InvalidResponseError,
   AiError,
-} from '@raptscallions/ai';
+} from "@raptscallions/ai";
 
 try {
   const result = await openRouterClient.chat(messages);
 } catch (error) {
   if (error instanceof RateLimitError) {
-    console.log('Rate limit hit, retry after:', error.details?.retryAfter);
+    console.log("Rate limit hit, retry after:", error.details?.retryAfter);
   } else if (error instanceof AuthenticationError) {
-    console.log('Invalid API key');
+    console.log("Invalid API key");
   } else if (error instanceof ModelNotAvailableError) {
-    console.log('Model not found:', error.details?.model);
+    console.log("Model not found:", error.details?.model);
   } else if (error instanceof TimeoutError) {
-    console.log('Request timed out');
+    console.log("Request timed out");
   } else if (error instanceof InvalidResponseError) {
-    console.log('Invalid response from API');
+    console.log("Invalid response from API");
   } else if (error instanceof AiError) {
-    console.log('Generic AI error:', error.message);
+    console.log("Generic AI error:", error.message);
   }
 }
 ```
@@ -284,18 +285,21 @@ The package exports a lazy-initialized singleton (`openRouterClient`) for conven
 
 ```typescript
 // apps/api/src/services/chat.service.ts
-import { openRouterClient } from '@raptscallions/ai';
+import { openRouterClient } from "@raptscallions/ai";
 
-export async function* streamChatResponse(sessionId: string, userMessage: string) {
+export async function* streamChatResponse(
+  sessionId: string,
+  userMessage: string
+) {
   const messages = await loadSessionMessages(sessionId);
-  messages.push({ role: 'user', content: userMessage });
+  messages.push({ role: "user", content: userMessage });
 
   const stream = openRouterClient.streamChat(messages);
 
   for await (const chunk of stream) {
-    if (chunk.type === 'content') {
+    if (chunk.type === "content") {
       yield chunk.content;
-    } else if (chunk.type === 'done') {
+    } else if (chunk.type === "done") {
       await storeUsageMetadata(sessionId, chunk.result.usage);
     }
   }
@@ -312,16 +316,18 @@ export class ChatService {
   ) {}
 
   async processMessage(message: string) {
-    const result = await this.aiClient.chat([{ role: 'user', content: message }]);
+    const result = await this.aiClient.chat([
+      { role: "user", content: message },
+    ]);
     return result;
   }
 }
 
 // In tests
 const mockClient = new OpenRouterClient({
-  apiKey: 'test',
-  baseURL: 'http://localhost:3001/mock',
-  defaultModel: 'test/model',
+  apiKey: "test",
+  baseURL: "http://localhost:3001/mock",
+  defaultModel: "test/model",
 });
 
 const service = new ChatService(mockDb, mockClient);

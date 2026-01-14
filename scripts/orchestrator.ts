@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Raptscallions Workflow Orchestrator
+ * RaptScallions Workflow Orchestrator
  *
  * Automates task progression through the development workflow using Claude Code.
  *
@@ -264,7 +264,11 @@ function parseFrontmatter(content: string): {
     const frontmatter = yaml.parse(match[1] as string);
     return { frontmatter, body: match[2] as string };
   } catch (e) {
-    logError(`Failed to parse frontmatter: ${e instanceof Error ? e.message : String(e)}`);
+    logError(
+      `Failed to parse frontmatter: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     return { frontmatter: {}, body: content };
   }
 }
@@ -288,7 +292,11 @@ function loadTask(filepath: string): Task | undefined {
       body,
     };
   } catch (e) {
-    logError(`Failed to load task ${filepath}: ${e instanceof Error ? e.message : String(e)}`);
+    logError(
+      `Failed to load task ${filepath}: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     return undefined;
   }
 }
@@ -338,7 +346,11 @@ function loadWorkflowConfig(): WorkflowConfig | null {
     const content = fs.readFileSync(WORKFLOW_CONFIG_PATH, "utf-8");
     return yaml.parse(content) as WorkflowConfig;
   } catch (e) {
-    logError(`Failed to load workflow config: ${e instanceof Error ? e.message : String(e)}`);
+    logError(
+      `Failed to load workflow config: ${
+        e instanceof Error ? e.message : String(e)
+      }`
+    );
     return null;
   }
 }
@@ -437,11 +449,11 @@ async function runClaudeCode(
               if (event.message?.content) {
                 for (const block of event.message.content) {
                   if (block.type === "text" && block.text) {
-                    process.stdout.write(colors.gray + block.text + colors.reset);
-                  } else if (block.type === "tool_use") {
-                    log(
-                      `${colors.cyan}[TOOL]${colors.reset} ${block.name}`
+                    process.stdout.write(
+                      colors.gray + block.text + colors.reset
                     );
+                  } else if (block.type === "tool_use") {
+                    log(`${colors.cyan}[TOOL]${colors.reset} ${block.name}`);
                   }
                 }
               }
@@ -450,7 +462,9 @@ async function runClaudeCode(
             case "content_block_delta":
               // Streaming text delta
               if (event.delta?.text) {
-                process.stdout.write(colors.gray + event.delta.text + colors.reset);
+                process.stdout.write(
+                  colors.gray + event.delta.text + colors.reset
+                );
               }
               break;
 
@@ -458,12 +472,21 @@ async function runClaudeCode(
               // Final result
               if (event.result) {
                 log("");
-                log(`${colors.green}[RESULT]${colors.reset} ${event.result.slice(0, 100)}...`);
+                log(
+                  `${colors.green}[RESULT]${colors.reset} ${event.result.slice(
+                    0,
+                    100
+                  )}...`
+                );
               }
               break;
 
             case "error":
-              log(`${colors.red}[ERROR]${colors.reset} ${event.error?.message || "Unknown error"}`);
+              log(
+                `${colors.red}[ERROR]${colors.reset} ${
+                  event.error?.message || "Unknown error"
+                }`
+              );
               break;
 
             default:
@@ -538,7 +561,11 @@ function shouldSkipUIReview(task: Task, state: WorkflowState): boolean {
 }
 
 // Review states that can be skipped on re-review (after fix)
-const REVIEW_STATES: WorkflowState[] = ["UI_REVIEW", "CODE_REVIEW", "QA_REVIEW"];
+const REVIEW_STATES: WorkflowState[] = [
+  "UI_REVIEW",
+  "CODE_REVIEW",
+  "QA_REVIEW",
+];
 
 /**
  * Mark a review as passed for a task.
@@ -633,7 +660,9 @@ function getNextState(
 }
 
 function needsFreshContext(state: WorkflowState): boolean {
-  return state === "UI_REVIEW" || state === "CODE_REVIEW" || state === "QA_REVIEW";
+  return (
+    state === "UI_REVIEW" || state === "CODE_REVIEW" || state === "QA_REVIEW"
+  );
 }
 
 function updateTaskHistory(
@@ -649,16 +678,19 @@ function updateTaskHistory(
   const historyMatch = task.body.match(
     /(## History\n\n\|[^\n]+\n\|[^\n]+\n)([\s\S]*?)(\n\n##|$)/
   );
-  if (historyMatch && historyMatch.index !== undefined && historyMatch[1] && historyMatch[2]) {
+  if (
+    historyMatch &&
+    historyMatch.index !== undefined &&
+    historyMatch[1] &&
+    historyMatch[2]
+  ) {
     const matchIndex = historyMatch.index;
     const beforeHistory = task.body.slice(
       0,
       matchIndex + historyMatch[1].length
     );
     const existingRows = historyMatch[2];
-    const afterHistory = task.body.slice(
-      matchIndex + historyMatch[0].length
-    );
+    const afterHistory = task.body.slice(matchIndex + historyMatch[0].length);
 
     task.body =
       beforeHistory +
@@ -768,19 +800,23 @@ async function runWorkflowStep(
     const newState = updatedTask.workflow_state;
 
     // Detect rejection: review state → IMPLEMENTING
-    if (
-      REVIEW_STATES.includes(currentState) &&
-      newState === "IMPLEMENTING"
-    ) {
+    if (REVIEW_STATES.includes(currentState) && newState === "IMPLEMENTING") {
       logWarning(`${task.id}: Review rejected at ${currentState}`);
       markRejectedFrom(updatedTask, currentState);
       saveTask(updatedTask);
     }
     // Detect successful review: review state → next review or beyond
-    else if (REVIEW_STATES.includes(currentState) && newState !== "IMPLEMENTING") {
+    else if (
+      REVIEW_STATES.includes(currentState) &&
+      newState !== "IMPLEMENTING"
+    ) {
       markReviewPassed(updatedTask, currentState);
       // Clear tracking if we've passed all reviews (moving to INTEGRATION_TESTING or beyond)
-      if (newState === "INTEGRATION_TESTING" || newState === "DOCS_UPDATE" || newState === "DONE") {
+      if (
+        newState === "INTEGRATION_TESTING" ||
+        newState === "DOCS_UPDATE" ||
+        newState === "DONE"
+      ) {
         clearReviewTracking(updatedTask);
       }
       saveTask(updatedTask);
@@ -798,7 +834,11 @@ async function runWorkflowStep(
     // Track review passes for auto-transitions too
     if (REVIEW_STATES.includes(currentState)) {
       markReviewPassed(updatedTask, currentState);
-      if (nextState === "INTEGRATION_TESTING" || nextState === "DOCS_UPDATE" || nextState === "DONE") {
+      if (
+        nextState === "INTEGRATION_TESTING" ||
+        nextState === "DOCS_UPDATE" ||
+        nextState === "DONE"
+      ) {
         clearReviewTracking(updatedTask);
       }
     }
@@ -954,7 +994,7 @@ function showStatus(taskId?: string): void {
     }
 
     log("");
-    log(`${colors.bold}📊 Raptscallions Task Board${colors.reset}`);
+    log(`${colors.bold}📊 RaptScallions Task Board${colors.reset}`);
     log("");
 
     const stateOrder: WorkflowState[] = [
@@ -1123,7 +1163,9 @@ function getTasksByEpic(tasks: Task[]): Map<string, Task[]> {
 }
 
 function isEpicComplete(epicTasks: Task[]): boolean {
-  return epicTasks.length > 0 && epicTasks.every((t) => t.workflow_state === "DONE");
+  return (
+    epicTasks.length > 0 && epicTasks.every((t) => t.workflow_state === "DONE")
+  );
 }
 
 function getCompletedEpics(tasks: Task[]): Set<string> {
@@ -1150,7 +1192,9 @@ async function runAutoMode(
     `${colors.bold}═══════════════════════════════════════════════════════════════${colors.reset}`
   );
   log(
-    `${colors.bold}  ${continuous ? "Continuous" : "Auto"} Mode - Running All Ready Tasks${colors.reset}`
+    `${colors.bold}  ${
+      continuous ? "Continuous" : "Auto"
+    } Mode - Running All Ready Tasks${colors.reset}`
   );
   log(
     `${colors.bold}═══════════════════════════════════════════════════════════════${colors.reset}`
@@ -1180,7 +1224,9 @@ async function runAutoMode(
     if (ready.length === 0) {
       // Check if there are any epics that are complete but not yet reviewed
       const completedEpics = getCompletedEpics(tasks);
-      const unreviewedEpics = Array.from(completedEpics).filter((e) => !reviewedEpics.has(e));
+      const unreviewedEpics = Array.from(completedEpics).filter(
+        (e) => !reviewedEpics.has(e)
+      );
 
       if (unreviewedEpics.length > 0) {
         // Run epic review for each unreviewed completed epic
@@ -1201,20 +1247,26 @@ async function runAutoMode(
           reviewedEpics.add(epicId);
 
           if (reviewResult.success) {
-            logSuccess(`Epic ${epicId} review complete. Follow-up tasks created if needed.`);
+            logSuccess(
+              `Epic ${epicId} review complete. Follow-up tasks created if needed.`
+            );
 
             // Reload tasks to pick up any new follow-up tasks
             const updatedTasks = loadAllTasks();
             const newReady = getReadyTasks(updatedTasks);
 
             if (newReady.length > 0) {
-              logInfo(`Found ${newReady.length} follow-up task(s) from epic review. Processing...`);
+              logInfo(
+                `Found ${newReady.length} follow-up task(s) from epic review. Processing...`
+              );
               await new Promise((resolve) => setTimeout(resolve, 2000));
               break; // Break inner loop to restart outer while loop
             }
           } else {
             logWarning(`Epic review failed: ${reviewResult.error}`);
-            logInfo(`You may want to run manually: claude -p '/epic-review ${epicId}'`);
+            logInfo(
+              `You may want to run manually: claude -p '/epic-review ${epicId}'`
+            );
           }
         }
 
@@ -1227,12 +1279,18 @@ async function runAutoMode(
       }
 
       // Check if ALL epics are complete (for continuous mode)
-      const allEpicsComplete = tasks.length > 0 &&
-        Array.from(getTasksByEpic(tasks).values()).every((epicTasks) => isEpicComplete(epicTasks));
+      const allEpicsComplete =
+        tasks.length > 0 &&
+        Array.from(getTasksByEpic(tasks).values()).every((epicTasks) =>
+          isEpicComplete(epicTasks)
+        );
 
       if (allEpicsComplete && continuous) {
         log("");
-        logStep("CONTINUOUS", "All current epics complete. Creating next epic via PM agent...");
+        logStep(
+          "CONTINUOUS",
+          "All current epics complete. Creating next epic via PM agent..."
+        );
 
         // Call PM agent to create next epic based on roadmap
         const result = await runClaudeCode("roadmap", "plan-next", false);
@@ -1251,16 +1309,22 @@ async function runAutoMode(
         // Show which tasks are blocking progress
         const byEpic = getTasksByEpic(tasks);
         for (const [epicId, epicTasks] of Array.from(byEpic.entries())) {
-          const incomplete = epicTasks.filter((t) => t.workflow_state !== "DONE");
+          const incomplete = epicTasks.filter(
+            (t) => t.workflow_state !== "DONE"
+          );
           if (incomplete.length > 0) {
-            const states = incomplete.map((t) => `${t.id}:${t.workflow_state}`).join(", ");
+            const states = incomplete
+              .map((t) => `${t.id}:${t.workflow_state}`)
+              .join(", ");
             logInfo(`  ${epicId}: ${states}`);
           }
         }
         continueLoop = false;
       } else {
         log("");
-        logInfo("All tasks complete. To create the next epic, run: claude -p '/plan <next-goal>'");
+        logInfo(
+          "All tasks complete. To create the next epic, run: claude -p '/plan <next-goal>'"
+        );
         logInfo("Or use --continuous flag to auto-create next epics");
         continueLoop = false;
       }
@@ -1298,7 +1362,9 @@ async function runAutoMode(
     `${colors.bold}═══════════════════════════════════════════════════════════════${colors.reset}`
   );
   logSuccess(
-    `${continuous ? "Continuous" : "Auto"} mode complete. Processed ${tasksProcessed} task(s), ${epicsCompleted} epic(s).`
+    `${
+      continuous ? "Continuous" : "Auto"
+    } mode complete. Processed ${tasksProcessed} task(s), ${epicsCompleted} epic(s).`
   );
   log(
     `${colors.bold}═══════════════════════════════════════════════════════════════${colors.reset}`
@@ -1374,12 +1440,16 @@ async function main(): Promise<void> {
     case "help":
     default: {
       log("");
-      log(`${colors.bold}Raptscallions Workflow Orchestrator${colors.reset}`);
+      log(`${colors.bold}RaptScallions Workflow Orchestrator${colors.reset}`);
       log("");
       log("Commands:");
       log("  pnpm workflow:run <task-id>              Run workflow for a task");
-      log("  pnpm workflow:run --auto                 Auto-run all ready tasks");
-      log("  pnpm workflow:run --continuous           Auto-run and create next epics");
+      log(
+        "  pnpm workflow:run --auto                 Auto-run all ready tasks"
+      );
+      log(
+        "  pnpm workflow:run --continuous           Auto-run and create next epics"
+      );
       log(
         "  pnpm workflow:status [task-id]           Show task board or specific task"
       );
@@ -1391,7 +1461,9 @@ async function main(): Promise<void> {
       log("");
       log("Flags:");
       log("  --auto, -a         Run all ready tasks in priority order");
-      log("  --continuous, -c   Like --auto, but also creates next epic when done");
+      log(
+        "  --continuous, -c   Like --auto, but also creates next epic when done"
+      );
       log("");
       log("Epic Completion Flow:");
       log("  1. All tasks in epic reach DONE");
@@ -1401,7 +1473,9 @@ async function main(): Promise<void> {
       log("  5. [If continuous] Next epic created and started");
       log("");
       log("Stops when:");
-      log("  - All tasks are complete (or next epic created in continuous mode)");
+      log(
+        "  - All tasks are complete (or next epic created in continuous mode)"
+      );
       log("  - A task hits a breakpoint");
       log("  - No more ready tasks (blocked by dependencies)");
       log("");
