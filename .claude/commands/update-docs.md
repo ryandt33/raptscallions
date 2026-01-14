@@ -37,7 +37,11 @@ The command automatically detects which KB domains are affected, finds existing 
 2. Read the task at `backlog/tasks/{epic}/{task-id}.md`
 3. Read the spec at `backlog/docs/specs/{epic}/{task-id}-spec.md`
 4. Read implemented code files (from `code_files` in task frontmatter)
-5. Read KB authoring guide at `apps/docs/src/contributing/kb-page-design.md`
+5. Read KB authoring guides:
+   - `apps/docs/src/contributing/documentation.md` — What to write, templates, linking conventions
+   - `apps/docs/src/contributing/kb-page-design.md` — How to format, markdown syntax, VitePress features
+   - `apps/docs/src/contributing/design-system.md` — Visual identity, colors, typography
+   - `apps/docs/src/contributing/ci-validation.md` — How docs are validated in CI
 
 ### Phase 2: Domain Detection
 
@@ -91,14 +95,20 @@ Writer agent decides what to update:
 - Update troubleshooting section with new solution
 - Add cross-reference to newly created related page
 
-**4.3 Apply Updates Following KB Patterns:**
+**4.3 Apply Updates Following KB Guidelines:**
 
-- Maintain heading hierarchy (H1 → H2 → H3, never skip levels)
-- Use proper code block syntax with language tags
-- Add custom containers if appropriate (tip, info, warning, danger)
+Follow the contributing documentation standards:
+
+- **Structure** (from documentation.md): Use correct doc type template, domain selection, references section
+- **Formatting** (from kb-page-design.md): Maintain heading hierarchy (H1 → H2 → H3), proper code blocks, custom containers
+- **Style** (from design-system.md): Maintain consistent visual identity and tone
+- **Validation** (from ci-validation.md): Ensure changes will pass CI checks
+
+Key practices:
 - Extract code examples from actual implementation files (never invent code)
 - Update cross-references if structure changes
 - Preserve existing content (extend, don't replace)
+- Use proper linking conventions (no `.md` for KB links, GitHub URLs for source code)
 
 **4.4 Update Frontmatter:**
 
@@ -168,10 +178,15 @@ Choice: [1/2]
 
 **5.3 If User Approves, Create New Page:**
 
-- Use template from `apps/docs/src/contributing/kb-page-design.md` (lines 647-729)
+- Use appropriate template from `apps/docs/src/contributing/documentation.md`:
+  - Concept Template (for mental models and "how X works")
+  - Pattern Template (for reusable implementations)
+  - Decision Record Template (for ADRs)
+  - Troubleshooting Template (for problem → solution guides)
 - Set frontmatter with `related_code` and `last_verified`
 - Add `implements_task: {TASK-ID}` to track origin
-- Follow heading hierarchy strictly
+- Follow formatting guidelines from `kb-page-design.md` (heading hierarchy, code blocks, containers)
+- Follow design system from `design-system.md` (consistent tone and style)
 - Include code examples from implementation
 - Add to appropriate content type folder (concepts, patterns, decisions, troubleshooting)
 
@@ -494,6 +509,26 @@ If task touches multiple domains:
 # Next step: Create PR
 /commit-and-pr E02-T003
 ```
+
+## Contributing Documentation Reference
+
+The writer agent should reference these guides when updating or creating KB documentation:
+
+| Guide | Location | Purpose |
+|-------|----------|---------|
+| **Documentation Guide** | `apps/docs/src/contributing/documentation.md` | What to write — templates, conventions, domain selection, linking rules |
+| **KB Page Design** | `apps/docs/src/contributing/kb-page-design.md` | How to format — markdown syntax, VitePress features, code blocks, containers |
+| **Design System** | `apps/docs/src/contributing/design-system.md` | Visual identity — colors, typography, spacing, theme system, brand consistency |
+| **CI Validation** | `apps/docs/src/contributing/ci-validation.md` | Quality assurance — how docs are validated in CI, fixing build errors, staleness checks |
+
+**Quick Decision Tree:**
+
+1. Need a template? → `documentation.md` (Doc Type Templates section)
+2. Not sure which domain/folder? → `documentation.md` (Domain Selection Guide)
+3. How to format code blocks? → `kb-page-design.md` (Code Block Patterns)
+4. How to link to other pages? → `documentation.md` (Linking Conventions)
+5. What tone/style to use? → `design-system.md` (Writing Guidelines)
+6. Will this pass CI? → `ci-validation.md` (Local Validation)
 
 ## Notes
 

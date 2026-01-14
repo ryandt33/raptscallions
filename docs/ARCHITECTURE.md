@@ -420,34 +420,42 @@ Relations:
 
 ### Chat Sessions
 
-**Status:** ✅ Implemented (E04-T001)
+**Status:** ✅ Implemented (E04-T001, E04-T009)
 
 Multi-turn conversation sessions between users and tools:
 
-- **State Lifecycle**: Sessions progress through states: `active` (default) → `paused` (optional) → `completed`
+- **State Lifecycle**: Sessions progress through states: `active` (default) → `completed`
+- **Soft Delete**: Sessions support soft delete via `deleted_at` timestamp
+- **Session Metadata**: User-editable title and last activity tracking
 - **Message History**: Each session contains ordered messages (see Messages below)
 - **Tool Binding**: Sessions are bound to a specific tool and user
-- **Timestamps**: Track start time (`started_at`) and optional end time (`ended_at`)
+- **Timestamps**: Track start time, end time, last activity, and soft delete
 - **Foreign Key Behavior**:
   - `tool_id`: RESTRICT delete (prevents deletion of tools with active sessions)
   - `user_id`: CASCADE delete (removes sessions when user is deleted)
 - **Schema**: `packages/db/src/schema/chat-sessions.ts`
-- **Migration**: `0008_create_chat_sessions_messages.sql`
+- **Migrations**:
+  - `0008_create_chat_sessions_messages.sql` (initial schema)
+  - `0010_enhance_chat_sessions.sql` (removed paused state, added soft delete and metadata fields)
 
 Key fields:
 
 - `id` (UUID) - Primary key with automatic generation
 - `tool_id` (UUID) - Foreign key to tools(id) with RESTRICT delete
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
-- `state` (session_state enum) - Session lifecycle: `active`, `paused`, or `completed` (default: `active`)
+- `state` (session_state enum) - Session lifecycle: `active` or `completed` (default: `active`)
+- `title` (varchar 200) - User-editable session name (nullable) - e.g. "Math homework help - Jan 14"
 - `started_at` (timestamptz) - When session was created
 - `ended_at` (timestamptz) - When session was completed (nullable)
+- `last_activity_at` (timestamptz) - Last message timestamp for "Last active X ago" display (nullable)
+- `deleted_at` (timestamptz) - Soft delete timestamp (nullable)
 
 Indexes:
 
 - `chat_sessions_tool_id_idx` - Optimizes "get sessions for tool" queries
 - `chat_sessions_user_id_idx` - Optimizes "get user's sessions" queries
 - `chat_sessions_state_idx` - Optimizes filtering by session state
+- `chat_sessions_deleted_at_idx` - Optimizes soft-delete queries (`WHERE deleted_at IS NULL`)
 
 Relations:
 
@@ -457,9 +465,11 @@ Relations:
 - `tools.chatSessions` - One-to-many relation for tool's sessions
 - `users.chatSessions` - One-to-many relation for user's sessions
 
+**Note:** The "paused" state was removed in E04-T009 per YAGNI principle (no defined user flow or UI support).
+
 ### Messages
 
-**Status:** ✅ Implemented (E04-T001)
+**Status:** ✅ Implemented (E04-T001, E04-T009)
 
 Conversation history within chat sessions with ordered sequencing:
 
@@ -468,7 +478,9 @@ Conversation history within chat sessions with ordered sequencing:
 - **Unique Constraint**: `(session_id, seq)` ensures no duplicate sequence numbers (prevents message ordering bugs)
 - **Cascade Delete**: Messages automatically removed when parent session is deleted
 - **Extensible Metadata**: JSONB `meta` field for tokens, model info, latency, extractions
+- **Meta Validation**: Zod schema (`messageMetaSchema`) provides runtime validation and TypeScript types (E04-T009)
 - **Schema**: `packages/db/src/schema/messages.ts`
+- **Validation Schema**: `packages/core/src/schemas/message-meta.schema.ts`
 - **Migration**: `0008_create_chat_sessions_messages.sql`
 
 Key fields:
@@ -480,6 +492,9 @@ Key fields:
 - `seq` (integer) - Sequence number for ordering within session (starts at 1)
 - `created_at` (timestamptz) - When message was created
 - `meta` (jsonb) - Extensible metadata (tokens, model, latency, etc.) - defaults to `{}`
+  - Validated by `messageMetaSchema` Zod schema
+  - Common fields: `tokens`, `model`, `latency_ms`, `prompt_tokens`, `completion_tokens`, `finish_reason`, `extractions`
+  - Uses `.passthrough()` to allow additional custom fields
 
 Indexes:
 
@@ -497,8 +512,15 @@ Relations:
 Metadata examples:
 
 ```jsonb
-{ "tokens": 150, "model": "claude-3-sonnet", "latency_ms": 432 }
-{ "module_extractions": [...] }
+{
+  "tokens": 150,
+  "model": "anthropic/claude-sonnet-4-20250514",
+  "latency_ms": 432,
+  "finish_reason": "stop",
+  "extractions": [
+    { "type": "sentiment", "value": "positive", "confidence": 0.95, "source": "sentiment-analyzer" }
+  ]
+}
 ```
 
 ### Runs (Product)

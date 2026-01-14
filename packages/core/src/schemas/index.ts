@@ -26,3 +26,11 @@ export type {
   MicrosoftUserProfile,
   OAuthCallbackQuery,
 } from "./oauth.schema.js";
+
+export {
+  messageMetaSchema,
+  extractionSchema,
+  parseMessageMeta,
+  safeParseMessageMeta,
+} from "./message-meta.schema.js";
+export type { MessageMeta, Extraction } from "./message-meta.schema.js";

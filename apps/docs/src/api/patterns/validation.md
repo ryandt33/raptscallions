@@ -5,6 +5,7 @@ related_code:
   - packages/core/src/schemas/**/*.ts
   - apps/api/src/routes/auth.routes.ts
   - apps/api/src/config.ts
+  - packages/core/src/schemas/message-meta.schema.ts
 last_verified: 2026-01-14
 ---
 
@@ -406,8 +407,158 @@ For PATCH endpoints where any field can be updated:
 const updateSchema = createSchema.partial();
 ```
 
+## Message Meta Validation
+
+The message metadata field in chat sessions uses a Zod schema for extensible validation with type safety.
+
+### Schema Definition
+
+```typescript [packages/core/src/schemas/message-meta.schema.ts]
+import { z } from "zod";
+
+export const extractionSchema = z.object({
+  type: z.string().min(1),
+  value: z.unknown(),
+  confidence: z.number().min(0).max(1).optional(),
+  source: z.string().optional(),
+});
+
+export const messageMetaSchema = z
+  .object({
+    tokens: z.number().int().positive().optional(),
+    model: z.string().optional(),
+    latency_ms: z.number().nonnegative().optional(),
+    prompt_tokens: z.number().int().nonnegative().optional(),
+    completion_tokens: z.number().int().nonnegative().optional(),
+    finish_reason: z
+      .enum(["stop", "length", "content_filter", "error"])
+      .optional(),
+    extractions: z.array(extractionSchema).optional(),
+  })
+  .passthrough(); // Allow additional fields
+
+export type MessageMeta = z.infer<typeof messageMetaSchema>;
+export type Extraction = z.infer<typeof extractionSchema>;
+```
+
+### Using .passthrough() for Extensibility
+
+The `.passthrough()` modifier allows additional fields beyond those explicitly defined. This is useful for extensible metadata where future features may add new fields without schema changes.
+
+**Example:**
+
+```typescript
+// Valid - known fields
+const meta1: MessageMeta = {
+  tokens: 150,
+  model: "claude-sonnet-4",
+  latency_ms: 432,
+};
+
+// Valid - with additional custom fields
+const meta2: MessageMeta = {
+  tokens: 150,
+  custom_field: "custom_value",
+  nested: { data: 123 },
+};
+
+// Validation allows both
+messageMetaSchema.parse(meta1); // ✓
+messageMetaSchema.parse(meta2); // ✓
+```
+
+::: tip When to Use .passthrough()
+Use `.passthrough()` for JSONB fields that need extensibility. Use `.strict()` for API inputs where unknown fields should be rejected.
+:::
+
+### Validation Helpers
+
+The schema exports helper functions for safe validation:
+
+```typescript
+import {
+  parseMessageMeta,
+  safeParseMessageMeta,
+} from "@raptscallions/core/schemas";
+
+// Throws ZodError on validation failure
+const validMeta = parseMessageMeta(unknownData);
+
+// Returns success/error result without throwing
+const result = safeParseMessageMeta(unknownData);
+if (result.success) {
+  console.log(result.data.tokens); // Type-safe access
+} else {
+  console.error(result.error); // ZodError
+}
+```
+
+### Example Usage
+
+**Validating message metadata before storage:**
+
+```typescript
+import { messageMetaSchema, type MessageMeta } from "@raptscallions/core";
+
+// Chat service
+async function saveAssistantMessage(
+  sessionId: string,
+  content: string,
+  aiResponse: AIResponse
+) {
+  // Build metadata from AI response
+  const meta: MessageMeta = {
+    tokens: aiResponse.usage.total_tokens,
+    prompt_tokens: aiResponse.usage.prompt_tokens,
+    completion_tokens: aiResponse.usage.completion_tokens,
+    model: aiResponse.model,
+    latency_ms: aiResponse.latency,
+    finish_reason: aiResponse.finish_reason,
+  };
+
+  // Validate before storing
+  const validatedMeta = messageMetaSchema.parse(meta);
+
+  // Store in database
+  await db.insert(messages).values({
+    sessionId,
+    role: "assistant",
+    content,
+    seq: nextSeq,
+    meta: validatedMeta, // JSONB field
+  });
+}
+```
+
+**Extracting validated metadata from stored messages:**
+
+```typescript
+import { safeParseMessageMeta } from "@raptscallions/core";
+
+const message = await db.query.messages.findFirst({
+  where: eq(messages.id, messageId),
+});
+
+// Safely parse JSONB meta field
+const result = safeParseMessageMeta(message.meta);
+
+if (result.success) {
+  // Type-safe access to validated fields
+  const tokenUsage = result.data.tokens ?? 0;
+  const model = result.data.model ?? "unknown";
+
+  // Analytics
+  await trackTokenUsage(tokenUsage, model);
+}
+```
+
+::: info Related Documentation
+See [Chat Sessions Schema](/database/concepts/chat-schema#message-metadata) for more details on the messages table and metadata field usage.
+:::
+
 ## Related Pages
 
 - [Route Handlers](/api/patterns/route-handlers) — Using schemas in routes
 - [Error Handling](/api/patterns/error-handling) — Validation error responses
 - [Fastify Setup](/api/concepts/fastify-setup) — Type provider configuration
+- [Chat Sessions Schema](/database/concepts/chat-schema) — Message metadata field details

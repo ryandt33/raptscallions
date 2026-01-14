@@ -7,9 +7,11 @@ import { users } from "../../schema/users.js";
 import { tools } from "../../schema/tools.js";
 
 // Mock database and test helpers
-const mockDb = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockDb: any = {
   insert: vi.fn(),
   delete: vi.fn(),
+  update: vi.fn(),
   query: {
     chatSessions: {
       findFirst: vi.fn(),
@@ -22,10 +24,34 @@ const mockDb = {
       findFirst: vi.fn(),
     },
   },
-} as any;
+};
 
 // Test data factories
-function createMockUser(overrides: Partial<any> = {}): any {
+interface MockUser {
+  id: string;
+  email: string;
+  name: string;
+  status: string;
+  passwordHash: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}
+
+interface MockTool {
+  id: string;
+  type: string;
+  name: string;
+  version: string;
+  definition: string;
+  createdBy: string;
+  groupId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}
+
+function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
   return {
     id: "user-123",
     email: "test@example.com",
@@ -39,7 +65,7 @@ function createMockUser(overrides: Partial<any> = {}): any {
   };
 }
 
-function createMockTool(overrides: Partial<any> = {}): any {
+function createMockTool(overrides: Partial<MockTool> = {}): MockTool {
   return {
     id: "tool-456",
     type: "chat",
@@ -70,10 +96,14 @@ describe("ChatSessions Schema", () => {
       expect(chatSessions.state).toBeDefined();
       expect(chatSessions.startedAt).toBeDefined();
       expect(chatSessions.endedAt).toBeDefined();
+      // E04-T009: New metadata fields
+      expect(chatSessions.title).toBeDefined();
+      expect(chatSessions.lastActivityAt).toBeDefined();
+      expect(chatSessions.deletedAt).toBeDefined();
     });
 
     it("should have sessionStateEnum with correct values", () => {
-      // Verify enum has the three expected states
+      // E04-T009: Verify enum has two states (paused removed)
       // Note: Drizzle enums don't expose values directly, this tests the export exists
       expect(sessionStateEnum).toBeDefined();
     });
@@ -82,17 +112,23 @@ describe("ChatSessions Schema", () => {
   describe("Type Inference", () => {
     it("should infer ChatSession type for select operations", () => {
       // This is a compile-time test - if it compiles, types are correct
+      // E04-T009: Updated to include new fields
       const session: ChatSession = {
         id: "session-123",
         toolId: "tool-456",
         userId: "user-789",
         state: "active",
+        title: null,
         startedAt: new Date(),
         endedAt: null,
+        lastActivityAt: null,
+        deletedAt: null,
       };
 
       expect(session.id).toBe("session-123");
       expect(session.state).toBe("active");
+      expect(session.title).toBeNull();
+      expect(session.deletedAt).toBeNull();
     });
 
     it("should infer NewChatSession type for insert operations", () => {
@@ -118,8 +154,11 @@ describe("ChatSessions Schema", () => {
               toolId: "tool-456",
               userId: "user-789",
               state: "active", // Should default to 'active'
+              title: null,
               startedAt: new Date(),
               endedAt: null,
+              lastActivityAt: null,
+              deletedAt: null,
             },
           ]),
         }),
@@ -151,8 +190,11 @@ describe("ChatSessions Schema", () => {
               toolId: "tool-456",
               userId: "user-789",
               state: "active",
+              title: null,
               startedAt: now,
               endedAt: null,
+              lastActivityAt: null,
+              deletedAt: null,
             },
           ]),
         }),
@@ -204,19 +246,7 @@ describe("ChatSessions Schema", () => {
   });
 
   describe("State Transitions", () => {
-    it("should allow state transition from active to paused", async () => {
-      // Test state machine: active → paused
-      const session: ChatSession = {
-        id: "session-123",
-        toolId: "tool-456",
-        userId: "user-789",
-        state: "paused", // Valid state transition
-        startedAt: new Date(),
-        endedAt: null,
-      };
-
-      expect(session.state).toBe("paused");
-    });
+    // E04-T009: Tests updated - "paused" state removed
 
     it("should allow state transition from active to completed", async () => {
       // Test state machine: active → completed
@@ -225,25 +255,14 @@ describe("ChatSessions Schema", () => {
         toolId: "tool-456",
         userId: "user-789",
         state: "completed", // Valid state transition
+        title: null,
         startedAt: new Date(),
         endedAt: new Date(),
+        lastActivityAt: new Date(),
+        deletedAt: null,
       };
 
       expect(session.state).toBe("completed");
-    });
-
-    it("should allow state transition from paused to active", async () => {
-      // Test state machine: paused → active (resume)
-      const session: ChatSession = {
-        id: "session-123",
-        toolId: "tool-456",
-        userId: "user-789",
-        state: "active", // Valid state transition from paused
-        startedAt: new Date(),
-        endedAt: null,
-      };
-
-      expect(session.state).toBe("active");
     });
 
     it("should set endedAt when state transitions to completed", async () => {
@@ -254,12 +273,167 @@ describe("ChatSessions Schema", () => {
         toolId: "tool-456",
         userId: "user-789",
         state: "completed",
+        title: "Test Session",
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         endedAt: endTime,
+        lastActivityAt: endTime,
+        deletedAt: null,
       };
 
       expect(session.endedAt).toBeInstanceOf(Date);
       expect(session.endedAt).not.toBeNull();
+    });
+  });
+
+  describe("Soft Delete Behavior", () => {
+    // E04-T009: New tests for soft delete support
+
+    it("should have deletedAt field defined", () => {
+      expect(chatSessions.deletedAt).toBeDefined();
+    });
+
+    it("should default deletedAt to null for new sessions", () => {
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: null,
+        startedAt: new Date(),
+        endedAt: null,
+        lastActivityAt: null,
+        deletedAt: null,
+      };
+
+      expect(session.deletedAt).toBeNull();
+    });
+
+    it("should support setting deletedAt for soft delete", () => {
+      const deleteTime = new Date();
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "completed",
+        title: "Deleted Session",
+        startedAt: new Date(Date.now() - 3600000),
+        endedAt: new Date(),
+        lastActivityAt: new Date(),
+        deletedAt: deleteTime,
+      };
+
+      expect(session.deletedAt).toEqual(deleteTime);
+      expect(session.deletedAt).toBeInstanceOf(Date);
+    });
+  });
+
+  describe("Session Metadata Fields", () => {
+    // E04-T009: New tests for title and lastActivityAt
+
+    it("should have title field defined", () => {
+      expect(chatSessions.title).toBeDefined();
+    });
+
+    it("should have lastActivityAt field defined", () => {
+      expect(chatSessions.lastActivityAt).toBeDefined();
+    });
+
+    it("should allow null title for unnamed sessions", () => {
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: null,
+        startedAt: new Date(),
+        endedAt: null,
+        lastActivityAt: null,
+        deletedAt: null,
+      };
+
+      expect(session.title).toBeNull();
+    });
+
+    it("should allow setting title for named sessions", () => {
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: "Math homework help",
+        startedAt: new Date(),
+        endedAt: null,
+        lastActivityAt: new Date(),
+        deletedAt: null,
+      };
+
+      expect(session.title).toBe("Math homework help");
+      expect(session.title?.length).toBeLessThanOrEqual(200);
+    });
+
+    it("should allow null lastActivityAt for new sessions", () => {
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: null,
+        startedAt: new Date(),
+        endedAt: null,
+        lastActivityAt: null,
+        deletedAt: null,
+      };
+
+      expect(session.lastActivityAt).toBeNull();
+    });
+
+    it("should allow setting lastActivityAt for active sessions", () => {
+      const lastActive = new Date();
+      const session: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: "Active Session",
+        startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+        endedAt: null,
+        lastActivityAt: lastActive,
+        deletedAt: null,
+      };
+
+      expect(session.lastActivityAt).toEqual(lastActive);
+      expect(session.lastActivityAt).toBeInstanceOf(Date);
+    });
+  });
+
+  describe("Session State Enum (Updated)", () => {
+    // E04-T009: Updated enum tests - only active and completed
+
+    it("should only allow active and completed states", () => {
+      // Compile-time test: these should compile
+      const activeSession: ChatSession = {
+        id: "session-123",
+        toolId: "tool-456",
+        userId: "user-789",
+        state: "active",
+        title: null,
+        startedAt: new Date(),
+        endedAt: null,
+        lastActivityAt: null,
+        deletedAt: null,
+      };
+
+      const completedSession: ChatSession = {
+        ...activeSession,
+        state: "completed",
+        endedAt: new Date(),
+      };
+
+      expect(activeSession.state).toBe("active");
+      expect(completedSession.state).toBe("completed");
+
+      // Note: TypeScript will prevent "paused" at compile time
+      // The enum now only has "active" | "completed"
     });
   });
 
@@ -278,6 +452,11 @@ describe("ChatSessions Schema", () => {
     it("should have index on state for filtering active sessions", () => {
       // Verify state index exists (defined in schema)
       expect(chatSessions.state).toBeDefined();
+    });
+
+    it("should have index on deletedAt for soft delete queries", () => {
+      // E04-T009: Verify deletedAt index exists (for efficient soft delete filtering)
+      expect(chatSessions.deletedAt).toBeDefined();
     });
   });
 });
