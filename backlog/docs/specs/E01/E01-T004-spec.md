@@ -2,13 +2,14 @@
 
 ## Overview
 
-Define the Drizzle ORM schema for the `users` table, which is the foundational entity for authentication and authorization in the Raptscallions platform. This table will be referenced by groups, sessions, assignments, and other entities that track user activity.
+Define the Drizzle ORM schema for the `users` table, which is the foundational entity for authentication and authorization in the RaptScallions platform. This table will be referenced by groups, sessions, assignments, and other entities that track user activity.
 
 ## Approach
 
 The users schema will be the first actual table definition in the `@raptscallions/db` package. It follows the database package structure established in E01-T003 and implements the authentication requirements from ARCHITECTURE.md.
 
 Key design decisions:
+
 - **Snake_case naming** for table and columns per CONVENTIONS.md
 - **UUID primary key** with automatic generation for distributed system compatibility
 - **Soft delete support** via `deleted_at` timestamp for data retention and audit trails
@@ -18,22 +19,23 @@ Key design decisions:
 - **Timestamp tracking** with timezone awareness for audit and sync operations
 
 Following the project's strict TypeScript standards:
+
 - Zero use of `any` type
 - Explicit type inference using Drizzle's `$inferSelect` and `$inferInsert`
 - Zod schema for runtime validation (will be added in E01-T005)
 
 ## Files to Create
 
-| File | Purpose |
-| --- | --- |
-| `packages/db/src/schema/users.ts` | Users table schema definition with enum, indexes, and exported types |
-| `packages/db/src/migrations/0001_create_users.sql` | Initial migration to create users table |
-| `packages/db/src/__tests__/schema/users.test.ts` | Unit tests for users schema type inference |
+| File                                               | Purpose                                                              |
+| -------------------------------------------------- | -------------------------------------------------------------------- |
+| `packages/db/src/schema/users.ts`                  | Users table schema definition with enum, indexes, and exported types |
+| `packages/db/src/migrations/0001_create_users.sql` | Initial migration to create users table                              |
+| `packages/db/src/__tests__/schema/users.test.ts`   | Unit tests for users schema type inference                           |
 
 ## Files to Modify
 
-| File | Changes |
-| --- | --- |
+| File                              | Changes                                                    |
+| --------------------------------- | ---------------------------------------------------------- |
 | `packages/db/src/schema/index.ts` | Add export for users schema: `export * from "./users.js";` |
 
 ## Dependencies
@@ -61,12 +63,14 @@ Following the project's strict TypeScript standards:
 ## Acceptance Criteria Breakdown
 
 **AC1: users table defined in src/schema/users.ts**
+
 - Create new file at `packages/db/src/schema/users.ts`
 - Import required types from `drizzle-orm/pg-core`
 - Define users table with pgTable
 - Export table definition
 
 **AC2: Fields: id, email, name, password_hash, status, created_at, updated_at, deleted_at**
+
 - `id` - UUID primary key
 - `email` - varchar(255) for email addresses
 - `name` - varchar(100) for user display name
@@ -77,54 +81,64 @@ Following the project's strict TypeScript standards:
 - `deleted_at` - timestamp with timezone for soft delete
 
 **AC3: id uses uuid().primaryKey().defaultRandom()**
+
 - Use Drizzle's uuid() type
 - Set as primary key
 - Configure automatic UUID generation with defaultRandom()
 
 **AC4: email is varchar(255), unique, not null**
+
 - Use varchar with length 255 (standard email max length)
 - Set unique constraint
 - Set notNull() constraint
 - Will be used for authentication lookups
 
 **AC5: name is varchar(100), not null**
+
 - Use varchar with length 100
 - Set notNull() constraint
 - Used for display throughout the application
 
 **AC6: password_hash is varchar(255), nullable (for OAuth-only users)**
+
 - Use varchar with length 255 (sufficient for Argon2 hashes)
 - Leave nullable (do not call notNull())
 - OAuth users won't have a password hash
 
 **AC7: status enum: active, suspended, pending_verification**
+
 - Define pgEnum before table definition
 - Name: 'user_status'
 - Values: 'active', 'suspended', 'pending_verification'
 - Use enum in table definition
 
 **AC8: Timestamps use timestamp with timezone, with defaults**
+
 - created_at: timestamp with timezone, defaultNow(), notNull()
 - updated_at: timestamp with timezone, defaultNow(), notNull()
 - Both track changes with timezone awareness
 
 **AC9: deleted_at for soft delete support (nullable)**
+
 - timestamp with timezone
 - Nullable (null means not deleted)
 - No default value
 - Enables soft delete pattern
 
 **AC10: Index on email for fast lookups**
+
 - Define index in table's index configuration
 - Name: users_email_idx
 - Index on email column
 
 **AC11: Exports User and NewUser types**
+
 - Export User: `typeof users.$inferSelect`
 - Export NewUser: `typeof users.$inferInsert`
 - Provides type-safe database operations
 
 **AC12: Migration file 0001_create_users.sql generated**
+
 - Run `pnpm db:generate` to create migration
 - Verify migration creates users table
 - Verify migration creates user_status enum
@@ -152,7 +166,14 @@ Following the project's strict TypeScript standards:
 
 ```typescript
 // packages/db/src/schema/users.ts
-import { pgEnum, pgTable, uuid, varchar, timestamp, index } from "drizzle-orm/pg-core";
+import {
+  pgEnum,
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  index,
+} from "drizzle-orm/pg-core";
 
 /**
  * User account status enum.
@@ -160,10 +181,10 @@ import { pgEnum, pgTable, uuid, varchar, timestamp, index } from "drizzle-orm/pg
  * - suspended: Account disabled by admin, cannot log in
  * - pending_verification: New account awaiting email verification
  */
-export const userStatusEnum = pgEnum('user_status', [
-  'active',
-  'suspended',
-  'pending_verification'
+export const userStatusEnum = pgEnum("user_status", [
+  "active",
+  "suspended",
+  "pending_verification",
 ]);
 ```
 
@@ -187,7 +208,7 @@ export const users = pgTable(
     email: varchar("email", { length: 255 }).notNull().unique(),
     name: varchar("name", { length: 100 }).notNull(),
     passwordHash: varchar("password_hash", { length: 255 }),
-    status: userStatusEnum("status").notNull().default('pending_verification'),
+    status: userStatusEnum("status").notNull().default("pending_verification"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -406,10 +427,7 @@ async function getActiveUsers(): Promise<User[]> {
 
 // CORRECT: Soft delete a user
 async function softDeleteUser(id: string): Promise<void> {
-  await db
-    .update(users)
-    .set({ deletedAt: new Date() })
-    .where(eq(users.id, id));
+  await db.update(users).set({ deletedAt: new Date() }).where(eq(users.id, id));
 }
 
 // CORRECT: Check if user is deleted
@@ -480,16 +498,19 @@ This is a backend infrastructure task (database schema) with no direct user-faci
 **Strengths:**
 
 1. **Clear User Status Model** ✅
+
    - The three-state status enum (`active`, `suspended`, `pending_verification`) maps clearly to user-facing states
    - Status names are self-documenting and will translate well to UI messaging
    - The default `pending_verification` state enables good onboarding UX (email verification flow)
 
 2. **OAuth Flexibility** ✅
+
    - Nullable `password_hash` cleanly supports OAuth-only users
    - This design won't force awkward UX compromises (e.g., requiring passwords for Google sign-in users)
    - Type safety ensures developers handle both authentication paths correctly
 
 3. **Soft Delete Pattern** ✅
+
    - Enables "restore account" features without data loss
    - Supports compliance requirements (data retention, audit trails)
    - Good foundation for future UX like "Recently deleted users" admin views
@@ -503,11 +524,13 @@ This is a backend infrastructure task (database schema) with no direct user-faci
 **Recommendations for Future Tasks:**
 
 1. **Email Display Consistency**
+
    - The spec notes email will be normalized to lowercase in E01-T005 ✅
    - Ensure UI displays emails as entered by user (preserve case) while storing lowercase
    - Example: User enters "Jane.Doe@Example.com" → display exactly that, store "jane.doe@example.com"
 
 2. **User Status Messaging**
+
    - The status enum values should map to clear user-facing messages:
      - `pending_verification` → "Please check your email to verify your account"
      - `suspended` → "Your account has been suspended. Contact support for assistance."
@@ -515,6 +538,7 @@ This is a backend infrastructure task (database schema) with no direct user-faci
    - These should be defined in a future i18n/messaging task
 
 3. **Name Field Limitations**
+
    - 100 character limit for `name` is reasonable
    - Consider future UI validation to show character count near limit (e.g., at 90/100)
    - Handle display of very long names gracefully in constrained UI spaces
@@ -598,23 +622,27 @@ The users schema design is **architecturally sound** and follows project convent
 ### Alignment with Architecture (ARCHITECTURE.md)
 
 ✅ **Technology Stack Compliance**
+
 - Uses Drizzle ORM (0.29+) as specified ✓
 - PostgreSQL 16 target ✓
 - TypeScript strict mode ✓
 - Zod integration planned (E01-T005) ✓
 
 ✅ **Core Entities Model**
+
 - Aligns with "Users" entity definition (lines 177-184 of ARCHITECTURE.md) ✓
 - Supports group membership via future foreign keys ✓
 - Enables role-based authorization at group level ✓
 
 ✅ **Authentication & Authorization Requirements**
+
 - Supports Lucia auth patterns (nullable password_hash for OAuth) ✓
 - Enables email/password + OAuth flows ✓
 - Status enum supports pending verification flow ✓
 - Ready for CASL permission checks ✓
 
 ✅ **Deployment Requirements**
+
 - Pure database schema (no host dependencies) ✓
 - Migration-based (supports containerized deployments) ✓
 - Timezone-aware timestamps for distributed systems ✓
@@ -622,12 +650,14 @@ The users schema design is **architecturally sound** and follows project convent
 ### Alignment with Conventions (CONVENTIONS.md)
 
 ✅ **TypeScript Strict Requirements**
+
 - Zero use of `any` type ✓
 - Uses Drizzle's `$inferSelect` and `$inferInsert` ✓
 - Properly handles nullable fields (password_hash, deleted_at) ✓
 - `noUncheckedIndexedAccess` compatible ✓
 
 ✅ **Naming Conventions**
+
 - File: `users.ts` (lowercase, plural) ✓
 - Table: `users` (snake_case, plural) ✓
 - Columns: `snake_case` (created_at, password_hash) ✓
@@ -635,12 +665,14 @@ The users schema design is **architecturally sound** and follows project convent
 - Enum: `user_status` (follows pattern) ✓
 
 ✅ **Database Best Practices**
+
 - Uses query builder (no raw SQL) ✓
 - Migration numbering: `0001_create_users.sql` ✓
 - Indexes for lookup optimization ✓
 - Soft delete pattern implemented ✓
 
 ✅ **Error Handling Strategy**
+
 - Spec shows typed error usage (NotFoundError) ✓
 - Validates constraints at DB level ✓
 - Plans for application-level validation (E01-T005) ✓
@@ -650,35 +682,41 @@ The users schema design is **architecturally sound** and follows project convent
 #### Strengths
 
 1. **UUID Primary Key** ✅
+
    - Excellent for distributed systems
    - Prevents ID enumeration attacks
    - `defaultRandom()` avoids external dependencies
    - Consistent with ARCHITECTURE.md's distributed system goals
 
 2. **Nullable Password Hash** ✅
+
    - Clean OAuth support (Arctic integration ready)
    - Type-safe (forces null checks in application code)
    - Aligns with Lucia auth patterns
    - Prevents awkward workarounds
 
 3. **Status Enum** ✅
+
    - Type-safe at database and application layers
    - Clear state model: pending → active/suspended
    - Default `pending_verification` enables email verification flow
    - Extensible (can add states without breaking existing data)
 
 4. **Soft Delete Pattern** ✅
+
    - Enables account recovery
    - Supports audit requirements (education sector compliance)
    - Good for GDPR "right to erasure" workflows (mark deleted, purge later)
    - Query pattern is clear (`WHERE deleted_at IS NULL`)
 
 5. **Email Indexing** ✅
+
    - Critical for authentication lookup performance
    - Unique constraint prevents duplicate accounts
    - Index on uniqueness constraint is auto-optimized by PostgreSQL
 
 6. **Timestamp Strategy** ✅
+
    - `created_at` + `updated_at` + `deleted_at` covers all audit needs
    - Timezone-aware (handles distributed deployments)
    - `defaultNow()` prevents application clock skew issues
@@ -697,6 +735,7 @@ The users schema design is **architecturally sound** and follows project convent
 **Current Mitigation:** Spec states "application layer will normalize to lowercase in E01-T005" (line 145).
 
 **Architectural Concern:** Relying solely on application-level normalization is **risky** for a security-critical field:
+
 - Bug in normalization = duplicate accounts
 - Direct DB access bypasses application logic
 - Migration scripts must handle normalization
@@ -730,6 +769,7 @@ ON users (email_normalized);
 **Current State:** Application code must remember to set `updated_at` on every update.
 
 **Architectural Concern:**
+
 - Easy to forget in update queries
 - No enforcement = stale timestamps
 - Common source of bugs in audit trails
@@ -761,6 +801,7 @@ EXECUTE FUNCTION update_updated_at_column();
 **Issue:** Spec notes "Application logic must enforce valid state transitions (not enforced at DB level)" (line 138).
 
 **Concern:** No constraints on status transitions means invalid states are possible:
+
 - suspended → pending_verification (nonsensical)
 - deleted user with status = active (conflicting state)
 
@@ -786,11 +827,13 @@ CHECK (
 **Observation:** Spec correctly defers fields like `avatar_url`, `bio`, `last_login_at` to future iterations.
 
 **Validation:**
+
 - `last_login_at` → sessions table (correct separation) ✓
 - Email verification token → separate table (correct security practice) ✓
 - Roles → group_members (correct, roles are per-group) ✓
 
 **Future Consideration:** Reserve space for common extensions:
+
 - `preferences` JSONB column (UI settings, timezone, language)
 - `external_id` varchar (for OneRoster sync)
 - `avatar_url` text (profile picture)
@@ -802,12 +845,14 @@ CHECK (
 ### Testing & Quality Assurance
 
 ✅ **Test Coverage Plan**
+
 - Unit tests for type inference ✓
 - Integration tests for migration application ✓
 - Schema validation tests ✓
 - Soft delete query patterns tested ✓
 
 ✅ **Test Quality**
+
 - AAA pattern (Arrange/Act/Assert) ✓
 - Type safety verified at compile time ✓
 - Null handling tested ✓
@@ -820,12 +865,14 @@ CHECK (
 ### Migration Strategy
 
 ✅ **Migration Design**
+
 - Numbered sequentially (0001) ✓
 - Includes enum creation ✓
 - Creates table with constraints ✓
 - Creates indexes ✓
 
 **Missing (Minor):**
+
 - Down migration not shown (should include DROP TABLE, DROP TYPE)
 - No rollback strategy documented
 
@@ -846,20 +893,24 @@ DROP FUNCTION IF EXISTS update_updated_at_column();
 ### Security Considerations
 
 ✅ **Password Storage**
+
 - Nullable for OAuth (correct) ✓
 - Length 255 (sufficient for Argon2id hashes: ~97 chars) ✓
 - Spec correctly notes Argon2 will be used (via Lucia) ✓
 
 ✅ **Email Privacy**
+
 - Unique constraint prevents account enumeration via registration
 - Soft delete hides deleted users from queries
 - No PII in logs (good logging practices noted in spec)
 
 ✅ **Session Security**
+
 - User ID is UUID (not sequential/guessable) ✓
 - Ready for session table foreign key ✓
 
 **Recommendation:** In E01-T005, ensure:
+
 - Password hashes use Argon2id with proper params (m=65536, t=3, p=4)
 - Failed login attempts are rate-limited
 - Email verification tokens are cryptographically random
@@ -869,21 +920,25 @@ DROP FUNCTION IF EXISTS update_updated_at_column();
 ### Integration with System Architecture
 
 ✅ **Groups Hierarchy (ltree) Integration**
+
 - User table is independent (correct)
 - Roles assigned per-group via group_members (planned) ✓
 - No premature coupling to groups table ✓
 
 ✅ **CASL Permissions Integration**
+
 - User status can be checked in CASL rules ✓
 - Soft delete can be checked in permissions ✓
 - Schema supports "user owns resource" patterns ✓
 
 ✅ **Lucia Auth Integration**
+
 - Schema matches Lucia requirements (id, email, password_hash) ✓
 - Ready for Lucia session adapter ✓
 - Supports Arctic OAuth adapter (nullable password_hash) ✓
 
 ✅ **OneRoster Sync (Future)**
+
 - UUID primary key is good (OneRoster uses GUIDs) ✓
 - Email is common identifier ✓
 - Status enum can map to OneRoster statuses ✓
@@ -895,11 +950,13 @@ DROP FUNCTION IF EXISTS update_updated_at_column();
 ### Performance Considerations
 
 ✅ **Query Optimization**
+
 - Email index for auth lookups (O(log n) instead of O(n)) ✓
 - UUID primary key is indexed by default ✓
 - Soft delete queries will need `WHERE deleted_at IS NULL` (ensure index usage) ✓
 
 **Recommendation:** When implementing queries in E01-T005, verify with `EXPLAIN ANALYZE`:
+
 ```sql
 EXPLAIN ANALYZE
 SELECT * FROM users
@@ -908,6 +965,7 @@ AND deleted_at IS NULL;
 ```
 
 ✅ **Scalability**
+
 - UUID prevents single-point contention (vs. serial IDs) ✓
 - No FK constraints yet (good for initial implementation) ✓
 - Schema supports read replicas (no application state in DB) ✓
@@ -917,18 +975,20 @@ AND deleted_at IS NULL;
 ### Documentation Quality
 
 ✅ **Code Comments**
+
 - Enum values documented with clear meanings ✓
 - Table purpose explained ✓
 - Field rationale provided (OAuth, soft delete) ✓
 
 ✅ **Integration Notes**
+
 - Lists future tasks that depend on this schema ✓
 - Notes edge cases (email case, null checks) ✓
 - Provides query patterns for common operations ✓
 
 **Enhancement:** Add JSDoc comments to exported types:
 
-```typescript
+````typescript
 /**
  * User entity representing an authenticated user in the system.
  *
@@ -944,7 +1004,7 @@ AND deleted_at IS NULL;
  * ```
  */
 export type User = typeof users.$inferSelect;
-```
+````
 
 ---
 
@@ -956,14 +1016,14 @@ export type User = typeof users.$inferSelect;
 
 ### Final Recommendations Summary
 
-| Priority | Recommendation | Action Required | Timeline |
-| --- | --- | --- | --- |
-| **High** | Add `updated_at` trigger to migration | Include in 0001 migration | E01-T004 |
-| **High** | Document down migration | Add to spec | E01-T004 |
-| **Medium** | Consider DB-level email lowercase constraint | Design decision needed | E01-T005 |
-| **Medium** | Add deleted users status constraint | Nice to have | E01-T005 |
-| **Low** | Add JSDoc to exported types | Documentation improvement | E01-T004 |
-| **Low** | Document status transition rules | Future enhancement | E01-T005 |
+| Priority   | Recommendation                               | Action Required           | Timeline |
+| ---------- | -------------------------------------------- | ------------------------- | -------- |
+| **High**   | Add `updated_at` trigger to migration        | Include in 0001 migration | E01-T004 |
+| **High**   | Document down migration                      | Add to spec               | E01-T004 |
+| **Medium** | Consider DB-level email lowercase constraint | Design decision needed    | E01-T005 |
+| **Medium** | Add deleted users status constraint          | Nice to have              | E01-T005 |
+| **Low**    | Add JSDoc to exported types                  | Documentation improvement | E01-T004 |
+| **Low**    | Document status transition rules             | Future enhancement        | E01-T005 |
 
 ---
 
@@ -976,6 +1036,7 @@ This implementation spec is **architecturally sound** and ready for implementati
 3. ✅ Address email normalization strategy in E01-T005 (medium priority)
 
 The schema design:
+
 - Follows all project conventions (CONVENTIONS.md) ✓
 - Aligns with system architecture (ARCHITECTURE.md) ✓
 - Provides solid foundation for auth system ✓

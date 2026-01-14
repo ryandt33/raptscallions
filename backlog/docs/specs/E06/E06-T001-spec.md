@@ -2,7 +2,7 @@
 
 ## Overview
 
-Set up VitePress as a new monorepo workspace app at `apps/docs/` to provide a browsable, searchable documentation site for the Raptscallions knowledge base. This foundation task establishes the build infrastructure, local development workflow, and search capabilities that subsequent KB documentation tasks will build upon.
+Set up VitePress as a new monorepo workspace app at `apps/docs/` to provide a browsable, searchable documentation site for the RaptScallions knowledge base. This foundation task establishes the build infrastructure, local development workflow, and search capabilities that subsequent KB documentation tasks will build upon.
 
 ## Approach
 
@@ -25,22 +25,22 @@ VitePress will be integrated as a standard monorepo workspace app following the 
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `apps/docs/package.json` | Package manifest with VitePress dependencies and scripts |
-| `apps/docs/tsconfig.json` | TypeScript configuration extending root config |
-| `apps/docs/.vitepress/config.ts` | VitePress configuration (site metadata, search, nav) |
-| `apps/docs/src/index.md` | KB homepage with welcome content and navigation overview |
-| `apps/docs/.gitignore` | Ignore VitePress build outputs and cache |
+| File                             | Purpose                                                  |
+| -------------------------------- | -------------------------------------------------------- |
+| `apps/docs/package.json`         | Package manifest with VitePress dependencies and scripts |
+| `apps/docs/tsconfig.json`        | TypeScript configuration extending root config           |
+| `apps/docs/.vitepress/config.ts` | VitePress configuration (site metadata, search, nav)     |
+| `apps/docs/src/index.md`         | KB homepage with welcome content and navigation overview |
+| `apps/docs/.gitignore`           | Ignore VitePress build outputs and cache                 |
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `pnpm-workspace.yaml` | Already includes `apps/*` pattern (no change needed) |
-| `tsconfig.json` | Add `{ "path": "apps/docs" }` to `references` array |
-| `package.json` (root) | Add `docs:dev` and `docs:build` scripts |
-| `.gitignore` (root) | Add VitePress-specific patterns if not covered by existing rules |
+| File                  | Changes                                                          |
+| --------------------- | ---------------------------------------------------------------- |
+| `pnpm-workspace.yaml` | Already includes `apps/*` pattern (no change needed)             |
+| `tsconfig.json`       | Add `{ "path": "apps/docs" }` to `references` array              |
+| `package.json` (root) | Add `docs:dev` and `docs:build` scripts                          |
+| `.gitignore` (root)   | Add VitePress-specific patterns if not covered by existing rules |
 
 ## Dependencies
 
@@ -52,6 +52,7 @@ Required in `apps/docs/package.json`:
 - `vue` (^3.x) - Peer dependency for VitePress
 
 Dev dependencies:
+
 - `typescript` (^5.3.0) - For `.vitepress/config.ts` type checking
 
 ### Task Dependencies
@@ -59,6 +60,7 @@ Dev dependencies:
 **Requires:** None (foundation task)
 
 **Blocks:**
+
 - E06-T002 (KB folder structure and navigation)
 - E06-T004 (CI integration for docs validation)
 
@@ -93,6 +95,7 @@ Dev dependencies:
 ```
 
 **Key Points:**
+
 - `dev` script runs VitePress dev server pointing to `src/` directory
 - `build` generates static site for production
 - `preview` allows testing the production build locally
@@ -113,20 +116,13 @@ Dev dependencies:
     "moduleResolution": "Bundler",
     "types": ["node"]
   },
-  "include": [
-    ".vitepress/**/*.ts",
-    ".vitepress/**/*.vue",
-    "src/**/*.md"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vitepress/dist",
-    ".vitepress/cache"
-  ]
+  "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue", "src/**/*.md"],
+  "exclude": ["node_modules", ".vitepress/dist", ".vitepress/cache"]
 }
 ```
 
 **Key Points:**
+
 - Extends root strict TypeScript config
 - `moduleResolution: "Bundler"` required for Vite/VitePress
 - Includes `.vitepress/config.ts` and markdown files for type checking
@@ -137,15 +133,16 @@ Dev dependencies:
 `apps/docs/.vitepress/config.ts`:
 
 ```typescript
-import { defineConfig } from 'vitepress';
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
   // Site metadata
-  title: 'Raptscallions KB',
-  description: 'Knowledge base for Raptscallions platform architecture, patterns, and decisions',
+  title: "RaptScallions KB",
+  description:
+    "Knowledge base for RaptScallions platform architecture, patterns, and decisions",
 
   // Source directory
-  srcDir: './src',
+  srcDir: "./src",
 
   // Clean URLs (no .html extension)
   cleanUrls: true,
@@ -157,9 +154,9 @@ export default defineConfig({
   themeConfig: {
     // Site navigation (top nav bar)
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Architecture', link: '/architecture/' },
-      { text: 'Contributing', link: '/contributing/' }
+      { text: "Home", link: "/" },
+      { text: "Architecture", link: "/architecture/" },
+      { text: "Contributing", link: "/contributing/" },
     ],
 
     // Sidebar navigation (placeholder - will be expanded in E06-T002)
@@ -167,49 +164,51 @@ export default defineConfig({
 
     // Social links
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yourusername/raptscallions' }
+      { icon: "github", link: "https://github.com/yourusername/raptscallions" },
     ],
 
     // Search configuration (local search enabled)
     search: {
-      provider: 'local',
+      provider: "local",
       options: {
         detailedView: true,
         translations: {
           button: {
-            buttonText: 'Search KB',
-            buttonAriaLabel: 'Search documentation'
+            buttonText: "Search KB",
+            buttonAriaLabel: "Search documentation",
           },
           modal: {
-            displayDetails: 'Display detailed list',
-            resetButtonTitle: 'Reset search',
-            noResultsText: 'No results for',
+            displayDetails: "Display detailed list",
+            resetButtonTitle: "Reset search",
+            noResultsText: "No results for",
             footer: {
-              selectText: 'to select',
-              navigateText: 'to navigate',
-              closeText: 'to close'
-            }
-          }
-        }
-      }
+              selectText: "to select",
+              navigateText: "to navigate",
+              closeText: "to close",
+            },
+          },
+        },
+      },
     },
 
     // Edit link (points to GitHub)
     editLink: {
-      pattern: 'https://github.com/yourusername/raptscallions/edit/main/apps/docs/src/:path',
-      text: 'Edit this page on GitHub'
+      pattern:
+        "https://github.com/yourusername/raptscallions/edit/main/apps/docs/src/:path",
+      text: "Edit this page on GitHub",
     },
 
     // Footer
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2026 Raptscallions'
-    }
-  }
+      message: "Released under the MIT License.",
+      copyright: "Copyright © 2026 RaptScallions",
+    },
+  },
 });
 ```
 
 **Key Points:**
+
 - `srcDir: './src'` tells VitePress where markdown files live
 - `search.provider: 'local'` enables built-in search (no external service)
 - `cleanUrls: true` removes `.html` extensions from URLs
@@ -226,9 +225,9 @@ export default defineConfig({
 layout: home
 
 hero:
-  name: Raptscallions
+  name: RaptScallions
   text: Knowledge Base
-  tagline: Architecture, patterns, decisions, and troubleshooting for the Raptscallions platform
+  tagline: Architecture, patterns, decisions, and troubleshooting for the RaptScallions platform
   actions:
     - theme: brand
       text: Get Started
@@ -258,7 +257,7 @@ features:
 
 ## About This KB
 
-This knowledge base documents the **implemented** features of the Raptscallions platform. Unlike planning documents, every article here is verified against working code.
+This knowledge base documents the **implemented** features of the RaptScallions platform. Unlike planning documents, every article here is verified against working code.
 
 ### What's Inside
 
@@ -277,6 +276,7 @@ See the [Contributing Guide](/contributing/) for information on updating documen
 ```
 
 **Key Points:**
+
 - Uses VitePress `home` layout for landing page
 - Hero section with branding and CTAs
 - Feature cards linking to main sections (placeholders for E06-T002+)
@@ -297,6 +297,7 @@ See the [Contributing Guide](/contributing/) for information on updating documen
 ```
 
 **Key Points:**
+
 - Ignores VitePress build artifacts
 - Ignores VitePress cache directory
 - Aligns with monorepo's existing `.gitignore` patterns
@@ -316,6 +317,7 @@ Add to root `package.json` scripts section:
 ```
 
 **Key Points:**
+
 - Convenience scripts for running docs commands from root
 - Follows existing pattern (e.g., `pnpm --filter`)
 - Includes preview script for testing production builds
@@ -346,6 +348,7 @@ Add to root `tsconfig.json` references array:
 ```
 
 **Key Points:**
+
 - Enables TypeScript project references for type checking
 - Allows `pnpm typecheck` at root to validate VitePress config
 - Maintains build cache for faster subsequent checks
@@ -357,6 +360,7 @@ Add to root `tsconfig.json` references array:
 Since this is infrastructure setup, testing is primarily manual verification:
 
 1. **Development Server**
+
    ```bash
    cd apps/docs
    pnpm dev
@@ -366,6 +370,7 @@ Since this is infrastructure setup, testing is primarily manual verification:
    ```
 
 2. **Search Functionality**
+
    ```bash
    # With dev server running:
    # Press Cmd/Ctrl + K
@@ -375,6 +380,7 @@ Since this is infrastructure setup, testing is primarily manual verification:
    ```
 
 3. **Production Build**
+
    ```bash
    cd apps/docs
    pnpm build
@@ -386,6 +392,7 @@ Since this is infrastructure setup, testing is primarily manual verification:
    ```
 
 4. **Root Scripts**
+
    ```bash
    # From repository root:
    pnpm docs:dev
@@ -395,6 +402,7 @@ Since this is infrastructure setup, testing is primarily manual verification:
    ```
 
 5. **TypeScript Validation**
+
    ```bash
    cd apps/docs
    pnpm typecheck
@@ -415,6 +423,7 @@ Since this is infrastructure setup, testing is primarily manual verification:
 ### Integration Tests (Future)
 
 For E06-T004 (CI integration), automated tests will verify:
+
 - Build succeeds without errors
 - No broken links
 - Search index builds correctly
@@ -424,9 +433,11 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC1: `apps/docs/` workspace created with package.json
 
 **Implementation:**
+
 - Create `apps/docs/package.json` with VitePress dependencies and scripts
 
 **Verification:**
+
 - File exists at correct path
 - Contains `name: "@raptscallions/docs"`
 - Has `vitepress` and `vue` dependencies
@@ -435,28 +446,34 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC2: VitePress installed as dependency in apps/docs
 
 **Implementation:**
+
 - Add `vitepress` and `vue` to `dependencies` in `apps/docs/package.json`
 - Run `pnpm install` to install packages
 
 **Verification:**
+
 - `pnpm list vitepress --filter @raptscallions/docs` shows installed version
 - `node_modules/vitepress` exists in `apps/docs/`
 
 ### AC3: pnpm-workspace.yaml updated to include apps/docs
 
 **Implementation:**
+
 - No change needed - `apps/*` pattern already includes `apps/docs/`
 
 **Verification:**
+
 - `pnpm-workspace.yaml` contains `- 'apps/*'`
 - `pnpm ls --depth 0` shows `@raptscallions/docs` in workspace
 
 ### AC4: VitePress config created at apps/docs/.vitepress/config.ts
 
 **Implementation:**
+
 - Create `.vitepress/config.ts` with site metadata, search config, and theme settings
 
 **Verification:**
+
 - File exists at `apps/docs/.vitepress/config.ts`
 - Contains `defineConfig` export
 - Has `search.provider: 'local'` configured
@@ -465,9 +482,11 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC5: `pnpm --filter docs dev` starts local development server
 
 **Implementation:**
+
 - Add `dev` script to `apps/docs/package.json`: `"dev": "vitepress dev src"`
 
 **Verification:**
+
 - Run `pnpm --filter @raptscallions/docs dev`
 - Server starts on http://localhost:5173
 - No errors in console
@@ -476,9 +495,11 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC6: `pnpm --filter docs build` generates static site
 
 **Implementation:**
+
 - Add `build` script to `apps/docs/package.json`: `"build": "vitepress build src"`
 
 **Verification:**
+
 - Run `pnpm --filter @raptscallions/docs build`
 - Build completes successfully
 - `.vitepress/dist/` directory created
@@ -487,9 +508,11 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC7: Root package.json has `docs:dev` and `docs:build` scripts
 
 **Implementation:**
+
 - Add `docs:dev` and `docs:build` scripts to root `package.json`
 
 **Verification:**
+
 - Run `pnpm docs:dev` from root - dev server starts
 - Run `pnpm docs:build` from root - build succeeds
 - Both delegate to `pnpm --filter @raptscallions/docs`
@@ -497,21 +520,25 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC8: Homepage (apps/docs/src/index.md) renders correctly
 
 **Implementation:**
+
 - Create `src/index.md` with VitePress home layout, hero, and feature cards
 
 **Verification:**
+
 - Run dev server
 - Visit http://localhost:5173
-- Homepage displays hero section with "Raptscallions Knowledge Base" title
+- Homepage displays hero section with "RaptScallions Knowledge Base" title
 - Feature cards visible with icons and descriptions
 - No console errors
 
 ### AC9: Local search functionality enabled and working
 
 **Implementation:**
+
 - Configure `search.provider: 'local'` in `.vitepress/config.ts`
 
 **Verification:**
+
 - Run dev server
 - Press Cmd+K (Mac) or Ctrl+K (Windows/Linux)
 - Search modal opens
@@ -521,9 +548,11 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC10: Dark/light theme toggle present (VitePress default)
 
 **Implementation:**
+
 - VitePress default theme includes theme toggle automatically
 
 **Verification:**
+
 - Load homepage
 - Theme toggle button visible in top-right of navbar
 - Clicking toggles between dark and light themes
@@ -532,10 +561,12 @@ For E06-T004 (CI integration), automated tests will verify:
 ### AC11: Build outputs added to .gitignore
 
 **Implementation:**
+
 - Create `apps/docs/.gitignore` with VitePress build patterns
 - Optionally add explicit patterns to root `.gitignore`
 
 **Verification:**
+
 - Run build
 - Run `git status`
 - `.vitepress/dist/` and `.vitepress/cache/` not shown as untracked files
@@ -548,6 +579,7 @@ For E06-T004 (CI integration), automated tests will verify:
 **Scenario:** VitePress default port (5173) already in use by another process
 
 **Handling:**
+
 - VitePress automatically tries next available port (5174, 5175, etc.)
 - No special configuration needed
 - Document in troubleshooting if needed
@@ -557,6 +589,7 @@ For E06-T004 (CI integration), automated tests will verify:
 **Scenario:** `vue` not installed causes VitePress to fail
 
 **Handling:**
+
 - Explicitly list `vue` in `dependencies` (not just peer)
 - Version should match VitePress expectations (^3.x)
 - pnpm will warn if peer dependency mismatch
@@ -566,6 +599,7 @@ For E06-T004 (CI integration), automated tests will verify:
 **Scenario:** `.vitepress/config.ts` has type errors due to incorrect imports
 
 **Handling:**
+
 - Ensure `typescript` in devDependencies
 - Use `import { defineConfig } from 'vitepress'` for type inference
 - Run `pnpm typecheck` to catch errors before dev/build
@@ -575,6 +609,7 @@ For E06-T004 (CI integration), automated tests will verify:
 **Scenario:** Search modal works but returns no results
 
 **Handling:**
+
 - Local search builds index from markdown frontmatter and content
 - With minimal content (just homepage), results will be limited
 - This is expected for initial setup - search will improve as content added
@@ -585,6 +620,7 @@ For E06-T004 (CI integration), automated tests will verify:
 **Scenario:** TypeScript cannot resolve `vitepress` module
 
 **Handling:**
+
 - Set `moduleResolution: "Bundler"` in tsconfig.json (Vite requirement)
 - Ensure `node_modules` installed via `pnpm install`
 - Clear cache: `rm -rf node_modules/.vite` if issues persist
@@ -649,6 +685,7 @@ VitePress local search is content-based and will be minimal with just a homepage
 ### Future Enhancements (Post-Epic)
 
 Consider for future work (not blocking this epic):
+
 - Custom VitePress theme matching main app branding
 - Mermaid diagram support via plugin
 - Code playground integration
@@ -677,15 +714,18 @@ Task is complete when all acceptance criteria pass and:
 **Epic:** [E06](/home/ryan/Documents/coding/claude-box/raptscallions/backlog/tasks/E06/_epic.md)
 
 **Key Documentation:**
+
 - VitePress Official Docs: https://vitepress.dev/
 - VitePress Config Reference: https://vitepress.dev/reference/site-config
 - VitePress Default Theme: https://vitepress.dev/reference/default-theme-config
 
 **Related Specs:**
+
 - E06-T002: KB folder structure and navigation (depends on this task)
 - E06-T004: CI integration for docs validation (depends on this task)
 
 **Existing Code Patterns:**
+
 - `apps/api/package.json` - Workspace app pattern
 - `apps/api/tsconfig.json` - TypeScript project reference pattern
 - Root `package.json` - Filter script pattern (`pnpm --filter`)

@@ -75,6 +75,7 @@ lg: { icon: 48, text: 'text-3xl' },
 const s = sizes[size];
 
 return (
+
 <div className="flex items-center gap-2">
 <div className="relative">
 <div
@@ -180,6 +181,7 @@ const circumference = radius _ 2 _ Math.PI;
 const offset = circumference - (progress / 100) \* circumference;
 
 return (
+
 <div className="relative" style={{ width: size, height: size }}>
 <svg width={size} height={size} className="-rotate-90">
 <circle
@@ -244,6 +246,7 @@ const navItems = [
 ];
 
 return (
+
 <aside
 className="w-64 h-screen fixed left-0 top-0 border-r flex flex-col"
 style={{
@@ -404,6 +407,7 @@ const upcomingAssignments = [
 ];
 
 return (
+
 <div className="space-y-6">
 {/_ Welcome Banner _/}
 <div
@@ -688,6 +692,7 @@ const filteredTools = selectedCategory === 'all'
 : tools.filter(t => t.category === selectedCategory);
 
 return (
+
 <div className="space-y-6">
 {/_ Header _/}
 <div className="flex items-center justify-between">
@@ -842,6 +847,7 @@ time: '2:36 PM',
 ];
 
 return (
+
 <div className="h-[calc(100vh-8rem)] flex gap-6">
 {/_ Chat Area _/}
 <div className="flex-1 flex flex-col">
@@ -1016,6 +1022,7 @@ Quadratic Equations Practice • Started 5 min ago
 
 const LandingPage = ({ onEnterApp }) => {
 return (
+
 <div className="min-h-screen" style={{ background: tokens.colors.neutral[50] }}>
 {/_ Nav _/}
 <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-4" style={{ background: 'rgba(250,250,249,0.9)', backdropFilter: 'blur(8px)' }}>
@@ -1061,7 +1068,7 @@ return (
               className="text-xl mb-8 leading-relaxed"
               style={{ color: tokens.colors.neutral[600] }}
             >
-              Raptscallions is the open-source AI education platform that empowers teachers
+              RaptScallions is the open-source AI education platform that empowers teachers
               to create custom learning tools—without presets, without limits.
             </p>
 
@@ -1186,7 +1193,7 @@ return (
               Ready to plant the seeds of learning?
             </h2>
             <p className="text-green-100 mb-8 text-lg">
-              Deploy Raptscallions for free. Open source, forever.
+              Deploy RaptScallions for free. Open source, forever.
             </p>
             <div className="flex justify-center gap-4">
               <Button variant="accent" size="lg">
@@ -1209,7 +1216,7 @@ return (
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Logo size="sm" />
           <p className="text-sm" style={{ color: tokens.colors.neutral[500] }}>
-            © 2025 Raptscallions. Open source under AGPL-3.0.
+            © 2025 RaptScallions. Open source under AGPL-3.0.
           </p>
         </div>
       </footer>
@@ -1222,7 +1229,7 @@ return (
 // MAIN APP
 // ============================================
 
-export default function RaptscallionsPrototype() {
+export default function RaptScallionsPrototype() {
 const [view, setView] = useState('landing'); // 'landing' | 'app'
 const [currentPage, setCurrentPage] = useState('dashboard');
 
@@ -1257,6 +1264,7 @@ analytics: { title: 'Analytics', subtitle: 'Insights and reports' },
 };
 
 return (
+
 <div className="min-h-screen" style={{ background: tokens.colors.neutral[50], fontFamily: tokens.fonts.body }}>
 <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
 <div className="ml-64">

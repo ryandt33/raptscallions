@@ -1,15 +1,16 @@
 ---
-title: Contributing to Raptscallions
+title: Contributing to RaptScallions
 description: How to contribute code, documentation, and improvements
 ---
 
-# Contributing to Raptscallions
+# Contributing to RaptScallions
 
-Guidelines for contributing to the Raptscallions project, including code contributions, documentation updates, and development workflow.
+Guidelines for contributing to the RaptScallions project, including code contributions, documentation updates, and development workflow.
 
 ## Coming Soon
 
 This section will include:
+
 - Development environment setup
 - Code contribution guidelines
 - Documentation contribution process
@@ -25,6 +26,7 @@ The knowledge base follows a domain-first organization:
 ### Domain Folders
 
 Each domain represents a major codebase area:
+
 - **auth/** — Authentication and authorization
 - **database/** — Database schemas and ORM patterns
 - **api/** — API design and Fastify patterns
@@ -59,6 +61,7 @@ When adding documentation:
 5. Update the sidebar in `.vitepress/config.ts` to add the new page
 
 Example:
+
 ```markdown
 ---
 title: Session Lifecycle

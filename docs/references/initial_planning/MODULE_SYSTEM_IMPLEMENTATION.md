@@ -1,4 +1,4 @@
-# Raptscallions Module System Implementation Specification
+# RaptScallions Module System Implementation Specification
 
 **Version:** 1.0.0  
 **Status:** Implementation Specification  

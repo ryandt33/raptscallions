@@ -1,4 +1,4 @@
-# Raptscallions Code Conventions
+# RaptScallions Code Conventions
 
 **Version:** 1.0.0  
 **Status:** Canonical Reference
@@ -56,7 +56,7 @@
 
 ```typescript
 // ❌ BANNED - will fail code review
-function process(data: any) { }
+function process(data: any) {}
 const result = value as any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
@@ -75,7 +75,7 @@ function process(data: unknown) {
 }
 
 // ✅ CORRECT - use generics
-function process<T extends Record<string, unknown>>(data: T) { }
+function process<T extends Record<string, unknown>>(data: T) {}
 ```
 
 ### Handle Potentially Undefined Values
@@ -102,7 +102,7 @@ const first = items[0]!; // Only if you KNOW it exists
 
 ```typescript
 // ✅ Good
-import type { User } from "@Raptscallions/core";
+import type { User } from "@RaptScallions/core";
 import { createUser } from "./user.service";
 
 // ❌ Bad
@@ -377,10 +377,10 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
 
 ```typescript
 // apps/api/src/services/user.service.ts
-import { db } from "@Raptscallions/db";
-import { users } from "@Raptscallions/db/schema";
+import { db } from "@RaptScallions/db";
+import { users } from "@RaptScallions/db/schema";
 import { eq } from "drizzle-orm";
-import { NotFoundError } from "@Raptscallions/core/errors";
+import { NotFoundError } from "@RaptScallions/core/errors";
 
 export class UserService {
   constructor(private db: typeof db) {}
@@ -536,7 +536,9 @@ Plugins using `addHook('onRequest')` or decorators only apply to routes within t
 ```typescript
 // ❌ BAD - hooks won't apply to routes in other plugins
 const myPlugin: FastifyPluginAsync = async (app) => {
-  app.addHook("onRequest", async (request) => { /* ... */ });
+  app.addHook("onRequest", async (request) => {
+    /* ... */
+  });
 };
 ```
 
@@ -547,7 +549,9 @@ const myPlugin: FastifyPluginAsync = async (app) => {
 import fp from "fastify-plugin";
 
 const myPlugin: FastifyPluginAsync = async (app) => {
-  app.addHook("onRequest", async (request) => { /* ... */ });
+  app.addHook("onRequest", async (request) => {
+    /* ... */
+  });
 };
 
 export const sessionMiddleware = fp(myPlugin, { name: "sessionMiddleware" });
@@ -562,14 +566,21 @@ Use dependency injection to make middleware testable without relying on `vi.mock
 export interface SessionServiceLike {
   sessionCookieName: string;
   validate: (sessionId: string) => Promise<SessionValidationResult>;
-  createBlankSessionCookie: () => { name: string; value: string; attributes: Record<string, unknown> };
+  createBlankSessionCookie: () => {
+    name: string;
+    value: string;
+    attributes: Record<string, unknown>;
+  };
 }
 
 export interface SessionMiddlewareOptions {
   sessionService?: SessionServiceLike;
 }
 
-const plugin: FastifyPluginAsync<SessionMiddlewareOptions> = async (app, opts = {}) => {
+const plugin: FastifyPluginAsync<SessionMiddlewareOptions> = async (
+  app,
+  opts = {}
+) => {
   const sessionService = opts.sessionService ?? defaultSessionService;
   // Use sessionService...
 };
@@ -602,12 +613,14 @@ await app.register(sessionMiddleware, {
 The project uses Vitest with a three-tier configuration strategy:
 
 1. **Root Config** (`vitest.config.ts`) - Shared defaults for all packages
+
    - Global test settings
    - TypeScript path resolution
    - Coverage provider and thresholds
    - Path aliases for cross-package imports
 
 2. **Workspace Definition** (`vitest.workspace.ts`) - Explicit package list
+
    - Defines which packages to test
    - Enables parallel test execution
    - Future apps added as they're created
@@ -632,6 +645,7 @@ pnpm --filter @raptscallions/core test
 **Adding a New Package:**
 
 When creating a new package, add:
+
 1. Package to `vitest.workspace.ts`
 2. `vitest.config.ts` extending root config
 3. Path alias to root `vitest.config.ts` and `tsconfig.json`
@@ -762,7 +776,7 @@ E01-T001: [Task title]
 ### Use Structured Logging
 
 ```typescript
-import { logger } from "@Raptscallions/telemetry";
+import { logger } from "@RaptScallions/telemetry";
 
 // ✅ Good - structured, contextual
 logger.info({ userId, action: "login" }, "User logged in");
@@ -841,6 +855,7 @@ The project uses VitePress for browsable, searchable documentation at `apps/docs
 When documenting implemented features:
 
 1. **Choose the domain folder:**
+
    - `auth/` - Authentication, authorization, sessions, permissions
    - `database/` - PostgreSQL schemas, Drizzle ORM, migrations
    - `api/` - Fastify route handlers, middleware, services
@@ -849,18 +864,21 @@ When documenting implemented features:
    - `contributing/` - Contribution guidelines
 
 2. **Choose the content type:**
+
    - `concepts/` - Core ideas and mental models (e.g., "Session Lifecycle")
    - `patterns/` - Reusable implementation patterns (e.g., "Guard Middleware Composition")
    - `decisions/` - Architecture decision records (e.g., "Why Fastify over Express")
    - `troubleshooting/` - Problem-solution guides (e.g., "Session Cookies Not Set")
 
 3. **Create the markdown file:**
+
    ```bash
    # Use kebab-case for file names
    touch apps/docs/src/auth/concepts/session-lifecycle.md
    ```
 
 4. **Add frontmatter and content:**
+
    ```markdown
    ---
    title: Session Lifecycle
@@ -878,6 +896,7 @@ When documenting implemented features:
    ## Creation
 
    Sessions are created when users authenticate via:
+
    - Email/password login (`POST /auth/login`)
    - OAuth callback (`GET /auth/google/callback`, etc.)
 
@@ -890,6 +909,7 @@ When documenting implemented features:
 
 5. **Update sidebar navigation:**
    Edit `apps/docs/.vitepress/config.ts` and add link to sidebar:
+
    ```typescript
    {
      text: 'Concepts',
@@ -909,11 +929,13 @@ When documenting implemented features:
 #### Documentation Standards
 
 **Naming:**
+
 - **Files**: kebab-case (`session-lifecycle.md`)
 - **Titles**: Title Case in frontmatter (`Session Lifecycle`)
 - **Max depth**: 3 levels (domain/type/article)
 
 **Content:**
+
 - Write for developers who haven't seen the code
 - Be concise but complete
 - Use runnable code examples
@@ -922,6 +944,7 @@ When documenting implemented features:
 
 **Page Design Patterns:**
 For detailed KB page authoring guidelines, see the [KB Page Design Patterns](/contributing/kb-page-design) guide in the knowledge base. It covers:
+
 - Frontmatter and title patterns
 - Heading hierarchy rules
 - Code block conventions (highlighting, line numbers, code groups)
@@ -930,15 +953,16 @@ For detailed KB page authoring guidelines, see the [KB Page Design Patterns](/co
 - VitePress-specific features
 
 **Code Examples:**
+
 ```typescript
 // ✅ Good - complete, runnable
-import { UserService } from '@raptscallions/api';
+import { UserService } from "@raptscallions/api";
 
 const userService = new UserService(db);
-const user = await userService.getById('123');
+const user = await userService.getById("123");
 
 // ❌ Bad - incomplete, assumes context
-userService.getById('123'); // returns user
+userService.getById("123"); // returns user
 ```
 
 #### Building and Deployment

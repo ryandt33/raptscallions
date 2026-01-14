@@ -1,4 +1,4 @@
-# Task Template for Raptscallions
+# Task Template for RaptScallions
 
 This template defines the structure for task files used with Backlog.md workflow.
 
@@ -14,27 +14,27 @@ Tasks are stored as individual markdown files in `backlog/tasks/{EPIC-ID}/{TASK-
 ---
 id: "E01-T001"
 title: "Short descriptive title"
-status: "todo"  # todo | in-progress | done
-priority: "high"  # low | medium | high | critical
+status: "todo" # todo | in-progress | done
+priority: "high" # low | medium | high | critical
 labels:
-  - backend  # Determines review path (see task_types in config.yaml)
+  - backend # Determines review path (see task_types in config.yaml)
   - auth
 assignee: ""
 
-workflow_state: "DRAFT"  # Current state in workflow
+workflow_state: "DRAFT" # Current state in workflow
 epic: "E01"
-depends_on: []  # Task IDs that must complete first
-blocks: []  # Task IDs blocked by this task
+depends_on: [] # Task IDs that must complete first
+blocks: [] # Task IDs blocked by this task
 
 created_at: "2026-01-12T00:00:00Z"
 updated_at: "2026-01-12T00:00:00Z"
 started_at: ""
 completed_at: ""
 
-spec_file: ""  # Path to spec when created
-test_files: []  # Paths added during implementation
-code_files: []  # Paths added during implementation
-pr_url: ""  # PR URL when created
+spec_file: "" # Path to spec when created
+test_files: [] # Paths added during implementation
+code_files: [] # Paths added during implementation
+pr_url: "" # PR URL when created
 ---
 ```
 
@@ -59,25 +59,28 @@ pr_url: ""  # PR URL when created
 
 ## History
 
-| Date | State | Agent | Notes |
-|------|-------|-------|-------|
+| Date       | State | Agent | Notes        |
+| ---------- | ----- | ----- | ------------ |
 | 2026-01-12 | DRAFT | human | Task created |
 
 ## Reviews
 
 ### Spec Review
+
 - **Reviewer:** architect
 - **Date:**
 - **Verdict:**
 - **Notes:**
 
 ### Code Review
+
 - **Reviewer:** reviewer
 - **Date:**
 - **Verdict:**
 - **Notes:**
 
 ### QA Review
+
 - **Reviewer:** qa
 - **Date:**
 - **Verdict:**
@@ -127,15 +130,15 @@ Copied from task, expanded with specifics:
 
 ### To Create
 
-| Path | Purpose |
-|------|---------|
-| `packages/db/src/schema/users.ts` | User table schema |
-| `packages/db/src/migrations/0001_create_users.sql` | Migration |
+| Path                                               | Purpose           |
+| -------------------------------------------------- | ----------------- |
+| `packages/db/src/schema/users.ts`                  | User table schema |
+| `packages/db/src/migrations/0001_create_users.sql` | Migration         |
 
 ### To Modify
 
-| Path | Changes |
-|------|---------|
+| Path                              | Changes             |
+| --------------------------------- | ------------------- |
 | `packages/db/src/schema/index.ts` | Export users schema |
 
 ## Dependencies
@@ -161,8 +164,8 @@ Copied from task, expanded with specifics:
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
+| Risk                        | Impact | Mitigation               |
+| --------------------------- | ------ | ------------------------ |
 | Schema changes needed later | Medium | Design for extensibility |
 
 ## Open Questions
@@ -180,6 +183,7 @@ Copied from task, expanded with specifics:
 4. **Copy-paste ready code blocks** - Leads to outdated examples
 
 The spec answers WHAT and WHY. The developer figures out HOW using:
+
 - `docs/ARCHITECTURE.md` for patterns
 - `docs/CONVENTIONS.md` for style
 - Existing codebase for consistency
@@ -207,10 +211,10 @@ DRAFT → SPEC_WRITING → SPEC_REVIEW → APPROVED → IMPLEMENTING → IMPLEME
 
 ## Labels and Review Routing
 
-| Labels | Task Type | Reviews |
-|--------|-----------|---------|
-| backend, api, database, auth | backend | TECH_REVIEW → QA |
-| frontend, ui, web, components | frontend | TECH_REVIEW → UI_REVIEW → QA |
-| fullstack | fullstack | TECH_REVIEW → UI_REVIEW → QA |
-| documentation, docs | docs | TECH_REVIEW |
-| devops, ci, deployment | infrastructure | TECH_REVIEW → QA |
+| Labels                        | Task Type      | Reviews                      |
+| ----------------------------- | -------------- | ---------------------------- |
+| backend, api, database, auth  | backend        | TECH_REVIEW → QA             |
+| frontend, ui, web, components | frontend       | TECH_REVIEW → UI_REVIEW → QA |
+| fullstack                     | fullstack      | TECH_REVIEW → UI_REVIEW → QA |
+| documentation, docs           | docs           | TECH_REVIEW                  |
+| devops, ci, deployment        | infrastructure | TECH_REVIEW → QA             |

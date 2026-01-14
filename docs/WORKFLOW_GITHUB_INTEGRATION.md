@@ -1,6 +1,6 @@
 # Workflow GitHub Integration
 
-Documentation for GitHub CI/CD integration in the Raptscallions development workflow.
+Documentation for GitHub CI/CD integration in the RaptScallions development workflow.
 
 ## Overview
 
@@ -11,6 +11,7 @@ The workflow orchestrator now includes GitHub/Git operations as an automated ste
 The GitHub integration adds four new workflow states:
 
 ### PR_READY
+
 **Description:** Documentation is complete, ready to commit and create PR
 **Trigger:** Automatically set after `DOCS_UPDATE` completes
 **Command:** `/commit-and-pr {task-id}`
@@ -18,6 +19,7 @@ The GitHub integration adds four new workflow states:
 **Next State:** `PR_CREATED`
 
 ### PR_CREATED
+
 **Description:** Pull request created, CI checks running
 **Trigger:** Set by `/commit-and-pr` after successful PR creation
 **Command:** None (manual monitoring)
@@ -25,11 +27,13 @@ The GitHub integration adds four new workflow states:
 **Next State:** `DONE` (automatic) or `PR_REVIEW`/`PR_FAILED` (manual)
 
 **Behavior:**
+
 - Auto-transitions to `DONE` if automerge enabled and CI passes
 - Manually set to `PR_REVIEW` if requiring manual approval
 - Manually set to `PR_FAILED` if CI checks fail
 
 ### PR_REVIEW
+
 **Description:** PR created, awaiting manual review and approval
 **Trigger:** Manually set when PR needs review
 **Command:** None (manual monitoring)
@@ -37,12 +41,14 @@ The GitHub integration adds four new workflow states:
 **Next State:** `DONE` (manual, after PR merged)
 
 **When to use:**
+
 - High or critical priority tasks
 - Breaking changes
 - Security-sensitive changes
 - Requires domain expert review
 
 ### PR_FAILED
+
 **Description:** CI checks failed, needs investigation
 **Trigger:** Manually set when GitHub Actions fails
 **Command:** None (manual investigation)
@@ -50,6 +56,7 @@ The GitHub integration adds four new workflow states:
 **Next State:** `IMPLEMENTING` or `TESTS_REVISION_NEEDED` (manual)
 
 **Recovery:**
+
 - Investigate failure in GitHub Actions logs
 - Fix code issues → set to `IMPLEMENTING`
 - Fix test issues → set to `TESTS_REVISION_NEEDED`
@@ -86,36 +93,44 @@ DONE  PR_REVIEW  PR_FAILED
 ### What It Does
 
 1. **Validates task state**
+
    - Checks `workflow_state` is `PR_READY`
    - Verifies code files exist
 
 2. **Checks git status**
+
    - Runs `git status` to see changes
    - Verifies there are changes to commit
 
 3. **Creates feature branch** (if needed)
+
    - Format: `feature/{epic}-{task-id}-{slug}`
    - Example: `feature/E01-T001-user-authentication`
 
 4. **Runs CI checks locally**
+
    - Executes `pnpm ci:check`
    - Includes: typecheck, lint, test, build
    - **STOPS** if any check fails
 
 5. **Commits with conventions**
+
    - Uses conventional commit format
    - Includes task reference
    - Adds Co-Authored-By for Claude
 
 6. **Pushes to remote**
+
    - Uses `-u origin` to set upstream
 
 7. **Creates pull request**
+
    - Uses `gh pr create` command
    - Applies PR template
    - Adds task reference to title
 
 8. **Configures automerge** (conditional)
+
    - Adds `automerge` label for low/medium priority
    - Requires manual review for high/critical
 
@@ -147,6 +162,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Example:**
+
 ```
 feat(auth): implement user authentication
 
@@ -167,6 +183,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Examples:**
+
 - `feat(auth): implement OAuth providers [E01-T002]`
 - `fix(chat): prevent message loss on reconnect [E03-T010]`
 
@@ -175,11 +192,13 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ### When Auto-Merge is Enabled
 
 **Criteria:**
+
 - Task priority is `low` or `medium`
 - No breaking changes
 - Not security-sensitive
 
 **Process:**
+
 1. PR created with `automerge` label
 2. GitHub Actions CI runs
 3. If all checks pass → auto-merges with squash
@@ -188,12 +207,14 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ### When Manual Review is Required
 
 **Criteria:**
+
 - Task priority is `high` or `critical`
 - Breaking changes present
 - Security-sensitive changes
 - Requires domain expert review
 
 **Process:**
+
 1. PR created without `automerge` label
 2. GitHub Actions CI runs
 3. Awaits manual approval
@@ -207,14 +228,17 @@ All PRs must pass these checks before merging:
 ### Required Checks
 
 1. **Type Check** (`pnpm typecheck`)
+
    - Zero TypeScript errors
    - Strict mode enforced
 
 2. **Lint** (`pnpm lint`)
+
    - Zero linting warnings
    - Code style compliance
 
 3. **Test** (`pnpm test`)
+
    - All unit tests passing
    - Integration tests passing
 
@@ -251,6 +275,7 @@ If `pnpm ci:check` fails during `/commit-and-pr`:
 6. Task remains in `PR_READY` state
 
 **Recovery:**
+
 - Fix the reported issues
 - Run `/commit-and-pr` again
 
@@ -370,6 +395,7 @@ gh pr edit <PR_NUMBER> --remove-label automerge
 **File:** `.claude/agents/git-agent.md`
 
 Defines the Git agent responsible for:
+
 - Git operations
 - Commit formatting
 - PR creation
@@ -386,6 +412,7 @@ Defines the `/commit-and-pr` command flow and behavior.
 **File:** `scripts/orchestrator.ts`
 
 State machine configuration:
+
 - `WorkflowState` type includes PR states
 - `STATE_COMMANDS` maps `PR_READY` → `commit-and-pr`
 - `STATE_TRANSITIONS` defines flow
@@ -396,23 +423,27 @@ State machine configuration:
 ### For Low/Medium Priority Tasks
 
 ✅ **DO:**
+
 - Let automerge handle the PR
 - Trust CI to validate changes
 - Let orchestrator complete automatically
 
 ❌ **DON'T:**
+
 - Manually review unless issues arise
 - Override automerge without reason
 
 ### For High/Critical Priority Tasks
 
 ✅ **DO:**
+
 - Request manual reviews
 - Review PR diff before merge
 - Test manually in addition to CI
 - Monitor CI checks closely
 
 ❌ **DON'T:**
+
 - Rush to merge
 - Skip review process
 - Disable CI checks
@@ -420,12 +451,14 @@ State machine configuration:
 ### For Breaking Changes
 
 ✅ **DO:**
+
 - Require manual review
 - Document breaking changes in PR
 - Update migration guides
 - Notify team before merge
 
 ❌ **DON'T:**
+
 - Use automerge
 - Merge without team awareness
 
@@ -436,6 +469,7 @@ State machine configuration:
 **Problem:** Local CI checks failed before commit
 
 **Solution:**
+
 1. Read error output
 2. Fix reported issues:
    - TypeScript errors → fix types
@@ -450,6 +484,7 @@ State machine configuration:
 **Problem:** CI passed locally but failed in GitHub
 
 **Solution:**
+
 1. Check GitHub Actions logs
 2. Common causes:
    - Environment differences
@@ -464,6 +499,7 @@ State machine configuration:
 **Problem:** Feature branch already exists
 
 **Solution:**
+
 1. Check if it's the same task
 2. If yes: switch to branch and update
 3. If no: create new branch name
@@ -474,6 +510,7 @@ State machine configuration:
 **Problem:** PR already created for this branch
 
 **Solution:**
+
 1. Check PR status
 2. If open: update PR with new commits
 3. If closed: create new branch

@@ -1,6 +1,6 @@
 # @raptscallions/telemetry
 
-OpenTelemetry-based observability package for Raptscallions, providing tracing, metrics, and structured logging.
+OpenTelemetry-based observability package for RaptScallions, providing tracing, metrics, and structured logging.
 
 > **Current Status:** This is a **stub implementation** with a functional API contract. Full OpenTelemetry integration will be implemented in a future epic.
 
@@ -14,7 +14,7 @@ OpenTelemetry-based observability package for Raptscallions, providing tracing, 
 
 ## Installation
 
-This package is part of the Raptscallions monorepo and is not published to npm separately.
+This package is part of the RaptScallions monorepo and is not published to npm separately.
 
 ```bash
 # Install from monorepo
@@ -26,12 +26,12 @@ pnpm install
 ### Initialize Telemetry
 
 ```typescript
-import { initTelemetry } from '@raptscallions/telemetry';
+import { initTelemetry } from "@raptscallions/telemetry";
 
 // Initialize with service configuration
 initTelemetry({
-  serviceName: 'api-server',
-  environment: 'production',
+  serviceName: "api-server",
+  environment: "production",
   enableTracing: true,
   enableMetrics: true,
   enableLogging: true,
@@ -41,25 +41,26 @@ initTelemetry({
 ### Structured Logging
 
 ```typescript
-import { getLogger } from '@raptscallions/telemetry';
+import { getLogger } from "@raptscallions/telemetry";
 
-const logger = getLogger('user-service');
+const logger = getLogger("user-service");
 
 // Log with metadata
-logger.info('User created', { userId: '123', email: 'user@example.com' });
-logger.warn('Rate limit exceeded', { userId: '123', limit: 100 });
-logger.error('Database connection failed', { error: err.message });
+logger.info("User created", { userId: "123", email: "user@example.com" });
+logger.warn("Rate limit exceeded", { userId: "123", limit: 100 });
+logger.error("Database connection failed", { error: err.message });
 
 // Available log levels
-logger.trace('Detailed trace information');
-logger.debug('Debug information');
-logger.info('General information');
-logger.warn('Warning messages');
-logger.error('Error messages');
-logger.fatal('Fatal errors');
+logger.trace("Detailed trace information");
+logger.debug("Debug information");
+logger.info("General information");
+logger.warn("Warning messages");
+logger.error("Error messages");
+logger.fatal("Fatal errors");
 ```
 
 **Current Output:** Logs to console with format:
+
 ```
 2025-01-12T10:30:45.123Z [user-service] INFO: User created {"userId":"123","email":"user@example.com"}
 ```
@@ -67,28 +68,28 @@ logger.fatal('Fatal errors');
 ### Distributed Tracing
 
 ```typescript
-import { getTracer } from '@raptscallions/telemetry';
+import { getTracer } from "@raptscallions/telemetry";
 
-const tracer = getTracer('api-server');
+const tracer = getTracer("api-server");
 
 // Manual span management
-const span = tracer.startSpan('database-query');
+const span = tracer.startSpan("database-query");
 try {
-  span.setAttribute('query', 'SELECT * FROM users');
-  span.setAttribute('user_id', userId);
+  span.setAttribute("query", "SELECT * FROM users");
+  span.setAttribute("user_id", userId);
 
   const result = await db.query.users.findMany();
 
-  span.addEvent('query-completed', { rowCount: result.length });
+  span.addEvent("query-completed", { rowCount: result.length });
   return result;
 } finally {
   span.end();
 }
 
 // Automatic span management with callback
-const result = tracer.startActiveSpan('http-request', (span) => {
-  span.setAttribute('http.method', 'POST');
-  span.setAttribute('http.url', '/api/users');
+const result = tracer.startActiveSpan("http-request", (span) => {
+  span.setAttribute("http.method", "POST");
+  span.setAttribute("http.url", "/api/users");
 
   return processRequest();
   // span.end() is called automatically
@@ -100,25 +101,25 @@ const result = tracer.startActiveSpan('http-request', (span) => {
 ### Metrics Collection
 
 ```typescript
-import { getMeter } from '@raptscallions/telemetry';
+import { getMeter } from "@raptscallions/telemetry";
 
-const meter = getMeter('api-server');
+const meter = getMeter("api-server");
 
 // Counter - monotonically increasing values
-const requestCounter = meter.createCounter('http_requests_total', {
-  description: 'Total HTTP requests',
+const requestCounter = meter.createCounter("http_requests_total", {
+  description: "Total HTTP requests",
 });
-requestCounter.add(1, { method: 'GET', path: '/api/users' });
+requestCounter.add(1, { method: "GET", path: "/api/users" });
 
 // Histogram - statistical distribution
-const responseTime = meter.createHistogram('http_response_time_ms', {
-  description: 'HTTP response time in milliseconds',
+const responseTime = meter.createHistogram("http_response_time_ms", {
+  description: "HTTP response time in milliseconds",
 });
-responseTime.record(42.5, { method: 'GET', status: '200' });
+responseTime.record(42.5, { method: "GET", status: "200" });
 
 // Gauge - point-in-time values
-const activeConnections = meter.createGauge('active_connections', {
-  description: 'Current active connections',
+const activeConnections = meter.createGauge("active_connections", {
+  description: "Current active connections",
 });
 activeConnections.record(150);
 ```
@@ -135,11 +136,11 @@ Configuration for telemetry initialization.
 
 ```typescript
 interface TelemetryConfig {
-  serviceName: string;      // Service name for telemetry attribution
-  environment?: string;      // Deployment environment (development, staging, production)
-  enableTracing?: boolean;   // Enable tracing subsystem
-  enableMetrics?: boolean;   // Enable metrics subsystem
-  enableLogging?: boolean;   // Enable logging subsystem (always on for stub)
+  serviceName: string; // Service name for telemetry attribution
+  environment?: string; // Deployment environment (development, staging, production)
+  enableTracing?: boolean; // Enable tracing subsystem
+  enableMetrics?: boolean; // Enable metrics subsystem
+  enableLogging?: boolean; // Enable logging subsystem (always on for stub)
 }
 ```
 
@@ -194,6 +195,7 @@ Initialize telemetry subsystems with the provided configuration.
 Get or create a logger instance. Returns the same instance for the same name (singleton pattern).
 
 **Parameters:**
+
 - `name` - Logger name, typically service or module name
 
 **Returns:** Logger instance
@@ -203,6 +205,7 @@ Get or create a logger instance. Returns the same instance for the same name (si
 Get or create a tracer instance. Returns the same instance for the same name (singleton pattern).
 
 **Parameters:**
+
 - `name` - Tracer name, typically service or module name
 
 **Returns:** Tracer instance (currently no-op stub)
@@ -212,6 +215,7 @@ Get or create a tracer instance. Returns the same instance for the same name (si
 Get or create a meter instance. Returns the same instance for the same name (singleton pattern).
 
 **Parameters:**
+
 - `name` - Meter name, typically service or module name
 
 **Returns:** Meter instance (currently no-op stub)

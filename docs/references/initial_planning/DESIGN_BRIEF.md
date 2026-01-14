@@ -1,4 +1,4 @@
-# Raptscallions: Complete System Brief
+# RaptScallions: Complete System Brief
 
 ## Open Source AI Education Platform
 
@@ -6,7 +6,7 @@
 
 # Executive Summary
 
-Raptscallions is a fully open-source alternative to MagicSchool and Flint K12, designed for:
+RaptScallions is a fully open-source alternative to MagicSchool and Flint K12, designed for:
 
 - **Extreme modularity** - minimal core, everything else is a pluggable module
 - **Two interface types** - Chat (multi-turn) and Product (single I/O)
@@ -677,7 +677,7 @@ function canAccess(user: User, resource: { group_id: string }): boolean {
 
 ## Entity Mapping
 
-| OneRoster    | Raptscallions       |
+| OneRoster    | RaptScallions       |
 | ------------ | ------------------- |
 | `org`        | `groups`            |
 | `user`       | `users`             |
@@ -857,7 +857,7 @@ raptscallions/
 
 ```json
 {
-  "name": "Raptscallions",
+  "name": "RaptScallions",
   "stack": "container",
   "addons": ["heroku-postgresql:essential-0", "heroku-redis:mini"],
   "env": {

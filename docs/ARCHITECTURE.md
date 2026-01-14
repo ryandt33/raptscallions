@@ -1,4 +1,4 @@
-# Raptscallions Architecture
+# RaptScallions Architecture
 
 **Version:** 1.0.0  
 **Status:** Canonical Reference  
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-Raptscallions is an open-source AI education platform designed for:
+RaptScallions is an open-source AI education platform designed for:
 
 - **Extreme modularity** — Minimal core, everything else is a pluggable module
 - **Two interface types** — Chat (multi-turn) and Product (single I/O)
@@ -217,6 +217,7 @@ The foundational table for authentication and user identity:
 - **Migration**: `0001_create_users.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `email` (varchar 255) - Unique, not null
 - `name` (varchar 100) - Display name
@@ -237,6 +238,7 @@ Organizational units with hierarchical structure using PostgreSQL's ltree extens
 - **Migration**: `0002_create_groups.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `name` (varchar 100) - Group name
 - `path` (ltree) - Hierarchical path (e.g., `district_1.school_5.dept_12`)
@@ -258,6 +260,7 @@ Join table associating users with groups and assigning roles for RBAC:
 - **Migration**: `0003_create_group_members.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
 - `group_id` (UUID) - Foreign key to groups(id) with CASCADE delete
@@ -265,11 +268,13 @@ Key fields:
 - `created_at`, `updated_at` - Audit timestamps (no soft delete)
 
 Indexes:
+
 - `group_members_user_id_idx` - Optimizes "get user's groups" queries
 - `group_members_group_id_idx` - Optimizes "get group's members" queries
 - Unique constraint on (user_id, group_id) automatically indexed
 
 Relations:
+
 - `groupMembers.user` - Many-to-one relation to users table
 - `groupMembers.group` - Many-to-one relation to groups table
 - `users.groupMembers` - One-to-many relation for user's memberships
@@ -290,6 +295,7 @@ Session management for Lucia v3 authentication with support for shared device co
 - **Auth Package**: `packages/auth/` - Lucia configuration and session service
 
 Key fields:
+
 - `id` (varchar 255) - Primary key, cryptographically random 40-character string
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
 - `expires_at` (timestamptz) - Session expiration timestamp
@@ -297,10 +303,12 @@ Key fields:
 - `last_activity_at` (timestamptz) - Last request timestamp for idle detection
 
 Indexes:
+
 - `sessions_user_id_idx` - Optimizes "get user sessions" queries
 - `sessions_expires_at_idx` - Optimizes expired session cleanup
 
 Relations:
+
 - `sessions.user` - Many-to-one relation to users table
 
 ### Classes
@@ -318,6 +326,7 @@ Teaching groups within schools/departments that represent specific classes (like
 - **Migration**: `0005_create_classes.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `group_id` (UUID) - Foreign key to groups(id) with CASCADE delete
 - `name` (varchar 100) - Class display name (e.g., "Period 3 Algebra I")
@@ -325,9 +334,11 @@ Key fields:
 - `created_at`, `updated_at`, `deleted_at` - Audit timestamps with soft delete support
 
 Indexes:
+
 - `classes_group_id_idx` - Optimizes "get all classes in group" queries
 
 Relations:
+
 - `classes.group` - Many-to-one relation to groups table
 - `classes.members` - One-to-many relation to class_members table
 - `groups.classes` - One-to-many relation for group's classes
@@ -348,6 +359,7 @@ Join table associating users with classes and assigning teaching/learning roles:
 - **Migration**: `0005_create_classes.sql` (same migration as classes table)
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `class_id` (UUID) - Foreign key to classes(id) with CASCADE delete
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
@@ -355,11 +367,13 @@ Key fields:
 - `created_at` - Timestamp when user joined class (no updated_at)
 
 Indexes:
+
 - `class_members_class_id_idx` - Optimizes roster queries (very high frequency)
 - `class_members_user_id_idx` - Optimizes "get user's schedule" queries
 - Unique constraint on (class_id, user_id) automatically indexed
 
 Relations:
+
 - `classMembers.class` - Many-to-one relation to classes table
 - `classMembers.user` - Many-to-one relation to users table
 - `users.classMembers` - One-to-many relation for user's class memberships
@@ -381,6 +395,7 @@ YAML-defined AI interactions created by teachers that define AI-powered experien
 - **Migrations**: `0006_create_tools.sql`, `0009_add_tools_updated_at_trigger.sql` (remediation)
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `type` (tool_type enum) - Tool type: 'chat' or 'product'
 - `name` (varchar 100) - Human-readable tool name
@@ -391,11 +406,13 @@ Key fields:
 - `created_at`, `updated_at`, `deleted_at` - Audit timestamps with soft delete support (updated_at automatically maintained via trigger)
 
 Indexes:
+
 - `tools_group_id_idx` - Optimizes "get tools in group" queries
 - `tools_created_by_idx` - Optimizes "get my tools" queries
 - Unique constraint on (name, version) automatically indexed for version lookups
 
 Relations:
+
 - `tools.creator` - Many-to-one relation to users table
 - `tools.group` - Many-to-one relation to groups table (nullable for system-wide tools)
 - `users.tools` - One-to-many relation for user's created tools
@@ -418,6 +435,7 @@ Multi-turn conversation sessions between users and tools:
 - **Migration**: `0008_create_chat_sessions_messages.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `tool_id` (UUID) - Foreign key to tools(id) with RESTRICT delete
 - `user_id` (UUID) - Foreign key to users(id) with CASCADE delete
@@ -426,11 +444,13 @@ Key fields:
 - `ended_at` (timestamptz) - When session was completed (nullable)
 
 Indexes:
+
 - `chat_sessions_tool_id_idx` - Optimizes "get sessions for tool" queries
 - `chat_sessions_user_id_idx` - Optimizes "get user's sessions" queries
 - `chat_sessions_state_idx` - Optimizes filtering by session state
 
 Relations:
+
 - `chatSessions.tool` - Many-to-one relation to tools table
 - `chatSessions.user` - Many-to-one relation to users table
 - `chatSessions.messages` - One-to-many relation to messages table
@@ -452,6 +472,7 @@ Conversation history within chat sessions with ordered sequencing:
 - **Migration**: `0008_create_chat_sessions_messages.sql`
 
 Key fields:
+
 - `id` (UUID) - Primary key with automatic generation
 - `session_id` (UUID) - Foreign key to chat_sessions(id) with CASCADE delete
 - `role` (message_role enum) - Who sent the message: `user`, `assistant`, or `system`
@@ -461,16 +482,20 @@ Key fields:
 - `meta` (jsonb) - Extensible metadata (tokens, model, latency, etc.) - defaults to `{}`
 
 Indexes:
+
 - `messages_session_seq_idx` - Composite index on (session_id, seq) for fast ordered retrieval
 
 Constraints:
+
 - `messages_session_seq_unique` - Unique constraint on (session_id, seq) prevents duplicate sequences
 
 Relations:
+
 - `messages.session` - Many-to-one relation to chat_sessions table
 - `chatSessions.messages` - One-to-many relation for session's messages
 
 Metadata examples:
+
 ```jsonb
 { "tokens": 150, "model": "claude-3-sonnet", "latency_ms": 432 }
 { "module_extractions": [...] }
@@ -533,6 +558,7 @@ Lucia v3 provides cookie-based session management with:
 - **Package**: `@raptscallions/auth` - Lucia configuration and session service
 
 Authentication methods:
+
 - **Local**: ✅ Email/password with Argon2id (E02-T003)
   - Routes: `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`
   - Password hashing: Argon2id with OWASP-recommended parameters (memoryCost: 19456, timeCost: 2)
@@ -551,6 +577,7 @@ Authentication methods:
   - State Management: `packages/auth/src/oauth-state.ts` - Cryptographically secure state generation/validation
 
 Session middleware (`apps/api/src/middleware/session.middleware.ts`):
+
 - Runs on every request via Fastify's `onRequest` hook
 - Validates session cookie and attaches `user` and `session` to request
 - Automatically extends fresh sessions (< 50% lifetime remaining)
@@ -562,16 +589,17 @@ Session middleware (`apps/api/src/middleware/session.middleware.ts`):
 
 The API provides reusable authentication guards as Fastify preHandler decorators for common authorization patterns:
 
-| Guard | Purpose | Example |
-|-------|---------|---------|
-| `requireAuth` | Basic authentication check | `[app.requireAuth]` |
-| `requireActiveUser` | Authentication + active status check | `[app.requireActiveUser]` |
-| `requireRole` | Role-based authorization (any group) | `[app.requireAuth, app.requireRole('teacher')]` |
-| `requireGroupMembership` | Static group membership check | `[app.requireAuth, app.requireGroupMembership(groupId)]` |
-| `requireGroupFromParams` | Dynamic group membership from route params | `[app.requireAuth, app.requireGroupFromParams()]` |
-| `requireGroupRole` | Group-scoped role authorization | `[app.requireAuth, app.requireGroupFromParams(), app.requireGroupRole('teacher')]` |
+| Guard                    | Purpose                                    | Example                                                                            |
+| ------------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `requireAuth`            | Basic authentication check                 | `[app.requireAuth]`                                                                |
+| `requireActiveUser`      | Authentication + active status check       | `[app.requireActiveUser]`                                                          |
+| `requireRole`            | Role-based authorization (any group)       | `[app.requireAuth, app.requireRole('teacher')]`                                    |
+| `requireGroupMembership` | Static group membership check              | `[app.requireAuth, app.requireGroupMembership(groupId)]`                           |
+| `requireGroupFromParams` | Dynamic group membership from route params | `[app.requireAuth, app.requireGroupFromParams()]`                                  |
+| `requireGroupRole`       | Group-scoped role authorization            | `[app.requireAuth, app.requireGroupFromParams(), app.requireGroupRole('teacher')]` |
 
 **Guard Characteristics:**
+
 - **Composable**: Multiple guards can be used in preHandler arrays
 - **Short-circuit**: Throw errors before route handler executes
 - **Type-safe**: Full TypeScript support with Fastify augmentation
@@ -579,6 +607,7 @@ The API provides reusable authentication guards as Fastify preHandler decorators
 - **Security**: Query database on every request (no caching = immediate permission updates)
 
 **Error Responses:**
+
 - `UnauthorizedError` (401) - Not authenticated
 - `ForbiddenError` (403) - Authenticated but insufficient permissions
 
@@ -586,46 +615,68 @@ The API provides reusable authentication guards as Fastify preHandler decorators
 
 ```typescript
 // Simple authentication check
-app.get('/me', {
-  preHandler: [app.requireAuth]
-}, async (request, reply) => {
-  return { user: request.user };
-});
+app.get(
+  "/me",
+  {
+    preHandler: [app.requireAuth],
+  },
+  async (request, reply) => {
+    return { user: request.user };
+  }
+);
 
 // Role-based authorization (global - any group)
-app.post('/admin/users', {
-  preHandler: [app.requireAuth, app.requireRole('system_admin', 'group_admin')]
-}, handler);
+app.post(
+  "/admin/users",
+  {
+    preHandler: [
+      app.requireAuth,
+      app.requireRole("system_admin", "group_admin"),
+    ],
+  },
+  handler
+);
 
 // Dynamic group membership from route params
-app.get('/groups/:groupId/members', {
-  preHandler: [app.requireAuth, app.requireGroupFromParams()]
-}, handler);
+app.get(
+  "/groups/:groupId/members",
+  {
+    preHandler: [app.requireAuth, app.requireGroupFromParams()],
+  },
+  handler
+);
 
 // Group-scoped role check (must have role IN THIS GROUP)
-app.post('/groups/:groupId/assignments', {
-  preHandler: [
-    app.requireAuth,
-    app.requireGroupFromParams(),
-    app.requireGroupRole('teacher', 'group_admin')
-  ]
-}, handler);
+app.post(
+  "/groups/:groupId/assignments",
+  {
+    preHandler: [
+      app.requireAuth,
+      app.requireGroupFromParams(),
+      app.requireGroupRole("teacher", "group_admin"),
+    ],
+  },
+  handler
+);
 ```
 
 **Guard vs CASL Permissions:**
 
 Use guards for:
+
 - Simple role gates ("teachers only" endpoints)
 - Group membership gates ("must be in this group")
 - Binary checks (authenticated/not, member/not member)
 
 Use CASL (`requirePermission`) for:
+
 - Resource ownership checks (createdBy, ownership)
 - Attribute-based permissions
 - Complex conditional logic
 - Hierarchy-based permissions
 
 **Files:**
+
 - `apps/api/src/middleware/auth.middleware.ts` - All guard implementations and decorators
 - `apps/api/src/__tests__/middleware/auth.middleware.test.ts` - Unit tests (42 test cases)
 
@@ -671,34 +722,40 @@ Example usage:
 
 ```typescript
 // Route-level check
-app.post('/tools', {
-  preHandler: [app.requireAuth, app.requirePermission('create', 'Tool')]
-}, async (request, reply) => {
-  // Only users who can create Tools reach here
-});
+app.post(
+  "/tools",
+  {
+    preHandler: [app.requireAuth, app.requirePermission("create", "Tool")],
+  },
+  async (request, reply) => {
+    // Only users who can create Tools reach here
+  }
+);
 
 // Resource-level check
 const tool = await db.query.tools.findFirst({ where: eq(tools.id, id) });
-if (!app.checkResourcePermission(request.ability, 'delete', 'Tool', tool)) {
-  throw new ForbiddenError('You cannot delete this tool');
+if (!app.checkResourcePermission(request.ability, "delete", "Tool", tool)) {
+  throw new ForbiddenError("You cannot delete this tool");
 }
 ```
 
 #### Roles & Permissions
 
-| Role           | Scope  | Capabilities                              |
-| -------------- | ------ | ----------------------------------------- |
-| `system_admin` | System | Everything (`manage all`)                 |
-| `group_admin`  | Group  | Manage group, users, classes, assignments; read tools |
+| Role           | Scope  | Capabilities                                                         |
+| -------------- | ------ | -------------------------------------------------------------------- |
+| `system_admin` | System | Everything (`manage all`)                                            |
+| `group_admin`  | Group  | Manage group, users, classes, assignments; read tools                |
 | `teacher`      | Group  | Create/manage own tools and assignments; read classes/users in group |
-| `student`      | Class  | Read assigned tools/assignments; manage own sessions and runs |
+| `student`      | Class  | Read assigned tools/assignments; manage own sessions and runs        |
 
 Permission rules by role:
 
 **System Admin:**
+
 - `can('manage', 'all')` - Full access to all resources
 
 **Group Admin** (for their groups):
+
 - `can('manage', 'Group')` - Manage groups (including descendants via ltree)
 - `can('manage', 'User')` - Manage users in their groups
 - `can('manage', 'Class')` - Manage classes in their groups
@@ -706,6 +763,7 @@ Permission rules by role:
 - `can('manage', 'Assignment')` - Manage assignments in their groups
 
 **Teacher** (for their groups):
+
 - `can('create', 'Tool')` - Create tools in their groups
 - `can('read', 'update', 'delete', 'Tool')` - Manage their own tools (createdBy check)
 - `can('create', 'Assignment')` - Create assignments in their groups
@@ -715,6 +773,7 @@ Permission rules by role:
 - `can('read', 'Session')` - Read sessions for their tools
 
 **Student** (baseline for all users):
+
 - `can('read', 'Tool')` - Read tools assigned to them
 - `can('read', 'Assignment')` - Read assignments assigned to them
 - `can('manage', 'Session')` - Full control over their own sessions
@@ -750,10 +809,10 @@ The API implements two-tier rate limiting using `@fastify/rate-limit` with Redis
 
 #### Rate Limit Tiers
 
-| Tier | Routes | Limit | Key Strategy | Purpose |
-|------|--------|-------|--------------|---------|
-| **Auth** | `/auth/*` | 5 req/min | IP address | Prevents brute-force attacks |
-| **API** | All other routes | 100 req/min | User ID (IP fallback) | Fair resource allocation |
+| Tier     | Routes           | Limit       | Key Strategy          | Purpose                      |
+| -------- | ---------------- | ----------- | --------------------- | ---------------------------- |
+| **Auth** | `/auth/*`        | 5 req/min   | IP address            | Prevents brute-force attacks |
+| **API**  | All other routes | 100 req/min | User ID (IP fallback) | Fair resource allocation     |
 
 #### Key Generation
 
@@ -806,19 +865,27 @@ Retry-After: 42  (only on 429 responses)
 Routes can override default limits:
 
 ```typescript
-app.post('/expensive-operation', {
-  config: {
-    rateLimit: {
-      max: 10,
-      timeWindow: '1 hour'
-    }
-  }
-}, handler);
+app.post(
+  "/expensive-operation",
+  {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: "1 hour",
+      },
+    },
+  },
+  handler
+);
 
 // Disable rate limiting (e.g., health checks)
-app.get('/health', {
-  config: { rateLimit: false }
-}, handler);
+app.get(
+  "/health",
+  {
+    config: { rateLimit: false },
+  },
+  handler
+);
 ```
 
 #### Files
@@ -861,21 +928,21 @@ AI_MAX_RETRIES=2
 ```typescript
 // Message structure
 interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
 // Streaming chunks
 type StreamChunk =
-  | { type: 'content'; content: string }
-  | { type: 'done'; result: ChatCompletionResult };
+  | { type: "content"; content: string }
+  | { type: "done"; result: ChatCompletionResult };
 
 // Complete result
 interface ChatCompletionResult {
   content: string;
   usage: UsageMetadata;
   model: string;
-  finishReason: 'stop' | 'length' | 'content_filter' | 'error' | null;
+  finishReason: "stop" | "length" | "content_filter" | "error" | null;
 }
 ```
 
@@ -884,20 +951,20 @@ interface ChatCompletionResult {
 **Streaming (recommended for chat):**
 
 ```typescript
-import { openRouterClient } from '@raptscallions/ai';
+import { openRouterClient } from "@raptscallions/ai";
 
 const stream = openRouterClient.streamChat(
-  [{ role: 'user', content: 'Hello!' }],
-  { model: 'anthropic/claude-sonnet-4-20250514' }
+  [{ role: "user", content: "Hello!" }],
+  { model: "anthropic/claude-sonnet-4-20250514" }
 );
 
 for await (const chunk of stream) {
-  if (chunk.type === 'content') {
+  if (chunk.type === "content") {
     // Stream content to user
     process.stdout.write(chunk.content);
-  } else if (chunk.type === 'done') {
+  } else if (chunk.type === "done") {
     // Store usage metadata
-    console.log('Tokens:', chunk.result.usage);
+    console.log("Tokens:", chunk.result.usage);
   }
 }
 ```
@@ -906,12 +973,12 @@ for await (const chunk of stream) {
 
 ```typescript
 const result = await openRouterClient.chat(
-  [{ role: 'user', content: 'Generate a quiz' }],
-  { model: 'anthropic/claude-sonnet-4-20250514' }
+  [{ role: "user", content: "Generate a quiz" }],
+  { model: "anthropic/claude-sonnet-4-20250514" }
 );
 
 console.log(result.content);
-console.log('Tokens used:', result.usage.totalTokens);
+console.log("Tokens used:", result.usage.totalTokens);
 ```
 
 #### Error Handling
@@ -1056,15 +1123,15 @@ All components must run in Docker containers with no host dependencies beyond Do
 
 ### Requirements
 
-| Requirement                | Details                                                  |
-| -------------------------- | -------------------------------------------------------- |
+| Requirement                | Details                                                    |
+| -------------------------- | ---------------------------------------------------------- |
 | **No host dependencies**   | All services run in containers, including PostgreSQL/Redis |
-| **Single command startup** | `docker compose up` starts entire stack                  |
-| **Development parity**     | Local dev uses same containers as production             |
-| **Volume persistence**     | Database data persists across container restarts         |
-| **Hot reload support**     | Source code mounted for development hot reload           |
-| **Health checks**          | All services expose health endpoints                     |
-| **Network isolation**      | Services communicate via Docker network                  |
+| **Single command startup** | `docker compose up` starts entire stack                    |
+| **Development parity**     | Local dev uses same containers as production               |
+| **Volume persistence**     | Database data persists across container restarts           |
+| **Hot reload support**     | Source code mounted for development hot reload             |
+| **Health checks**          | All services expose health endpoints                       |
+| **Network isolation**      | Services communicate via Docker network                    |
 
 ### Environment Configuration
 
@@ -1088,13 +1155,13 @@ services:
 
 ### Development vs Production
 
-| Aspect           | Development                    | Production               |
-| ---------------- | ------------------------------ | ------------------------ |
-| Source mounting  | Yes (hot reload)               | No (built into image)    |
-| Debug ports      | Exposed                        | Not exposed              |
-| Log level        | debug                          | info/warn                |
-| Database         | Local container                | Managed service or container |
-| SSL              | Optional                       | Required                 |
+| Aspect          | Development      | Production                   |
+| --------------- | ---------------- | ---------------------------- |
+| Source mounting | Yes (hot reload) | No (built into image)        |
+| Debug ports     | Exposed          | Not exposed                  |
+| Log level       | debug            | info/warn                    |
+| Database        | Local container  | Managed service or container |
+| SSL             | Optional         | Required                     |
 
 ---
 
@@ -1102,25 +1169,26 @@ services:
 
 ### Canonical Documentation
 
-| Document                         | Purpose                      | Location |
-| -------------------------------- | ---------------------------- | -------- |
-| `CONVENTIONS.md`                 | Code style, naming, patterns | `docs/` |
-| **Knowledge Base (VitePress)**   | Implementation-verified docs | `apps/docs/` |
+| Document                       | Purpose                      | Location     |
+| ------------------------------ | ---------------------------- | ------------ |
+| `CONVENTIONS.md`               | Code style, naming, patterns | `docs/`      |
+| **Knowledge Base (VitePress)** | Implementation-verified docs | `apps/docs/` |
 
 ### Knowledge Base Structure
 
 The VitePress knowledge base (`apps/docs/`) provides browsable, searchable documentation organized by domain:
 
-| Domain | Covers | Access |
-|--------|--------|--------|
-| **auth** | Authentication, authorization, sessions, permissions | [/auth/](/auth/) |
-| **database** | PostgreSQL schemas, Drizzle ORM, migrations | [/database/](/database/) |
-| **api** | Fastify route handlers, middleware, services | [/api/](/api/) |
-| **ai** | OpenRouter client, streaming, error handling | [/ai/](/ai/) |
-| **testing** | Vitest setup, AAA pattern, mocking strategies | [/testing/](/testing/) |
-| **contributing** | How to contribute code and documentation | [/contributing/](/contributing/) |
+| Domain           | Covers                                               | Access                           |
+| ---------------- | ---------------------------------------------------- | -------------------------------- |
+| **auth**         | Authentication, authorization, sessions, permissions | [/auth/](/auth/)                 |
+| **database**     | PostgreSQL schemas, Drizzle ORM, migrations          | [/database/](/database/)         |
+| **api**          | Fastify route handlers, middleware, services         | [/api/](/api/)                   |
+| **ai**           | OpenRouter client, streaming, error handling         | [/ai/](/ai/)                     |
+| **testing**      | Vitest setup, AAA pattern, mocking strategies        | [/testing/](/testing/)           |
+| **contributing** | How to contribute code and documentation             | [/contributing/](/contributing/) |
 
 Each domain contains:
+
 - **concepts/** - Core ideas and mental models
 - **patterns/** - Reusable implementation patterns
 - **decisions/** - Architecture decision records (ADRs)
@@ -1135,13 +1203,13 @@ Run locally: `pnpm docs:dev`
 
 Vision and planning documents in `docs/references/initial_planning/`:
 
-| Document                         | Purpose                      |
-| -------------------------------- | ---------------------------- |
-| `DESIGN_BRIEF.md`                | Platform vision and goals    |
-| `BACKEND_CORE_DESIGN.md`         | Backend vision               |
-| `AUTH_AND_EVENTS.md`             | Auth and event system vision |
-| `MODULE_SYSTEM_IMPLEMENTATION.md`| Module system vision         |
-| `CHAT_IMPLEMENTATION.md`         | Chat runtime vision          |
+| Document                          | Purpose                      |
+| --------------------------------- | ---------------------------- |
+| `DESIGN_BRIEF.md`                 | Platform vision and goals    |
+| `BACKEND_CORE_DESIGN.md`          | Backend vision               |
+| `AUTH_AND_EVENTS.md`              | Auth and event system vision |
+| `MODULE_SYSTEM_IMPLEMENTATION.md` | Module system vision         |
+| `CHAT_IMPLEMENTATION.md`          | Chat runtime vision          |
 
 **Note**: Reference docs explain the "why" and vision. For implementation decisions, use ARCHITECTURE.md, CONVENTIONS.md, and the Knowledge Base.
 

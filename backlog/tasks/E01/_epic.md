@@ -10,20 +10,20 @@ priority: 1
 
 ## Goals
 
-Set up the foundational infrastructure for Raptscallions including pnpm monorepo structure, PostgreSQL database package with Drizzle ORM, and shared core types/schemas package.
+Set up the foundational infrastructure for RaptScallions including pnpm monorepo structure, PostgreSQL database package with Drizzle ORM, and shared core types/schemas package.
 
 ## Tasks
 
-| ID       | Title                              | Status | Depends On       |
-| -------- | ---------------------------------- | ------ | ---------------- |
-| E01-T001 | Initialize pnpm monorepo           | DRAFT  | -                |
-| E01-T002 | Setup packages/core with Zod       | DRAFT  | E01-T001         |
-| E01-T003 | Setup packages/db with Drizzle     | DRAFT  | E01-T001         |
-| E01-T004 | Create users schema                | DRAFT  | E01-T003         |
-| E01-T005 | Create groups schema with ltree    | DRAFT  | E01-T003, E01-T004 |
-| E01-T006 | Create group_members schema        | DRAFT  | E01-T004, E01-T005 |
-| E01-T007 | Setup packages/telemetry (stub)    | DRAFT  | E01-T001         |
-| E01-T008 | Configure Vitest for monorepo      | DRAFT  | E01-T001         |
+| ID       | Title                           | Status | Depends On         |
+| -------- | ------------------------------- | ------ | ------------------ |
+| E01-T001 | Initialize pnpm monorepo        | DRAFT  | -                  |
+| E01-T002 | Setup packages/core with Zod    | DRAFT  | E01-T001           |
+| E01-T003 | Setup packages/db with Drizzle  | DRAFT  | E01-T001           |
+| E01-T004 | Create users schema             | DRAFT  | E01-T003           |
+| E01-T005 | Create groups schema with ltree | DRAFT  | E01-T003, E01-T004 |
+| E01-T006 | Create group_members schema     | DRAFT  | E01-T004, E01-T005 |
+| E01-T007 | Setup packages/telemetry (stub) | DRAFT  | E01-T001           |
+| E01-T008 | Configure Vitest for monorepo   | DRAFT  | E01-T001           |
 
 ## Completion Criteria
 
@@ -49,6 +49,7 @@ This epic establishes the foundation per ARCHITECTURE.md:
 - **Testing**: Vitest
 
 The monorepo structure follows:
+
 ```
 raptscallions/
 ├── apps/           # (empty for now, populated in later epics)

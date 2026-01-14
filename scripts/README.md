@@ -1,6 +1,6 @@
 # Scripts Directory
 
-Utility scripts for Raptscallions development and workflow automation.
+Utility scripts for RaptScallions development and workflow automation.
 
 ## Available Scripts
 
@@ -11,11 +11,13 @@ Utility scripts for Raptscallions development and workflow automation.
 Interactive script to help format commit messages according to project conventions.
 
 **Usage:**
+
 ```bash
 ./scripts/commit-msg-helper.sh
 ```
 
 **Features:**
+
 - Prompts for commit type (feat, fix, refactor, etc.)
 - Prompts for scope (auth, chat, api, etc.)
 - Prompts for subject and body
@@ -25,6 +27,7 @@ Interactive script to help format commit messages according to project conventio
 - Stages and commits changes
 
 **Example Output:**
+
 ```
 feat(auth): implement OAuth providers
 
@@ -44,6 +47,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 Task workflow orchestrator for automated development cycles.
 
 **Usage:**
+
 ```bash
 # Run workflow (auto mode)
 pnpm workflow:run
@@ -70,12 +74,14 @@ See [Backlog.md MCP documentation](../backlog/README.md) for details.
 The pre-commit hook runs type checking, linting, and tests before allowing commits.
 
 **Install:**
+
 ```bash
 cp .github/hooks/pre-commit .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```
 
 **Bypass (not recommended):**
+
 ```bash
 git commit --no-verify
 ```
@@ -83,6 +89,7 @@ git commit --no-verify
 ### Automated Hook Installation
 
 Add to `package.json`:
+
 ```json
 {
   "scripts": {
@@ -98,18 +105,21 @@ This will automatically install the hook when running `pnpm install`.
 When adding new scripts:
 
 1. **Create script file:**
+
    ```bash
    touch scripts/my-script.sh
    chmod +x scripts/my-script.sh
    ```
 
 2. **Add shebang:**
+
    ```bash
    #!/bin/bash
    set -e  # Exit on error
    ```
 
 3. **Add to package.json:**
+
    ```json
    {
      "scripts": {
@@ -142,6 +152,7 @@ NC='\033[0m'          # No Color (reset)
 ```
 
 **Example:**
+
 ```bash
 echo -e "${GREEN}✓ Success${NC}"
 echo -e "${RED}✗ Error${NC}"
@@ -197,6 +208,7 @@ See [.github/SETUP.md](../.github/SETUP.md) for CI/CD configuration details.
 ### "Permission denied" Error
 
 Make script executable:
+
 ```bash
 chmod +x scripts/my-script.sh
 ```
@@ -204,6 +216,7 @@ chmod +x scripts/my-script.sh
 ### Script Not Found
 
 Ensure you're in project root:
+
 ```bash
 cd /path/to/raptscallions
 ./scripts/my-script.sh
@@ -212,12 +225,14 @@ cd /path/to/raptscallions
 ### Hook Not Running
 
 Check hook is installed and executable:
+
 ```bash
 ls -la .git/hooks/pre-commit
 # Should show: -rwxr-xr-x
 ```
 
 Re-install if needed:
+
 ```bash
 cp .github/hooks/pre-commit .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit

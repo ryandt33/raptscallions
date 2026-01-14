@@ -1,9 +1,10 @@
-import { defineConfig } from 'vitepress';
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
   // Site metadata
-  title: 'Raptscallions KB',
-  description: 'Knowledge base for Raptscallions platform architecture, patterns, and decisions',
+  title: "RaptScallions KB",
+  description:
+    "Knowledge base for RaptScallions platform architecture, patterns, and decisions",
 
   // Clean URLs (no .html extension)
   cleanUrls: true,
@@ -14,229 +15,197 @@ export default defineConfig({
   // Head configuration for font preconnect
   head: [
     // Preconnect to Google Fonts CDN for faster font loading
-    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }]
+    ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
+    [
+      "link",
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+    ],
   ],
 
   // Theme configuration
   themeConfig: {
     // Site navigation (top nav bar)
-    nav: [
-      { text: 'Home', link: '/' }
-    ],
+    nav: [{ text: "Home", link: "/" }],
 
     // Sidebar navigation
     sidebar: [
       {
-        text: 'Authentication & Authorization',
+        text: "Authentication & Authorization",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/auth/' },
+          { text: "Overview", link: "/auth/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/auth/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/auth/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/auth/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Database & ORM',
+        text: "Database & ORM",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/database/' },
+          { text: "Overview", link: "/database/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/database/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/database/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
             items: [
-              { text: 'Coming Soon', link: '/database/troubleshooting/' }
-            ]
-          }
-        ]
+              { text: "Coming Soon", link: "/database/troubleshooting/" },
+            ],
+          },
+        ],
       },
       {
-        text: 'API Design & Patterns',
+        text: "API Design & Patterns",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/api/' },
+          { text: "Overview", link: "/api/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/api/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/api/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/api/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'AI Gateway Integration',
+        text: "AI Gateway Integration",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/ai/' },
+          { text: "Overview", link: "/ai/" },
           {
-            text: 'Concepts',
+            text: "Concepts",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/concepts/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/concepts/" }],
           },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/patterns/" }],
           },
           {
-            text: 'Decisions',
+            text: "Decisions",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/decisions/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/ai/decisions/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/ai/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/ai/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Testing',
+        text: "Testing",
         collapsed: false,
         items: [
-          { text: 'Overview', link: '/testing/' },
+          { text: "Overview", link: "/testing/" },
           {
-            text: 'Patterns',
+            text: "Patterns",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/testing/patterns/' }
-            ]
+            items: [{ text: "Coming Soon", link: "/testing/patterns/" }],
           },
           {
-            text: 'Troubleshooting',
+            text: "Troubleshooting",
             collapsed: true,
-            items: [
-              { text: 'Coming Soon', link: '/testing/troubleshooting/' }
-            ]
-          }
-        ]
+            items: [{ text: "Coming Soon", link: "/testing/troubleshooting/" }],
+          },
+        ],
       },
       {
-        text: 'Contributing',
+        text: "Contributing",
         items: [
-          { text: 'Overview', link: '/contributing/' },
-          { text: 'KB Page Design', link: '/contributing/kb-page-design' },
-          { text: 'Design System', link: '/contributing/design-system' }
-        ]
-      }
+          { text: "Overview", link: "/contributing/" },
+          { text: "KB Page Design", link: "/contributing/kb-page-design" },
+          { text: "Design System", link: "/contributing/design-system" },
+        ],
+      },
     ],
 
     // Social links
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/ryandt33/raptscallions' }
+      { icon: "github", link: "https://github.com/ryandt33/raptscallions" },
     ],
 
     // Search configuration (local search enabled)
     search: {
-      provider: 'local',
+      provider: "local",
       options: {
         detailedView: true,
         translations: {
           button: {
-            buttonText: 'Search KB',
-            buttonAriaLabel: 'Search documentation'
+            buttonText: "Search KB",
+            buttonAriaLabel: "Search documentation",
           },
           modal: {
-            displayDetails: 'Display detailed list',
-            resetButtonTitle: 'Reset search',
-            noResultsText: 'No results for',
+            displayDetails: "Display detailed list",
+            resetButtonTitle: "Reset search",
+            noResultsText: "No results for",
             footer: {
-              selectText: 'to select',
-              navigateText: 'to navigate',
-              closeText: 'to close'
-            }
-          }
-        }
-      }
+              selectText: "to select",
+              navigateText: "to navigate",
+              closeText: "to close",
+            },
+          },
+        },
+      },
     },
 
     // Edit link (points to GitHub)
     editLink: {
-      pattern: 'https://github.com/ryandt33/raptscallions/edit/main/apps/docs/src/:path',
-      text: 'Edit this page on GitHub'
+      pattern:
+        "https://github.com/ryandt33/raptscallions/edit/main/apps/docs/src/:path",
+      text: "Edit this page on GitHub",
     },
 
     // Footer
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2026 Raptscallions'
-    }
-  }
+      message: "Released under the MIT License.",
+      copyright: "Copyright © 2026 RaptScallions",
+    },
+  },
 });

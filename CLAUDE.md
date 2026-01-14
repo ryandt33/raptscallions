@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Raptscallions is a fully open-source alternative to MagicSchool and Flint K12, designed for:
+RaptScallions is a fully open-source alternative to MagicSchool and Flint K12, designed for:
 
 - **Extreme modularity** — Minimal core, everything else is a pluggable module
 - **Two interface types** — Chat (multi-turn conversations) and Product (single I/O generators)
@@ -156,16 +156,16 @@ raptscallions/
 
 Modules hook into defined lifecycle points and run in isolated worker threads:
 
-| Hook              | When                   | Can Block |
-| ----------------- | ---------------------- | --------- |
-| `chat:before_ai`  | Before AI call         | Yes       |
-| `chat:after_ai`   | After AI response      | Yes       |
-| `chat:on_message` | Any message            | No        |
-| `session:start`   | Session created        | No        |
-| `session:end`     | Session completed      | No        |
-| `product:before_ai` | Before product AI call | Yes     |
-| `product:after_ai`  | After product response | Yes     |
-| `run:complete`    | Product run finished   | No        |
+| Hook                | When                   | Can Block |
+| ------------------- | ---------------------- | --------- |
+| `chat:before_ai`    | Before AI call         | Yes       |
+| `chat:after_ai`     | After AI response      | Yes       |
+| `chat:on_message`   | Any message            | No        |
+| `session:start`     | Session created        | No        |
+| `session:end`       | Session completed      | No        |
+| `product:before_ai` | Before product AI call | Yes       |
+| `product:after_ai`  | After product response | Yes       |
+| `run:complete`      | Product run finished   | No        |
 
 Module features: hot reload, memory limits, timeout enforcement, sandboxed DB access.
 
@@ -247,6 +247,7 @@ Located in `docs/references/initial_planning/` — these documents explain **wha
 Located at `apps/docs/` — a VitePress-powered documentation site providing a browsable, searchable interface for all documentation.
 
 **Features:**
+
 - **Local Search**: Built-in search with Cmd/Ctrl + K
 - **Dark/Light Theme**: Automatic theme switching
 - **Hot Reload**: Instant updates during development
@@ -254,6 +255,7 @@ Located at `apps/docs/` — a VitePress-powered documentation site providing a b
 - **Last Updated**: Git-based timestamps on pages
 
 **Running the KB:**
+
 ```bash
 # Development server (http://localhost:5173)
 pnpm docs:dev
@@ -266,6 +268,7 @@ pnpm docs:preview
 ```
 
 **Structure:**
+
 ```
 apps/docs/
 ├── src/                       # Markdown documentation files
@@ -290,16 +293,17 @@ apps/docs/
 
 The KB follows a **domain-first structure** where documentation is organized by major codebase areas:
 
-| Domain | Covers | Content Types |
-|--------|--------|---------------|
-| **auth** | Authentication, authorization, sessions, permissions | concepts, patterns, decisions, troubleshooting |
-| **database** | PostgreSQL schemas, Drizzle ORM, migrations, entity relationships | concepts, patterns, decisions, troubleshooting |
-| **api** | Fastify route handlers, middleware, services, validation | concepts, patterns, decisions, troubleshooting |
-| **ai** | OpenRouter client, streaming, error handling | concepts, patterns, decisions, troubleshooting |
-| **testing** | Vitest setup, AAA pattern, mocking strategies | patterns, troubleshooting |
-| **contributing** | How to contribute code and documentation | (no subdirectories) |
+| Domain           | Covers                                                            | Content Types                                  |
+| ---------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
+| **auth**         | Authentication, authorization, sessions, permissions              | concepts, patterns, decisions, troubleshooting |
+| **database**     | PostgreSQL schemas, Drizzle ORM, migrations, entity relationships | concepts, patterns, decisions, troubleshooting |
+| **api**          | Fastify route handlers, middleware, services, validation          | concepts, patterns, decisions, troubleshooting |
+| **ai**           | OpenRouter client, streaming, error handling                      | concepts, patterns, decisions, troubleshooting |
+| **testing**      | Vitest setup, AAA pattern, mocking strategies                     | patterns, troubleshooting                      |
+| **contributing** | How to contribute code and documentation                          | (no subdirectories)                            |
 
 **When to Use:**
+
 - Implementation-verified documentation (not planning/vision docs)
 - Browse by domain using sidebar navigation
 - Use search (Cmd/Ctrl + K) for quick topic lookup
@@ -307,14 +311,19 @@ The KB follows a **domain-first structure** where documentation is organized by 
 
 **Design System:**
 The KB uses the **Modern Agricultural design system** with a custom VitePress theme:
-- **Colors**: Deep forest greens (primary), sky blue (secondary), golden wheat (accent)
-- **Typography**: DM Sans (body), DM Serif Display (headings)
-- **Light/Dark Themes**: Automatic theme switching with accessible contrast ratios (WCAG 2.1 AA+)
+
+- **Brand Name**: RaptScallions (capital S)
+- **Colors**: Deep forest greens (primary), sky blue (secondary), golden wheat (accent for dark mode)
+- **Typography**: DM Sans (body), Comfortaa (logo/brand)
+- **Light Theme**: Warm Earth Tones - cream gradient background (#fef7ed → #fafaf9) with solid dark green title (#166534)
+- **Dark Theme**: Golden Wheat Accent - warm brown background (#1a1512 → #120f0c) with amber gradient title (#fbbf24 → #fde68a)
+- **Accessibility**: WCAG 2.1 AA+ contrast ratios in both themes
 - **Theme Files**: `apps/docs/src/.vitepress/theme/` (index.ts, style.css, fonts.css)
 - **Design Docs**: See [apps/docs/src/contributing/design-system.md](apps/docs/src/contributing/design-system.md) for complete design system documentation
 
 **Authoring KB Pages:**
 When creating or updating KB documentation, follow the [KB Page Design Patterns](apps/docs/src/contributing/kb-page-design.md) guide. It provides comprehensive patterns for:
+
 - Page structure and frontmatter
 - Heading hierarchy
 - Code blocks and syntax highlighting
@@ -359,6 +368,7 @@ When all tasks in an epic reach DONE state, the PM agent automatically conducts 
 4. Writes comprehensive epic review report
 
 **Commands:**
+
 - `/epic-review E01` - Review an epic (report only)
 - `/epic-review E01 --create` - Review and create follow-up tasks automatically
 - `/epic-review E01 --create --threshold medium` - Create tasks for medium+ issues
@@ -369,5 +379,6 @@ The orchestrator automatically runs epic reviews when all tasks complete in auto
 **Documentation:** See [docs/EPIC_REVIEW.md](docs/EPIC_REVIEW.md) for full details.
 
 **Output:**
+
 - Epic review report: `backlog/docs/reviews/{EPIC-ID}/_epic-review.md`
 - Follow-up tasks: `backlog/tasks/{EPIC-ID}/{TASK-ID}.md` (marked with `follow-up` label)

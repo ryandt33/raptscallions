@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Raptscallions Workflow Orchestrator
+ * RaptScallions Workflow Orchestrator
  *
  * Automates task progression through the development workflow using Claude Code.
  *

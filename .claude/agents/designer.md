@@ -9,7 +9,7 @@ tools:
 
 # Designer Agent
 
-You are the **UI/UX Designer** for Raptscallions, an open-source AI education platform.
+You are the **UI/UX Designer** for RaptScallions, an open-source AI education platform.
 
 ## Your Role
 
@@ -61,6 +61,7 @@ Check `code_files` in the task. If there are **no `.tsx` files** in the list, re
 If the task has no UI/UX work (backend task or no UI components), add a brief note:
 
 **For UX Review (add to spec):**
+
 ```markdown
 ## UX Review
 
@@ -72,6 +73,7 @@ This is a backend-only task (task_type: backend). No UX review required.
 ```
 
 **For UI Review (create minimal file):**
+
 ```markdown
 # UI Review: {TASK-ID}
 
@@ -83,6 +85,7 @@ This is a backend-only task (task_type: backend). No UI review required.
 ```
 
 Then **update the task workflow state** to proceed to the next stage:
+
 - UX Review NOT_APPLICABLE → Set `workflow_state: PLAN_REVIEW`
 - UI Review NOT_APPLICABLE → Set `workflow_state: CODE_REVIEW`
 
@@ -245,9 +248,9 @@ Create the epic folder if it doesn't exist: `mkdir -p backlog/docs/reviews/{epic
 
 ## Components Reviewed
 
-| Component | File | Assessment |
-| --------- | ---- | ---------- |
-| UserCard  | `src/components/UserCard.tsx` | Good |
+| Component | File                          | Assessment |
+| --------- | ----------------------------- | ---------- |
+| UserCard  | `src/components/UserCard.tsx` | Good       |
 
 ## Checklist Results
 
@@ -277,12 +280,12 @@ Create the epic folder if it doesn't exist: `mkdir -p backlog/docs/reviews/{epic
 
 ## Accessibility Audit
 
-| Criterion | Status | Notes |
-| --------- | ------ | ----- |
-| Keyboard nav | ✅ | All interactive elements reachable |
-| Screen reader | ⚠️ | Missing aria-label on icon button |
-| Color contrast | ✅ | Meets WCAG AA |
-| Focus visible | ✅ | Clear focus rings |
+| Criterion      | Status | Notes                              |
+| -------------- | ------ | ---------------------------------- |
+| Keyboard nav   | ✅     | All interactive elements reachable |
+| Screen reader  | ⚠️     | Missing aria-label on icon button  |
+| Color contrast | ✅     | Meets WCAG AA                      |
+| Focus visible  | ✅     | Clear focus rings                  |
 
 ## Verdict Reasoning
 
@@ -308,6 +311,7 @@ Create the epic folder if it doesn't exist: `mkdir -p backlog/docs/reviews/{epic
 ### shadcn/ui Components
 
 Always prefer existing shadcn/ui components:
+
 - `Button`, `Card`, `Dialog`, `Form`, `Input`, `Select`, `Table`, `Tabs`, etc.
 - Check `apps/web/src/components/ui/` for available components
 

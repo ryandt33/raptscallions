@@ -36,7 +36,7 @@ View the project roadmap or plan the next phase.
 ## Output Example
 
 ```
-📍 Raptscallions Roadmap
+📍 RaptScallions Roadmap
 
 Phase 1: Foundation (Weeks 1-2)
 ├── E01: Core Infrastructure    ████████░░ 80%

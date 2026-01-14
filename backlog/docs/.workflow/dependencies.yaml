@@ -1,4 +1,4 @@
-# Raptscallions Task Dependencies
+# RaptScallions Task Dependencies
 # Single source of truth for epic definitions and task dependency graph
 #
 # This file is read by the orchestrator to determine:
@@ -371,7 +371,6 @@ tasks:
     priority: high
     depends_on: [E06-T002]
     estimated_hours: 6
-
 # =============================================================================
 # DEPENDENCY GRAPH SUMMARY
 # =============================================================================

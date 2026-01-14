@@ -6,6 +6,14 @@
 **QA Engineer:** Claude Sonnet 4.5
 **Status:** ✅ **PASS**
 
+> **Note (2026-01-14):** The design system has been updated since this QA report was written. Key changes:
+> - **Brand name**: Now styled as "RaptScallions" (capital S)
+> - **Logo font**: Changed from DM Serif Display to **Comfortaa** (weight 600)
+> - **Light theme**: Now uses "Warm Earth Tones" - cream gradient background (#fef7ed → #fafaf9) with solid dark green title (#166534)
+> - **Dark theme**: Now uses "Golden Wheat Accent" - warm brown background (#1a1512 → #120f0c) with amber gradient title (#fbbf24 → #fde68a)
+>
+> See [design-system.md](/contributing/design-system) for current design specifications.
+
 ---
 
 ## Executive Summary

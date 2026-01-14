@@ -1,4 +1,4 @@
-# Raptscallions Workflow Configuration
+# RaptScallions Workflow Configuration
 # This file defines the task lifecycle, agent mappings, and automation rules
 
 version: "1.0"
@@ -18,25 +18,25 @@ states:
 
   - id: BREAKING_DOWN
     description: PM is breaking down into epics and tasks
-    agent: null  # Agent is running
+    agent: null # Agent is running
     next: DRAFT
 
   # Planning Phase
   - id: DRAFT
     description: Task created but not yet analyzed
-    agent: null  # Human creates tasks or auto-transition from PM
+    agent: null # Human creates tasks or auto-transition from PM
     next: ANALYZING
-    
+
   - id: ANALYZING
     description: Analyst is writing implementation spec
     agent: analyst
     next: ANALYZED
     outputs:
-      - spec_file  # docs/tasks/{epic}/{task}/spec.md
-    
+      - spec_file # docs/tasks/{epic}/{task}/spec.md
+
   - id: ANALYZED
     description: Spec complete, awaiting UX review
-    agent: null  # Auto-transition
+    agent: null # Auto-transition
     next: UX_REVIEW
 
   - id: UX_REVIEW
@@ -46,20 +46,20 @@ states:
     can_reject: true
     reject_to: ANALYZING
     outputs:
-      - ux_notes  # Appended to spec file
+      - ux_notes # Appended to spec file
 
   - id: PLAN_REVIEW
     description: Architect reviewing implementation plan
     agent: architect
     next: APPROVED
     can_reject: true
-    reject_to: ANALYZING  # Send back with feedback
+    reject_to: ANALYZING # Send back with feedback
     outputs:
-      - review_notes  # Appended to spec file
-    
+      - review_notes # Appended to spec file
+
   - id: APPROVED
     description: Plan approved, ready for test writing
-    agent: null  # Auto-transition
+    agent: null # Auto-transition
     next: WRITING_TESTS
 
   # Implementation Phase
@@ -68,22 +68,22 @@ states:
     agent: developer
     next: TESTS_READY
     outputs:
-      - test_files  # Actual test files in codebase
-    
+      - test_files # Actual test files in codebase
+
   - id: TESTS_READY
     description: Tests written and failing (red phase)
-    agent: null  # Auto-transition
+    agent: null # Auto-transition
     next: IMPLEMENTING
     validation:
       - tests_exist
-      - tests_fail  # All tests should fail initially
+      - tests_fail # All tests should fail initially
 
   - id: TESTS_REVISION_NEEDED
     description: Implementation revealed tests used incorrect API assumptions - needs test rewrite
     agent: developer
     next: TESTS_READY
     outputs:
-      - test_files  # Revised test files
+      - test_files # Revised test files
     notes: |
       This state is entered when the developer discovers during implementation
       that tests were written with incorrect assumptions about a library's API.
@@ -97,11 +97,11 @@ states:
     outputs:
       - code_files
     validation:
-      - tests_pass  # All tests must pass
-    
+      - tests_pass # All tests must pass
+
   - id: IMPLEMENTED
     description: Code complete, tests passing
-    agent: null  # Auto-transition
+    agent: null # Auto-transition
     next: UI_REVIEW
 
   # Review Phase
@@ -111,7 +111,7 @@ states:
     next: CODE_REVIEW
     can_reject: true
     reject_to: IMPLEMENTING
-    requires_fresh_context: true  # New session, no prior context
+    requires_fresh_context: true # New session, no prior context
     outputs:
       - ui_review
     re_review_behavior: |
@@ -125,7 +125,7 @@ states:
     next: QA_REVIEW
     can_reject: true
     reject_to: IMPLEMENTING
-    requires_fresh_context: true  # New session, no prior context
+    requires_fresh_context: true # New session, no prior context
     outputs:
       - review_comments
     re_review_behavior: |
@@ -188,7 +188,6 @@ states:
     agent: null
     terminal: true
 
-
 # =============================================================================
 # AGENTS
 # =============================================================================
@@ -198,7 +197,7 @@ agents:
   pm:
     name: "Product Manager"
     description: "Breaks down goals into epics and tasks"
-    claude_agent: "pm"  # References .claude/agents/pm.md
+    claude_agent: "pm" # References .claude/agents/pm.md
     tools:
       - Read
       - Write
@@ -213,7 +212,7 @@ agents:
   analyst:
     name: "Analyst"
     description: "Analyzes requirements, writes implementation specs"
-    claude_agent: "analyst"  # References .claude/agents/analyst.md
+    claude_agent: "analyst" # References .claude/agents/analyst.md
     tools:
       - Read
       - Glob
@@ -224,11 +223,11 @@ agents:
       - "docs/ARCHITECTURE.md"
       - "docs/CONVENTIONS.md"
       - "docs/references/**"
-      
+
   designer:
     name: "Designer"
     description: "Reviews specs for UX and implementations for UI quality"
-    claude_agent: "designer"  # References .claude/agents/designer.md
+    claude_agent: "designer" # References .claude/agents/designer.md
     tools:
       - Read
       - Glob
@@ -238,7 +237,7 @@ agents:
       - "apps/web/**"
       - "docs/references/**"
     read_only: true
-    fresh_context: true  # For UI review phase
+    fresh_context: true # For UI review phase
 
   architect:
     name: "Architect"
@@ -270,7 +269,7 @@ agents:
       - "packages/**"
       - "apps/**"
       - "docs/tasks/**"
-      
+
   reviewer:
     name: "Reviewer"
     description: "Fresh-eyes code review"
@@ -279,14 +278,14 @@ agents:
       - Read
       - Glob
       - Grep
-      - Bash  # For running tests/lint
+      - Bash # For running tests/lint
     allowed_paths:
       - "packages/**"
       - "apps/**"
       - "docs/tasks/**"
     read_only: true
-    fresh_context: true  # No conversation history
-    
+    fresh_context: true # No conversation history
+
   qa:
     name: "QA"
     description: "Validates implementation against requirements"
@@ -302,7 +301,7 @@ agents:
       - "docs/tasks/**"
     read_only: true
     fresh_context: true
-    
+
   writer:
     name: "Tech Writer"
     description: "Updates documentation"
@@ -318,7 +317,6 @@ agents:
       - "packages/*/README.md"
       - "apps/*/README.md"
 
-
 # =============================================================================
 # DEFAULT BREAKPOINTS
 # =============================================================================
@@ -326,9 +324,8 @@ agents:
 # Can be overridden per-task.
 
 default_breakpoints:
-  - PR_CREATED  # Pause after PR created for human review/merge
+  - PR_CREATED # Pause after PR created for human review/merge
   # - APPROVED  # Human confirms before coding starts (optional)
-
 
 # =============================================================================
 # FAILURE HANDLING
@@ -337,25 +334,24 @@ default_breakpoints:
 
 failure_handling:
   max_retries: 2
-  
+
   # On agent failure
   on_agent_failure:
     - log_error
     - create_failure_report
-    - set_breakpoint  # Pause for human intervention
-    
+    - set_breakpoint # Pause for human intervention
+
   # On validation failure (e.g., tests don't pass)
   on_validation_failure:
     - log_validation_error
     - return_to_previous_state
-    - include_failure_context  # Agent sees what went wrong
-    
+    - include_failure_context # Agent sees what went wrong
+
   # On rejection (architect/reviewer rejects)
   on_rejection:
     - capture_rejection_reason
     - return_to_reject_state
     - include_rejection_feedback
-
 
 # =============================================================================
 # TRANSITIONS
@@ -413,7 +409,6 @@ manual_override: true
 #   5. CODE_REVIEW passes → reviews_passed: [UI_REVIEW, CODE_REVIEW]
 #   6. QA_REVIEW continues normally
 
-
 # =============================================================================
 # NOTIFICATIONS
 # =============================================================================
@@ -423,14 +418,13 @@ notifications:
   on_breakpoint:
     - console_log
     # - slack_webhook (future)
-    
+
   on_failure:
     - console_log
-    - create_issue  # GitHub issue (future)
-    
+    - create_issue # GitHub issue (future)
+
   on_complete:
     - console_log
-
 
 # =============================================================================
 # FILE CONVENTIONS
@@ -454,7 +448,6 @@ file_conventions:
   review_file: "{spec_dir}/{task_id}-review.md"
   qa_report: "{spec_dir}/{task_id}-qa.md"
 
-
 # =============================================================================
 # HOOKS
 # =============================================================================
@@ -465,15 +458,15 @@ hooks:
     # Run before any state transition
     - command: "pnpm lint --quiet"
       on_states: [IMPLEMENTED, CODE_REVIEW, QA_REVIEW]
-      
+
     - command: "pnpm typecheck"
       on_states: [IMPLEMENTED, CODE_REVIEW, QA_REVIEW]
-      
+
   post_agent:
     # Run after agent completes
     - command: "pnpm test --run"
       on_states: [TESTS_READY, IMPLEMENTED]
-      
+
   on_complete:
     # Run when task reaches DONE
     - command: "git add -A"

@@ -5,5 +5,5 @@ CREATE EXTENSION IF NOT EXISTS ltree;
 -- Log successful initialization
 DO $$
 BEGIN
-    RAISE NOTICE 'PostgreSQL initialized with ltree extension for Raptscallions';
+    RAISE NOTICE 'PostgreSQL initialized with ltree extension for RaptScallions';
 END $$;

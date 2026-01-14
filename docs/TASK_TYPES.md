@@ -2,25 +2,27 @@
 
 ## Overview
 
-Tasks in Raptscallions are classified by the `task_type` field to automatically determine which workflow steps are applicable. This prevents unnecessary UI/UX reviews for backend-only work.
+Tasks in RaptScallions are classified by the `task_type` field to automatically determine which workflow steps are applicable. This prevents unnecessary UI/UX reviews for backend-only work.
 
 ## Task Types
 
-| Type         | Description                          | UX Review | UI Review | Examples                                    |
-| ------------ | ------------------------------------ | --------- | --------- | ------------------------------------------- |
-| **backend**  | Server-side only, no UI changes      | ❌ Skip   | ❌ Skip   | API endpoint, database schema, service      |
-| **frontend** | UI-only, minimal/no backend changes  | ✅ Run    | ✅ Run    | Component styling, UI refactor              |
-| **fullstack**| Both UI and backend changes          | ✅ Run    | ✅ Run    | Full CRUD feature with UI and API           |
+| Type          | Description                         | UX Review | UI Review | Examples                               |
+| ------------- | ----------------------------------- | --------- | --------- | -------------------------------------- |
+| **backend**   | Server-side only, no UI changes     | ❌ Skip   | ❌ Skip   | API endpoint, database schema, service |
+| **frontend**  | UI-only, minimal/no backend changes | ✅ Run    | ✅ Run    | Component styling, UI refactor         |
+| **fullstack** | Both UI and backend changes         | ✅ Run    | ✅ Run    | Full CRUD feature with UI and API      |
 
 ## Workflow Behavior
 
 ### Backend Tasks (task_type: "backend")
 
 **Automatic Skip:**
+
 - When a backend task reaches `ANALYZED` state, it automatically skips `UX_REVIEW` and proceeds directly to `PLAN_REVIEW`
 - When a backend task reaches `IMPLEMENTED` state, it automatically skips `UI_REVIEW` and proceeds directly to `CODE_REVIEW`
 
 **Orchestrator logs:**
+
 ```
 [SKIP] E01-T001: Skipping UX_REVIEW (backend-only task) → PLAN_REVIEW
 [SKIP] E01-T001: Skipping UI_REVIEW (backend-only task) → CODE_REVIEW
@@ -28,6 +30,7 @@ Tasks in Raptscallions are classified by the `task_type` field to automatically 
 
 **Designer Agent:**
 If the designer agent is manually invoked on a backend task (e.g., via `/review-ux E01-T001`), it will:
+
 1. Read the task frontmatter
 2. See `task_type: "backend"`
 3. Create a minimal NOT_APPLICABLE review
@@ -37,6 +40,7 @@ If the designer agent is manually invoked on a backend task (e.g., via `/review-
 ### Frontend/Fullstack Tasks
 
 These tasks proceed through all workflow stages normally:
+
 - `ANALYZED` → `UX_REVIEW` → `PLAN_REVIEW` → ...
 - `IMPLEMENTED` → `UI_REVIEW` → `CODE_REVIEW` → ...
 
@@ -52,7 +56,7 @@ When creating tasks, the PM agent must set the `task_type` field accurately:
 ---
 id: "E01-T001"
 title: "Create User Schema"
-task_type: "backend"  # ← No UI work
+task_type: "backend" # ← No UI work
 labels:
   - backend
   - database
@@ -65,7 +69,7 @@ labels:
 ---
 id: "E01-T002"
 title: "User Profile Component"
-task_type: "frontend"  # ← UI work only
+task_type: "frontend" # ← UI work only
 labels:
   - frontend
 ---
@@ -77,7 +81,7 @@ labels:
 ---
 id: "E01-T003"
 title: "User CRUD with UI"
-task_type: "fullstack"  # ← Both UI and backend
+task_type: "fullstack" # ← Both UI and backend
 labels:
   - frontend
   - backend
@@ -87,6 +91,7 @@ labels:
 ## Guidelines for PM Agent
 
 ### Choose "backend" when:
+
 - No user-facing UI changes
 - API endpoints only
 - Database schema/migrations
@@ -95,6 +100,7 @@ labels:
 - Background jobs, queues
 
 ### Choose "frontend" when:
+
 - UI components only
 - Styling/theming changes
 - Client-side logic
@@ -102,6 +108,7 @@ labels:
 - Component library additions
 
 ### Choose "fullstack" when:
+
 - Feature includes both API and UI
 - Forms that submit to backend
 - Pages that fetch data from API
@@ -117,6 +124,7 @@ labels:
 ## Migration for Existing Tasks
 
 For existing tasks without `task_type`, the designer agent falls back to checking:
+
 - Labels (presence of `frontend` label)
 - Code files (presence of `.tsx` files)
 
@@ -193,10 +201,12 @@ QA_REVIEW (qa validates)
 ### Files Modified
 
 1. **`.claude/agents/pm.md`**
+
    - Added `task_type` field to task template
    - Added task type documentation
 
 2. **`.claude/agents/designer.md`**
+
    - Added task_type check as first step
    - Automatic NOT_APPLICABLE for backend tasks
    - Updated workflow state transitions

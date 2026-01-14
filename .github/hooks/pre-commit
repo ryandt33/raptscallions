@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Pre-commit hook for Raptscallions
+# Pre-commit hook for RaptScallions
 # Runs type checking, linting, and tests before allowing commit
 #
 # To install this hook:

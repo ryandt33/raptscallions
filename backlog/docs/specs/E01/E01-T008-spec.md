@@ -10,11 +10,12 @@
 
 ## Overview
 
-This task configures Vitest as the test runner across the Raptscallions monorepo with shared configuration, coverage reporting, and workspace support. The goal is to establish a consistent testing infrastructure that supports both the existing packages (`core`, `db`, `modules`, `telemetry`) and future apps (`api`, `worker`, `web`).
+This task configures Vitest as the test runner across the RaptScallions monorepo with shared configuration, coverage reporting, and workspace support. The goal is to establish a consistent testing infrastructure that supports both the existing packages (`core`, `db`, `modules`, `telemetry`) and future apps (`api`, `worker`, `web`).
 
 ### Current State Analysis
 
 **Existing Configuration:**
+
 - Vitest is already installed in `packages/core` and `packages/db` (v1.1.0)
 - Each package has its own `vitest.config.ts` with identical configuration
 - Test scripts are defined in package.json for both packages
@@ -24,6 +25,7 @@ This task configures Vitest as the test runner across the Raptscallions monorepo
 - Tests already exist and are passing (e.g., `errors.test.ts` demonstrates proper AAA pattern)
 
 **Gaps to Address:**
+
 1. No workspace-level vitest configuration at root
 2. Vitest and coverage dependencies not installed at root level
 3. No unified test pattern supporting both `**/*.test.ts` and `__tests__/**/*.ts`
@@ -33,10 +35,11 @@ This task configures Vitest as the test runner across the Raptscallions monorepo
 7. Apps directory exists but is empty (placeholder with `.gitkeep`)
 
 **Key Decisions:**
+
 - Use Vitest workspace feature for monorepo support (native support for pnpm workspaces)
 - Maintain per-package configs that extend root for customization
-- Support both inline tests (*.test.ts) and __tests__ directories
-- Configure path aliases for cross-package imports (@raptscallions/*)
+- Support both inline tests (\*.test.ts) and **tests** directories
+- Configure path aliases for cross-package imports (@raptscallions/\*)
 - Use v8 coverage provider (already used in packages)
 - Set 80% coverage thresholds (aligns with existing config and CONVENTIONS.md)
 
@@ -73,17 +76,20 @@ raptscallions/
 ### Workspace Configuration Strategy
 
 **Root Configuration (`vitest.config.ts`):**
+
 - Defines shared defaults for all packages
 - Configures TypeScript path resolution
 - Sets coverage provider and thresholds
 - Configures global settings (globals: true, environment: 'node')
 
 **Workspace Definition (`vitest.workspace.ts`):**
+
 - Explicitly lists all packages to include in test runs
 - Allows per-package configuration overrides
 - Supports future apps when they're added
 
 **Package Configurations:**
+
 - Extend root configuration using Vitest's config merging
 - Override only package-specific settings (test includes, exclude patterns)
 - Maintain package-level isolation for focused testing
@@ -93,17 +99,20 @@ raptscallions/
 **Coverage Provider:** v8 (fast, accurate, built-in)
 
 **Reporters:**
+
 - `text` - Console output during test runs
 - `json-summary` - Machine-readable summary for CI
 - `html` - Detailed HTML report for local development
 
 **Thresholds (80% minimum per CONVENTIONS.md):**
+
 - Lines: 80%
 - Functions: 80%
 - Branches: 80%
 - Statements: 80%
 
 **Exclusions:**
+
 - `**/node_modules/**`
 - `**/dist/**`
 - `**/*.config.*` - Configuration files
@@ -145,34 +154,30 @@ pnpm add -D -w vitest @vitest/coverage-v8 @vitest/ui
 File: `vitest.config.ts`
 
 ```typescript
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+import { defineConfig } from "vitest/config";
+import { resolve } from "path";
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
+    environment: "node",
     include: [
-      'packages/**/*.test.ts',
-      'packages/**/__tests__/**/*.ts',
-      'apps/**/*.test.ts',
-      'apps/**/__tests__/**/*.ts',
+      "packages/**/*.test.ts",
+      "packages/**/__tests__/**/*.ts",
+      "apps/**/*.test.ts",
+      "apps/**/__tests__/**/*.ts",
     ],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.{cache,git,turbo}/**',
-    ],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.{cache,git,turbo}/**"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json-summary', 'html'],
+      provider: "v8",
+      reporter: ["text", "json-summary", "html"],
       exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/*.config.*',
-        '**/types/**',
-        '**/migrations/**',
-        '**/__tests__/**',
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/*.config.*",
+        "**/types/**",
+        "**/migrations/**",
+        "**/__tests__/**",
       ],
       thresholds: {
         lines: 80,
@@ -184,16 +189,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@raptscallions/core': resolve(__dirname, './packages/core/src'),
-      '@raptscallions/db': resolve(__dirname, './packages/db/src'),
-      '@raptscallions/modules': resolve(__dirname, './packages/modules/src'),
-      '@raptscallions/telemetry': resolve(__dirname, './packages/telemetry/src'),
+      "@raptscallions/core": resolve(__dirname, "./packages/core/src"),
+      "@raptscallions/db": resolve(__dirname, "./packages/db/src"),
+      "@raptscallions/modules": resolve(__dirname, "./packages/modules/src"),
+      "@raptscallions/telemetry": resolve(
+        __dirname,
+        "./packages/telemetry/src"
+      ),
     },
   },
 });
 ```
 
 **Key Features:**
+
 - `globals: true` - Enables global test APIs (describe, it, expect) without imports
 - Includes both `*.test.ts` and `__tests__/**/*.ts` patterns
 - Path aliases match root `tsconfig.json` configuration
@@ -204,13 +213,13 @@ export default defineConfig({
 File: `vitest.workspace.ts`
 
 ```typescript
-import { defineWorkspace } from 'vitest/config';
+import { defineWorkspace } from "vitest/config";
 
 export default defineWorkspace([
-  'packages/core',
-  'packages/db',
-  'packages/modules',
-  'packages/telemetry',
+  "packages/core",
+  "packages/db",
+  "packages/modules",
+  "packages/telemetry",
   // Future apps will be added here:
   // 'apps/api',
   // 'apps/worker',
@@ -219,6 +228,7 @@ export default defineWorkspace([
 ```
 
 **Benefits:**
+
 - Explicit workspace members
 - Vitest automatically discovers configs in each package
 - Allows parallel test execution across packages
@@ -240,6 +250,7 @@ Add/modify scripts:
 ```
 
 **Script Behavior:**
+
 - `test` - Run all tests once (CI mode)
 - `test:coverage` - Run with coverage report
 - `test:watch` - Watch mode for development
@@ -250,21 +261,22 @@ Add/modify scripts:
 **2.1 Update packages/core/vitest.config.ts**
 
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config.js';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.ts'],
-      name: 'core',
+      include: ["src/**/*.test.ts", "src/**/__tests__/**/*.ts"],
+      name: "core",
     },
   })
 );
 ```
 
 **Changes:**
+
 - Import and extend root config using `mergeConfig`
 - Override only `include` pattern for package scope
 - Add `name` for clear test output identification
@@ -272,15 +284,15 @@ export default mergeConfig(
 **2.2 Update packages/db/vitest.config.ts**
 
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config.js';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.ts'],
-      name: 'db',
+      include: ["src/**/*.test.ts", "src/**/__tests__/**/*.ts"],
+      name: "db",
     },
   })
 );
@@ -291,15 +303,15 @@ export default mergeConfig(
 **2.3 Add packages/modules/vitest.config.ts**
 
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config.js';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.ts'],
-      name: 'modules',
+      include: ["src/**/*.test.ts", "src/**/__tests__/**/*.ts"],
+      name: "modules",
     },
   })
 );
@@ -308,15 +320,15 @@ export default mergeConfig(
 **2.4 Add packages/telemetry/vitest.config.ts**
 
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config.js';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.ts'],
-      name: 'telemetry',
+      include: ["src/**/*.test.ts", "src/**/__tests__/**/*.ts"],
+      name: "telemetry",
     },
   })
 );
@@ -357,10 +369,10 @@ If `packages/core` doesn't have tests, add a simple one:
 File: `packages/core/src/__tests__/sample.test.ts`
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('Sample Test Suite', () => {
-  it('should pass basic assertion', () => {
+describe("Sample Test Suite", () => {
+  it("should pass basic assertion", () => {
     // Arrange
     const value = 42;
 
@@ -371,15 +383,15 @@ describe('Sample Test Suite', () => {
     expect(result).toBe(43);
   });
 
-  it('should validate AAA pattern', () => {
+  it("should validate AAA pattern", () => {
     // Arrange
-    const input = 'hello';
+    const input = "hello";
 
     // Act
     const output = input.toUpperCase();
 
     // Assert
-    expect(output).toBe('HELLO');
+    expect(output).toBe("HELLO");
   });
 });
 ```
@@ -409,25 +421,25 @@ Create a test that imports from another package:
 File: `packages/core/src/__tests__/cross-package.test.ts`
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 // This should resolve via path alias
-import type { User } from '@raptscallions/core';
+import type { User } from "@raptscallions/core";
 
-describe('Cross-package Imports', () => {
-  it('should resolve TypeScript path aliases', () => {
+describe("Cross-package Imports", () => {
+  it("should resolve TypeScript path aliases", () => {
     // Arrange
     const user: User = {
-      id: '123',
-      email: 'test@example.com',
-      name: 'Test User',
-      status: 'active',
+      id: "123",
+      email: "test@example.com",
+      name: "Test User",
+      status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     // Act & Assert
-    expect(user.id).toBe('123');
-    expect(user.email).toBe('test@example.com');
+    expect(user.id).toBe("123");
+    expect(user.email).toBe("test@example.com");
   });
 });
 ```
@@ -441,6 +453,7 @@ pnpm test:coverage
 ```
 
 **Expected Output:**
+
 - Coverage report generated in `coverage/` directory
 - HTML report available at `coverage/index.html`
 - Console shows coverage percentages
@@ -450,18 +463,18 @@ pnpm test:coverage
 
 ## Acceptance Criteria Mapping
 
-| ID   | Criterion | Implementation | Verification |
-|------|-----------|----------------|--------------|
-| AC1  | vitest and @vitest/coverage-v8 installed in root | Phase 1.1: `pnpm add -D -w vitest @vitest/coverage-v8` | Check root `package.json` devDependencies |
-| AC2  | vitest.config.ts at root with workspace config | Phase 1.2: Create root config with workspace support | File exists with proper exports |
-| AC3  | Each package can extend root config | Phase 2: All packages use `mergeConfig(baseConfig, ...)` | Verify imports in package configs |
-| AC4  | Test patterns: **/*.test.ts, **/__tests__/**/*.ts | Phase 1.2: Root config `include` array | Run tests, verify discovery |
-| AC5  | Coverage with v8 provider | Phase 1.2: `coverage.provider: 'v8'` | `pnpm test:coverage` succeeds |
-| AC6  | 80% thresholds | Phase 1.2: All thresholds set to 80 | Coverage report shows thresholds |
-| AC7  | Root scripts: test, test:coverage, test:watch | Phase 1.4: Add scripts to root package.json | Run each script successfully |
-| AC8  | Tests import workspace packages | Phase 1.2: Path aliases in resolve.alias | Phase 3.3 cross-package test |
-| AC9  | TypeScript paths resolved | Phase 1.2: Alias config matches tsconfig | TypeScript checks pass in tests |
-| AC10 | Sample test in core passes | Phase 3.1: Create or verify existing test | `pnpm --filter @raptscallions/core test` passes |
+| ID   | Criterion                                           | Implementation                                           | Verification                                    |
+| ---- | --------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| AC1  | vitest and @vitest/coverage-v8 installed in root    | Phase 1.1: `pnpm add -D -w vitest @vitest/coverage-v8`   | Check root `package.json` devDependencies       |
+| AC2  | vitest.config.ts at root with workspace config      | Phase 1.2: Create root config with workspace support     | File exists with proper exports                 |
+| AC3  | Each package can extend root config                 | Phase 2: All packages use `mergeConfig(baseConfig, ...)` | Verify imports in package configs               |
+| AC4  | Test patterns: **/\*.test.ts, **/**tests**/\*_/_.ts | Phase 1.2: Root config `include` array                   | Run tests, verify discovery                     |
+| AC5  | Coverage with v8 provider                           | Phase 1.2: `coverage.provider: 'v8'`                     | `pnpm test:coverage` succeeds                   |
+| AC6  | 80% thresholds                                      | Phase 1.2: All thresholds set to 80                      | Coverage report shows thresholds                |
+| AC7  | Root scripts: test, test:coverage, test:watch       | Phase 1.4: Add scripts to root package.json              | Run each script successfully                    |
+| AC8  | Tests import workspace packages                     | Phase 1.2: Path aliases in resolve.alias                 | Phase 3.3 cross-package test                    |
+| AC9  | TypeScript paths resolved                           | Phase 1.2: Alias config matches tsconfig                 | TypeScript checks pass in tests                 |
+| AC10 | Sample test in core passes                          | Phase 3.1: Create or verify existing test                | `pnpm --filter @raptscallions/core test` passes |
 
 ---
 
@@ -472,11 +485,13 @@ pnpm test:coverage
 **Scenario:** Different Vitest versions in packages vs root
 
 **Solution:**
+
 - Use pnpm's workspace protocol to ensure version consistency
 - Root should be source of truth for Vitest version
 - Packages should not declare direct Vitest dependencies (inherit from root)
 
 **Implementation:**
+
 ```bash
 # Remove package-level vitest deps (if they conflict)
 pnpm remove vitest @vitest/coverage-v8 --filter @raptscallions/core
@@ -494,14 +509,16 @@ pnpm remove vitest @vitest/coverage-v8 --filter @raptscallions/db
 **Root Cause:** Vitest doesn't automatically read tsconfig.json paths
 
 **Solution:**
+
 - Explicitly configure `resolve.alias` in root vitest config
 - Use `path.resolve(__dirname, ...)` for absolute paths
 - Ensure aliases match `tsconfig.json` exactly
 
 **Verification:**
+
 ```typescript
 // Should work in tests
-import { AppError } from '@raptscallions/core';
+import { AppError } from "@raptscallions/core";
 ```
 
 ### Issue: Coverage excludes don't work
@@ -509,11 +526,13 @@ import { AppError } from '@raptscallions/core';
 **Scenario:** Test files appear in coverage report
 
 **Solution:**
+
 - Add `**/__tests__/**` to coverage.exclude
 - Add `**/*.test.ts` to coverage.exclude
 - Verify glob patterns match file structure
 
 **Check:**
+
 ```bash
 pnpm test:coverage
 # Open coverage/index.html
@@ -525,11 +544,13 @@ pnpm test:coverage
 **Scenario:** Different Node.js versions or missing dependencies
 
 **Solution:**
+
 - Lock Node.js version in `.nvmrc` (already exists: node 20)
 - Use `pnpm install --frozen-lockfile` in CI
 - Ensure all test dependencies installed at root
 
 **CI Script:**
+
 ```yaml
 - run: pnpm install --frozen-lockfile
 - run: pnpm test:coverage
@@ -541,11 +562,13 @@ pnpm test:coverage
 **Scenario:** `pnpm test` doesn't run tests in all packages
 
 **Solution:**
+
 - Verify `vitest.workspace.ts` lists all packages explicitly
 - Check `pnpm-workspace.yaml` includes correct globs
 - Use `pnpm -r list` to verify workspace detection
 
 **Debug:**
+
 ```bash
 pnpm -r list  # Should show all packages
 pnpm test --reporter=verbose  # Shows which packages tested
@@ -560,12 +583,13 @@ pnpm test --reporter=verbose  # Shows which packages tested
 **Target:** Individual functions, classes, utilities
 
 **Example (from existing `errors.test.ts`):**
+
 ```typescript
-describe('AppError', () => {
-  it('should create error with message, code, statusCode, and details', () => {
+describe("AppError", () => {
+  it("should create error with message, code, statusCode, and details", () => {
     // Arrange
-    const message = 'Something went wrong';
-    const code = 'GENERIC_ERROR';
+    const message = "Something went wrong";
+    const code = "GENERIC_ERROR";
     const statusCode = 500;
 
     // Act
@@ -586,11 +610,12 @@ describe('AppError', () => {
 **Target:** Cross-package interactions, schema compositions
 
 **Example (from existing `cross-package-imports.test.ts`):**
+
 ```typescript
-describe('Cross-package Imports', () => {
-  it('should import types from @raptscallions/core', async () => {
+describe("Cross-package Imports", () => {
+  it("should import types from @raptscallions/core", async () => {
     // Arrange - dynamic import
-    const core = await import('@raptscallions/core');
+    const core = await import("@raptscallions/core");
 
     // Act & Assert
     expect(core).toBeDefined();
@@ -604,6 +629,7 @@ describe('Cross-package Imports', () => {
 **Target:** Vitest setup itself
 
 **Test Cases:**
+
 1. Root config exports valid Vitest config
 2. Package configs successfully extend root
 3. Path aliases resolve correctly
@@ -611,11 +637,12 @@ describe('Cross-package Imports', () => {
 5. Test discovery finds all test files
 
 **Implementation:**
+
 ```typescript
-describe('Vitest Configuration', () => {
-  it('should resolve workspace packages', async () => {
+describe("Vitest Configuration", () => {
+  it("should resolve workspace packages", async () => {
     // Arrange
-    const packages = ['@raptscallions/core', '@raptscallions/db'];
+    const packages = ["@raptscallions/core", "@raptscallions/db"];
 
     // Act & Assert
     for (const pkg of packages) {
@@ -634,6 +661,7 @@ describe('Vitest Configuration', () => {
 **Strategy:** Vitest runs tests in parallel by default
 
 **Configuration:**
+
 ```typescript
 test: {
   // Default: number of CPU cores
@@ -650,6 +678,7 @@ test: {
 **Strategy:** Only re-run affected tests on file changes
 
 **Configuration:**
+
 ```typescript
 test: {
   watch: true,
@@ -665,11 +694,12 @@ test: {
 **Strategy:** Skip coverage in watch mode, only collect in CI
 
 **Scripts:**
+
 ```json
 {
-  "test": "vitest run",           // No coverage (fast)
-  "test:coverage": "vitest run --coverage",  // Full coverage (slower)
-  "test:watch": "vitest"          // No coverage (fast feedback)
+  "test": "vitest run", // No coverage (fast)
+  "test:coverage": "vitest run --coverage", // Full coverage (slower)
+  "test:watch": "vitest" // No coverage (fast feedback)
 }
 ```
 
@@ -681,11 +711,13 @@ test: {
 **Strategy:** Vitest resolves imports using same algorithm as Node.js
 
 **Optimization:**
+
 - Use path aliases to avoid relative import chains
 - Leverage TypeScript's module resolution
 - Avoid circular dependencies between packages
 
 **Monitoring:**
+
 ```bash
 # Check import graph
 pnpm why <package>
@@ -700,13 +732,14 @@ pnpm -r list --depth 0
 
 ### Required Packages (Root)
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `vitest` | ^1.1.0 | Test runner |
-| `@vitest/coverage-v8` | ^1.1.0 | Coverage provider |
-| `@vitest/ui` | ^1.1.0 | Optional web UI |
+| Package               | Version | Purpose           |
+| --------------------- | ------- | ----------------- |
+| `vitest`              | ^1.1.0  | Test runner       |
+| `@vitest/coverage-v8` | ^1.1.0  | Coverage provider |
+| `@vitest/ui`          | ^1.1.0  | Optional web UI   |
 
 **Installation:**
+
 ```bash
 pnpm add -D -w vitest@^1.1.0 @vitest/coverage-v8@^1.1.0 @vitest/ui@^1.1.0
 ```
@@ -714,6 +747,7 @@ pnpm add -D -w vitest@^1.1.0 @vitest/coverage-v8@^1.1.0 @vitest/ui@^1.1.0
 ### Package-level Dependencies
 
 Each package should have:
+
 ```json
 {
   "devDependencies": {
@@ -727,6 +761,7 @@ Each package should have:
 ### TypeScript Configuration
 
 **Root `tsconfig.json` already configured with:**
+
 - `strict: true`
 - `noUncheckedIndexedAccess: true`
 - `paths` for workspace packages
@@ -740,12 +775,14 @@ Each package should have:
 ### From Current State
 
 **Existing Setup:**
+
 - `packages/core` and `packages/db` already have Vitest
 - Both use identical `vitest.config.ts`
 - Tests already follow AAA pattern
 - Coverage thresholds already at 80%
 
 **Migration Steps:**
+
 1. Install root dependencies (additive)
 2. Create root configs (new files)
 3. Update package configs to extend root (modify existing)
@@ -760,6 +797,7 @@ Each package should have:
 
 **Rollback Plan:**
 If issues arise, each package's local config is self-contained and can run independently:
+
 ```bash
 pnpm --filter @raptscallions/core test
 ```
@@ -769,26 +807,28 @@ pnpm --filter @raptscallions/core test
 **When apps/ are populated:**
 
 1. Add app to `vitest.workspace.ts`:
+
 ```typescript
 export default defineWorkspace([
-  'packages/*',
-  'apps/api',    // Add as needed
-  'apps/worker',
-  'apps/web',
+  "packages/*",
+  "apps/api", // Add as needed
+  "apps/worker",
+  "apps/web",
 ]);
 ```
 
 2. Create `apps/api/vitest.config.ts`:
+
 ```typescript
-import { defineConfig, mergeConfig } from 'vitest/config';
-import baseConfig from '../../vitest.config.js';
+import { defineConfig, mergeConfig } from "vitest/config";
+import baseConfig from "../../vitest.config.js";
 
 export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      include: ['src/**/*.test.ts'],
-      name: 'api',
+      include: ["src/**/*.test.ts"],
+      name: "api",
     },
   })
 );
@@ -806,33 +846,40 @@ export default mergeConfig(
 
 Add testing section:
 
-```markdown
+````markdown
 ## Testing
 
 Run all tests:
+
 ```bash
 pnpm test
 ```
+````
 
 Run tests with coverage:
+
 ```bash
 pnpm test:coverage
 ```
 
 Run tests in watch mode:
+
 ```bash
 pnpm test:watch
 ```
 
 Run tests for specific package:
+
 ```bash
 pnpm --filter @raptscallions/core test
 ```
 
 View coverage report:
+
 - HTML: `open coverage/index.html`
 - Console: Printed after `pnpm test:coverage`
-```
+
+````
 
 ### CONVENTIONS.md
 
@@ -859,10 +906,11 @@ pnpm test
 
 # From root
 pnpm --filter @raptscallions/<package> test
-```
+````
 
 Tests are located in `src/__tests__/` and follow the AAA pattern.
-```
+
+````
 
 ---
 
@@ -882,30 +930,32 @@ Tests are located in `src/__tests__/` and follow the AAA pattern.
 ```bash
 pnpm audit
 pnpm outdated
-```
+````
 
 ### Test Data
 
 **Concern:** Sensitive data in test fixtures
 
 **Mitigation:**
+
 - Never use real credentials, API keys, or PII in tests
 - Use obviously fake data (test@example.com, test-user-123)
 - Add `.env.test` to `.gitignore`
 - Document test data guidelines in CONVENTIONS.md
 
 **Example:**
+
 ```typescript
 // ✅ Good - Obviously fake
 const testUser = {
-  email: 'test@example.com',
-  password: 'test-password-123',
+  email: "test@example.com",
+  password: "test-password-123",
 };
 
 // ❌ Bad - Looks like real data
 const testUser = {
-  email: 'john.doe@company.com',
-  password: 'MyRealPassword123!',
+  email: "john.doe@company.com",
+  password: "MyRealPassword123!",
 };
 ```
 
@@ -914,11 +964,13 @@ const testUser = {
 **Concern:** Coverage reports may expose code structure
 
 **Mitigation:**
+
 - Add `coverage/` to `.gitignore` (should already be there)
 - Never commit coverage HTML reports
 - Use CI artifacts for coverage storage, not repo
 
 **Verification:**
+
 ```bash
 grep -q "^coverage/$" .gitignore || echo "coverage/" >> .gitignore
 ```
@@ -930,6 +982,7 @@ grep -q "^coverage/$" .gitignore || echo "coverage/" >> .gitignore
 ### Test Execution Metrics
 
 **Track:**
+
 - Total test count
 - Execution time
 - Failure rate
@@ -938,6 +991,7 @@ grep -q "^coverage/$" .gitignore || echo "coverage/" >> .gitignore
 **Implementation:** Vitest reporters provide this automatically
 
 **CI Integration:**
+
 ```yaml
 - name: Run tests with coverage
   run: pnpm test:coverage
@@ -953,6 +1007,7 @@ grep -q "^coverage/$" .gitignore || echo "coverage/" >> .gitignore
 **Tool:** Codecov or similar
 
 **Configuration:**
+
 ```yaml
 # codecov.yml
 coverage:
@@ -970,6 +1025,7 @@ coverage:
 **Detection:** Track tests that fail intermittently
 
 **Vitest Feature:**
+
 ```typescript
 test: {
   retry: 2,  // Retry failing tests twice
@@ -996,6 +1052,7 @@ This task is complete when:
 10. ✅ All existing tests continue to pass after migration
 
 **Verification Command:**
+
 ```bash
 # Run all checks
 pnpm test:coverage && \
@@ -1010,6 +1067,7 @@ pnpm --filter @raptscallions/db test
 ## Implementation Checklist
 
 ### Phase 1: Root Configuration
+
 - [ ] Install vitest, @vitest/coverage-v8, @vitest/ui at root
 - [ ] Create `vitest.config.ts` at root
 - [ ] Create `vitest.workspace.ts` at root
@@ -1017,6 +1075,7 @@ pnpm --filter @raptscallions/db test
 - [ ] Verify root test script runs
 
 ### Phase 2: Package Configurations
+
 - [ ] Update `packages/core/vitest.config.ts` to extend root
 - [ ] Update `packages/db/vitest.config.ts` to extend root
 - [ ] Create `packages/modules/vitest.config.ts`
@@ -1025,6 +1084,7 @@ pnpm --filter @raptscallions/db test
 - [ ] Add/verify test scripts in `packages/telemetry/package.json`
 
 ### Phase 3: Verification
+
 - [ ] Run `pnpm test` - all tests pass
 - [ ] Run `pnpm test:coverage` - coverage report generated
 - [ ] Run `pnpm test:watch` - watch mode works
@@ -1035,11 +1095,13 @@ pnpm --filter @raptscallions/db test
 - [ ] Check HTML coverage report: `open coverage/index.html`
 
 ### Phase 4: Documentation
+
 - [ ] Update README.md with testing instructions (if exists)
 - [ ] Verify CONVENTIONS.md covers test patterns (already done)
 - [ ] Add testing section to package READMEs (if needed)
 
 ### Phase 5: Final Validation
+
 - [ ] All 10 acceptance criteria met
 - [ ] No TypeScript errors in test files
 - [ ] No console warnings during test runs
@@ -1079,26 +1141,30 @@ pnpm --filter @raptscallions/db test
 
 ### Developer Experience Assessment
 
-This specification establishes the testing infrastructure for the monorepo. As a developer-facing infrastructure task, the "users" are the developers working on Raptscallions. The UX review focuses on developer experience (DX) - clarity, ease of use, and consistency.
+This specification establishes the testing infrastructure for the monorepo. As a developer-facing infrastructure task, the "users" are the developers working on RaptScallions. The UX review focuses on developer experience (DX) - clarity, ease of use, and consistency.
 
 #### Strengths
 
 1. **Clear Mental Model**
+
    - ✅ The three-tier config structure (root → workspace → packages) is well-explained
    - ✅ Visual file structure diagrams help developers understand where files go
    - ✅ Phase-based implementation makes the task approachable
 
 2. **Excellent Documentation**
+
    - ✅ Each script is explained with clear purpose (test, test:coverage, test:watch, test:ui)
    - ✅ Code examples are complete and runnable
    - ✅ Commands include both root and per-package variations
 
 3. **Consistency**
+
    - ✅ All package configs follow identical pattern (extend root, add name)
    - ✅ Naming conventions match project standards (snake_case for files, PascalCase for components)
    - ✅ Test patterns align with CONVENTIONS.md (AAA pattern, 80% coverage)
 
 4. **Error Prevention**
+
    - ✅ Comprehensive "Edge Cases & Error Handling" section anticipates common issues
    - ✅ Version conflict resolution explained
    - ✅ Path alias troubleshooting included
@@ -1113,64 +1179,66 @@ This specification establishes the testing infrastructure for the monorepo. As a
 
 **Minor Issue:** Cognitive Load in Path Resolution Section
 
-*Location:* Phase 1.2, `resolve.alias` configuration
+_Location:_ Phase 1.2, `resolve.alias` configuration
 
-*Issue:* The path aliases are manually defined in both `tsconfig.json` and `vitest.config.ts`. If a developer adds a new package, they must remember to update both files.
+_Issue:_ The path aliases are manually defined in both `tsconfig.json` and `vitest.config.ts`. If a developer adds a new package, they must remember to update both files.
 
-*Recommendation:* Add a note in the "Migration Notes" or "Future Additions" section:
+_Recommendation:_ Add a note in the "Migration Notes" or "Future Additions" section:
 
 ```markdown
 **When adding a new package:**
+
 1. Add to pnpm-workspace.yaml
 2. Add to vitest.workspace.ts
 3. Add path alias to root tsconfig.json
 4. Add matching alias to vitest.config.ts resolve.alias
 ```
 
-*Impact:* Low - This is documented in "Future Additions" but could be more prominent
-*Decision:* Keep as-is, but add to implementation notes
+_Impact:_ Low - This is documented in "Future Additions" but could be more prominent
+_Decision:_ Keep as-is, but add to implementation notes
 
 **Observation:** Test Discovery UX
 
-*Location:* Phase 1.2, `include` patterns
+_Location:_ Phase 1.2, `include` patterns
 
-*Strength:* Supporting both `**/*.test.ts` (inline tests) and `**/__tests__/**/*.ts` (directory-based) gives developers flexibility in organizing tests
+_Strength:_ Supporting both `**/*.test.ts` (inline tests) and `**/__tests__/**/*.ts` (directory-based) gives developers flexibility in organizing tests
 
-*No action needed* - This is already a UX strength
+_No action needed_ - This is already a UX strength
 
 **Observation:** Coverage Report Access
 
-*Location:* Phase 3.4, coverage verification
+_Location:_ Phase 3.4, coverage verification
 
-*Strength:* Multiple reporter formats (text, json-summary, html) serve different needs:
+_Strength:_ Multiple reporter formats (text, json-summary, html) serve different needs:
+
 - `text` - Quick feedback during development
 - `json-summary` - CI integration
 - `html` - Detailed local analysis
 
-*No action needed* - Well thought out
+_No action needed_ - Well thought out
 
 **Minor Suggestion:** Script Naming Clarity
 
-*Location:* Phase 1.4, root package.json scripts
+_Location:_ Phase 1.4, root package.json scripts
 
-*Observation:* The script names are clear, but the spec could benefit from a "Command Cheat Sheet" for quick reference
+_Observation:_ The script names are clear, but the spec could benefit from a "Command Cheat Sheet" for quick reference
 
-*Recommendation:* Add a quick reference section at the top of "Verification" phase:
+_Recommendation:_ Add a quick reference section at the top of "Verification" phase:
 
 ```markdown
 ### Quick Reference
 
-| Command | Purpose | Use When |
-|---------|---------|----------|
-| `pnpm test` | Run all tests once | CI, pre-commit |
-| `pnpm test:coverage` | Run with coverage | CI, checking quality |
-| `pnpm test:watch` | Watch mode | Active development |
-| `pnpm test:ui` | Web UI | Debugging, exploration |
-| `pnpm --filter @raptscallions/core test` | Test single package | Package-specific work |
+| Command                                  | Purpose             | Use When               |
+| ---------------------------------------- | ------------------- | ---------------------- |
+| `pnpm test`                              | Run all tests once  | CI, pre-commit         |
+| `pnpm test:coverage`                     | Run with coverage   | CI, checking quality   |
+| `pnpm test:watch`                        | Watch mode          | Active development     |
+| `pnpm test:ui`                           | Web UI              | Debugging, exploration |
+| `pnpm --filter @raptscallions/core test` | Test single package | Package-specific work  |
 ```
 
-*Impact:* Low - Improves onboarding and reduces cognitive load
-*Decision:* Optional enhancement, not required for approval
+_Impact:_ Low - Improves onboarding and reduces cognitive load
+_Decision:_ Optional enhancement, not required for approval
 
 #### Accessibility Considerations
 
@@ -1194,6 +1262,7 @@ This specification establishes the testing infrastructure for the monorepo. As a
 **Verdict:** ✅ **APPROVED** - Excellent developer experience design
 
 This specification demonstrates strong attention to developer experience:
+
 - Clear mental models and visual aids
 - Comprehensive documentation with runnable examples
 - Proactive error handling and troubleshooting
@@ -1229,11 +1298,11 @@ This specification configures Vitest as the monorepo testing infrastructure. The
 
 The specification correctly uses the technologies mandated in ARCHITECTURE.md:
 
-| Technology | Required Version | Spec Version | Status |
-|------------|-----------------|--------------|--------|
-| Vitest | (not specified in ARCHITECTURE.md) | ^1.1.0 | ✅ Current stable |
-| Node.js | 20 LTS | Inherited | ✅ Via existing .nvmrc |
-| TypeScript | 5.3+ | Inherited | ✅ Via tsconfig.json |
+| Technology | Required Version                   | Spec Version | Status                 |
+| ---------- | ---------------------------------- | ------------ | ---------------------- |
+| Vitest     | (not specified in ARCHITECTURE.md) | ^1.1.0       | ✅ Current stable      |
+| Node.js    | 20 LTS                             | Inherited    | ✅ Via existing .nvmrc |
+| TypeScript | 5.3+                               | Inherited    | ✅ Via tsconfig.json   |
 
 **Observation:** Vitest is explicitly mentioned in ARCHITECTURE.md as the testing framework but without a specific version. The specification's choice of v1.1.0 is appropriate as it's the latest stable release matching existing package versions.
 
@@ -1256,22 +1325,25 @@ raptscallions/
 ```
 
 **Strengths:**
+
 - No changes to directory structure
 - Adds configuration files only
-- Follows "packages/*" pattern from ARCHITECTURE.md
-- Plans for future "apps/*" addition documented
+- Follows "packages/\*" pattern from ARCHITECTURE.md
+- Plans for future "apps/\*" addition documented
 
 #### Code Convention Adherence
 
 ✅ **Exemplary Compliance with CONVENTIONS.md**
 
 1. **Testing Standards (100% match)**
+
    - ✅ 80% minimum line coverage threshold
    - ✅ AAA (Arrange/Act/Assert) pattern enforced
    - ✅ Test file naming: `*.test.ts` and `__tests__/**/*.ts`
    - ✅ TDD workflow supported via watch mode
 
 2. **TypeScript Strict Mode**
+
    - ✅ Leverages existing tsconfig.json strict settings
    - ✅ No `any` usage in test configurations
    - ✅ Type-safe path resolution for imports
@@ -1286,6 +1358,7 @@ raptscallions/
 **1. Explicit over Implicit** ✅
 
 The specification excels here:
+
 - Explicit workspace member list (not glob-based auto-discovery)
 - Explicit path alias configuration (not relying on tsconfig.json auto-read)
 - Explicit coverage thresholds and exclusions
@@ -1293,10 +1366,10 @@ The specification excels here:
 ```typescript
 // Example of explicitness:
 export default defineWorkspace([
-  'packages/core',      // Explicit
-  'packages/db',        // Not 'packages/*'
-  'packages/modules',
-  'packages/telemetry',
+  "packages/core", // Explicit
+  "packages/db", // Not 'packages/*'
+  "packages/modules",
+  "packages/telemetry",
 ]);
 ```
 
@@ -1305,6 +1378,7 @@ export default defineWorkspace([
 **2. Composition over Inheritance** ✅
 
 The three-tier config strategy demonstrates excellent composition:
+
 - Root config defines shared defaults
 - Workspace composes package list
 - Package configs compose root via `mergeConfig(baseConfig, overrides)`
@@ -1312,6 +1386,7 @@ The three-tier config strategy demonstrates excellent composition:
 **3. Fail Fast** ✅
 
 Multiple fail-fast mechanisms:
+
 - 80% coverage thresholds enforce quality
 - TypeScript strict mode catches type errors
 - Zod validation in tests (per convention examples)
@@ -1320,6 +1395,7 @@ Multiple fail-fast mechanisms:
 **4. Zero Technical Debt** ✅
 
 The specification addresses existing technical debt:
+
 - Consolidates duplicate configs in `core` and `db`
 - Adds missing configs for `modules` and `telemetry`
 - Establishes scalable pattern for future apps
@@ -1329,12 +1405,13 @@ The specification addresses existing technical debt:
 **Database Layer Integration** ✅
 
 The specification correctly configures coverage exclusions:
+
 ```typescript
 exclude: [
-  '**/migrations/**',  // ✅ Correct - SQL migrations shouldn't be covered
-  '**/types/**',       // ✅ Correct - Type definitions
-  '**/*.config.*',     // ✅ Correct - Config files
-]
+  "**/migrations/**", // ✅ Correct - SQL migrations shouldn't be covered
+  "**/types/**", // ✅ Correct - Type definitions
+  "**/*.config.*", // ✅ Correct - Config files
+];
 ```
 
 **Telemetry Package Integration** ✅
@@ -1366,10 +1443,10 @@ The specification includes excellent forward planning:
 ```typescript
 // vitest.workspace.ts
 export default defineWorkspace([
-  'packages/core',
-  'packages/db',
-  'packages/modules',
-  'packages/telemetry',
+  "packages/core",
+  "packages/db",
+  "packages/modules",
+  "packages/telemetry",
   // Future apps will be added here:
   // 'apps/api',
   // 'apps/worker',
@@ -1386,6 +1463,7 @@ Section "Future Additions" provides clear pattern for adding apps. This follows 
 **Parallel Test Execution** ✅
 
 The spec leverages Vitest's native parallelism:
+
 - Workspace-based isolation allows parallel package testing
 - `threads: true` default setting (mentioned in Performance section)
 - No artificial serialization introduced
@@ -1393,6 +1471,7 @@ The spec leverages Vitest's native parallelism:
 **Watch Mode Optimization** ✅
 
 Development workflow optimized:
+
 - `test:watch` script excludes coverage collection (fast feedback)
 - `test:coverage` reserved for CI and quality checks
 - Changed files only tested in watch mode
@@ -1400,6 +1479,7 @@ Development workflow optimized:
 **Coverage Collection Overhead** ✅
 
 Smart strategy:
+
 - Development: `pnpm test:watch` (no coverage, instant feedback)
 - CI: `pnpm test:coverage` (full coverage, slower acceptable)
 - Local verification: `pnpm test:coverage` (on-demand)
@@ -1409,6 +1489,7 @@ Smart strategy:
 **Dependency Security** ✅
 
 The specification addresses security concerns:
+
 - All dependencies from official npm registry
 - Version pinning strategy (caret ranges for updates)
 - `pnpm audit` mentioned in "Security Considerations"
@@ -1416,17 +1497,19 @@ The specification addresses security concerns:
 **Test Data Handling** ✅
 
 Excellent guidance on test data:
+
 ```typescript
 // ✅ Good - Obviously fake
 const testUser = {
-  email: 'test@example.com',
-  password: 'test-password-123',
+  email: "test@example.com",
+  password: "test-password-123",
 };
 ```
 
 **Coverage Report Handling** ✅
 
 Proper handling of potentially sensitive coverage data:
+
 - `coverage/` in `.gitignore` (verification command provided)
 - HTML reports not committed
 - CI artifacts recommended for storage
@@ -1438,12 +1521,14 @@ Proper handling of potentially sensitive coverage data:
 Per ARCHITECTURE.md requirement: "The entire project MUST be containerizable."
 
 The testing configuration is container-friendly:
+
 - ✅ No host-specific paths (uses relative paths)
 - ✅ No dependencies on host-installed tools
 - ✅ Works in Node.js 20 container (per .nvmrc)
 - ✅ CI scripts use standard pnpm commands
 
 Future consideration: When Dockerfile is added, the test layer should use:
+
 ```dockerfile
 RUN pnpm test:coverage --reporter=json-summary
 ```
@@ -1463,6 +1548,7 @@ The "Edge Cases & Error Handling" section demonstrates strong architectural thin
 **Critical Error Prevention** ✅
 
 The specification prevents common errors:
+
 - Explicit workspace members (prevents silent omissions)
 - Path alias verification test planned (Phase 3.3)
 - Coverage threshold enforcement (fails build if <80%)
@@ -1472,6 +1558,7 @@ The specification prevents common errors:
 **Canonical Reference Alignment** ✅
 
 The specification correctly references canonical docs:
+
 - ARCHITECTURE.md (technology stack, monorepo structure)
 - CONVENTIONS.md (test patterns, coverage requirements)
 - .claude/rules/testing.md (detailed testing patterns)
@@ -1479,6 +1566,7 @@ The specification correctly references canonical docs:
 **Self-Contained Completeness** ✅
 
 The spec is implementation-ready:
+
 - Complete code examples (copy-paste ready)
 - Verification commands after each phase
 - Implementation checklist for tracking
@@ -1489,6 +1577,7 @@ The spec is implementation-ready:
 **Overall Risk: LOW** ✅
 
 Justification:
+
 1. **Additive Changes Only:** No modifications to existing test files
 2. **Non-Breaking:** Package-level configs remain functional independently
 3. **Incremental Verification:** Each phase has verification steps
@@ -1497,12 +1586,12 @@ Justification:
 
 **Identified Risks & Mitigations:**
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Path alias resolution fails | Low | Medium | Phase 3.3 verification test, explicit aliases |
-| Version conflicts | Low | Low | Root workspace control, version alignment |
-| Test discovery issues | Low | Medium | Explicit workspace members, verification commands |
-| CI integration problems | Low | Medium | .nvmrc locks Node version, frozen lockfile |
+| Risk                        | Likelihood | Impact | Mitigation                                        |
+| --------------------------- | ---------- | ------ | ------------------------------------------------- |
+| Path alias resolution fails | Low        | Medium | Phase 3.3 verification test, explicit aliases     |
+| Version conflicts           | Low        | Low    | Root workspace control, version alignment         |
+| Test discovery issues       | Low        | Medium | Explicit workspace members, verification commands |
+| CI integration problems     | Low        | Medium | .nvmrc locks Node version, frozen lockfile        |
 
 #### Observations & Recommendations
 
@@ -1524,7 +1613,7 @@ Justification:
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "pretest": "tsc --noEmit"  // ← Ensure type safety before tests
+    "pretest": "tsc --noEmit" // ← Ensure type safety before tests
   }
 }
 ```
@@ -1538,6 +1627,7 @@ Justification:
 **Observation on Task Dependencies:**
 
 The spec correctly identifies dependency on E01-T001 (pnpm workspace). Verify that the following are in place before implementation:
+
 - ✅ `pnpm-workspace.yaml` exists (should list `packages/*`)
 - ✅ Root `package.json` has workspace configuration
 - ✅ Packages are linked via pnpm workspace protocol
@@ -1564,11 +1654,13 @@ The spec correctly identifies dependency on E01-T001 (pnpm workspace). Verify th
 This specification makes several architectural decisions worth documenting:
 
 1. **ADR: Explicit Workspace Members Over Glob Patterns**
+
    - **Decision:** Use explicit array of packages in `vitest.workspace.ts`
    - **Rationale:** Prevents silent failures when new packages are added
    - **Trade-off:** Requires manual updates, but ensures visibility
 
 2. **ADR: Three-Tier Configuration Strategy**
+
    - **Decision:** Root config → Workspace → Package configs (extending root)
    - **Rationale:** DRY principle while allowing package-specific overrides
    - **Trade-off:** Slightly more complex but highly maintainable
@@ -1595,6 +1687,7 @@ This specification demonstrates **exceptional architectural design**:
 **No architectural concerns identified.** The specification is ready for implementation.
 
 **Recommended Workflow State Transition:**
+
 - Current: `ANALYZED` (after UX review)
 - Next: `APPROVED` (after this architecture review)
 - Following: Ready for `/implement` command

@@ -1,4 +1,4 @@
-# Raptscallions
+# RaptScallions
 
 An open-source AI education platform with extreme modularity, teacher-as-creator design, and OneRoster integration.
 
@@ -100,10 +100,12 @@ pnpm --filter @raptscallions/api start
 ### API Endpoints
 
 **Health & Status:**
+
 - `GET /health` - Basic health check, returns `{ status: 'ok', timestamp }`
 - `GET /ready` - Readiness check with database validation
 
 **Authentication:**
+
 - `POST /auth/register` - Register new user with email/password
 - `POST /auth/login` - Login with email/password
 - `POST /auth/logout` - Logout current user (requires authentication)
@@ -138,20 +140,20 @@ raptscallions/
 
 From the root directory:
 
-| Script | Description |
-| ------ | ----------- |
-| `pnpm dev` | Run all packages in development mode (watch) |
-| `pnpm build` | Build all packages |
-| `pnpm test` | Run all tests once |
-| `pnpm test:coverage` | Run tests with coverage report |
-| `pnpm test:watch` | Run tests in watch mode |
-| `pnpm test:ui` | Open Vitest web UI |
-| `pnpm lint` | Run linting across all packages |
-| `pnpm clean` | Remove node_modules and dist from all packages |
-| `pnpm docs:dev` | Start VitePress docs dev server |
-| `pnpm docs:build` | Build VitePress docs for production |
-| `pnpm docs:preview` | Preview built docs locally |
-| `pnpm docs:check-stale` | Check for stale documentation |
+| Script                  | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `pnpm dev`              | Run all packages in development mode (watch)   |
+| `pnpm build`            | Build all packages                             |
+| `pnpm test`             | Run all tests once                             |
+| `pnpm test:coverage`    | Run tests with coverage report                 |
+| `pnpm test:watch`       | Run tests in watch mode                        |
+| `pnpm test:ui`          | Open Vitest web UI                             |
+| `pnpm lint`             | Run linting across all packages                |
+| `pnpm clean`            | Remove node_modules and dist from all packages |
+| `pnpm docs:dev`         | Start VitePress docs dev server                |
+| `pnpm docs:build`       | Build VitePress docs for production            |
+| `pnpm docs:preview`     | Preview built docs locally                     |
+| `pnpm docs:check-stale` | Check for stale documentation                  |
 
 ## Testing
 
@@ -191,18 +193,18 @@ After running `pnpm test:coverage`, coverage reports are generated in the `cover
 Tests follow the AAA (Arrange-Act-Assert) pattern and are located in `__tests__/` directories:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('MyFunction', () => {
-  it('should do something', () => {
+describe("MyFunction", () => {
+  it("should do something", () => {
     // Arrange
-    const input = 'test';
+    const input = "test";
 
     // Act
     const result = myFunction(input);
 
     // Assert
-    expect(result).toBe('expected');
+    expect(result).toBe("expected");
   });
 });
 ```
@@ -211,17 +213,17 @@ For more details, see [docs/CONVENTIONS.md](docs/CONVENTIONS.md).
 
 ## Technology Stack
 
-| Layer | Technology | Version |
-| ----- | ---------- | ------- |
-| Runtime | Node.js | 20 LTS |
-| Language | TypeScript | 5.3+ (strict mode) |
-| API Framework | Fastify | 4.x |
-| ORM | Drizzle | 0.29+ |
-| Database | PostgreSQL | 16 |
-| Cache/Queue | Redis | 7 |
-| Validation | Zod | 3.x |
-| Auth | Lucia | 3.x |
-| Frontend | React | 18.x |
+| Layer         | Technology | Version            |
+| ------------- | ---------- | ------------------ |
+| Runtime       | Node.js    | 20 LTS             |
+| Language      | TypeScript | 5.3+ (strict mode) |
+| API Framework | Fastify    | 4.x                |
+| ORM           | Drizzle    | 0.29+              |
+| Database      | PostgreSQL | 16                 |
+| Cache/Queue   | Redis      | 7                  |
+| Validation    | Zod        | 3.x                |
+| Auth          | Lucia      | 3.x                |
+| Frontend      | React      | 18.x               |
 
 For the complete technology stack, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -256,6 +258,7 @@ pnpm docs:preview
 ```
 
 The knowledge base provides:
+
 - **Search**: Built-in local search (Cmd/Ctrl + K)
 - **Dark/Light Theme**: Automatic theme switching
 - **Live Reload**: Instant updates during development

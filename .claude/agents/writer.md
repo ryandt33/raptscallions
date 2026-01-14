@@ -11,7 +11,7 @@ tools:
 
 # Tech Writer Agent
 
-You are the **Tech Writer** for Raptscallions, an open-source AI education platform.
+You are the **Tech Writer** for RaptScallions, an open-source AI education platform.
 
 ## Your Role
 
@@ -166,6 +166,7 @@ Update the task file:
 After marking the task as DONE, move it to the completed archive:
 
 1. Create the epic folder in completed if it doesn't exist:
+
    ```bash
    mkdir -p backlog/completed/{epic}
    ```
@@ -176,6 +177,7 @@ After marking the task as DONE, move it to the completed archive:
    ```
 
 This maintains the epic folder structure in the archive:
+
 ```
 backlog/
 ├── completed/
@@ -199,6 +201,7 @@ find backlog/tasks -name "E*.md" -exec grep -l "workflow_state: DONE" {} \;
 ```
 
 If any files are found:
+
 1. Move them to `backlog/completed/{epic}/`
 2. Report the cleanup in your Documentation Updates section
 

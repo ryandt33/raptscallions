@@ -1,6 +1,6 @@
 # GitHub CI/CD Setup Guide
 
-This guide walks you through setting up GitHub Actions, branch protection, and auto-merge for the Raptscallions project.
+This guide walks you through setting up GitHub Actions, branch protection, and auto-merge for the RaptScallions project.
 
 ## Prerequisites
 
@@ -36,11 +36,13 @@ Configure the following settings:
 #### Required Checks
 
 - ✅ **Require a pull request before merging**
+
   - Required approvals: `1` (increase for production)
   - ✅ Dismiss stale pull request approvals when new commits are pushed
   - ✅ Require review from Code Owners (optional, requires CODEOWNERS file)
 
 - ✅ **Require status checks to pass before merging**
+
   - ✅ Require branches to be up to date before merging
   - Required status checks:
     - `typecheck`
@@ -68,6 +70,7 @@ If using a `develop` branch for integration:
 **Branch name pattern:** `develop`
 
 Use same settings as `main` but optionally:
+
 - Reduce required approvals to `0` or `1`
 - Allow admins to bypass
 
@@ -76,6 +79,7 @@ Use same settings as `main` but optionally:
 ### Method 1: Using GitHub's Built-in Auto-Merge
 
 **Per PR:**
+
 ```bash
 # Enable auto-merge on a PR (using gh CLI)
 gh pr merge --auto --squash <PR_NUMBER>
@@ -87,6 +91,7 @@ gh pr merge --auto --squash <PR_NUMBER>
 ```
 
 **Requirements:**
+
 - All required checks must pass
 - Required reviews must be approved
 - No blocking conversations
@@ -96,6 +101,7 @@ gh pr merge --auto --squash <PR_NUMBER>
 The included `.github/workflows/auto-merge.yml` workflow automatically merges PRs labeled with `automerge`.
 
 **Usage:**
+
 ```bash
 # Add label to PR
 gh pr edit <PR_NUMBER> --add-label automerge
@@ -105,6 +111,7 @@ gh pr edit <PR_NUMBER> --add-label automerge
 ```
 
 **How it works:**
+
 1. PR must have `automerge` label
 2. PR must not be in draft mode
 3. All required checks must pass (typecheck, lint, test, build)
@@ -116,6 +123,7 @@ gh pr edit <PR_NUMBER> --add-label automerge
 For automated dependency updates:
 
 1. Create `.github/dependabot.yml`:
+
 ```yaml
 version: 2
 updates:
@@ -258,11 +266,13 @@ Create these labels in **Issues** → **Labels**:
 ### Test CI Workflow
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b feature/test-ci
    ```
 
 2. Make a small change and commit:
+
    ```bash
    echo "# Test" >> test.md
    git add test.md
@@ -270,6 +280,7 @@ Create these labels in **Issues** → **Labels**:
    ```
 
 3. Push and create PR:
+
    ```bash
    git push -u origin feature/test-ci
    gh pr create --title "test(ci): verify CI workflow" --body "Testing CI setup"
