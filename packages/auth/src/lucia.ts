@@ -1,9 +1,9 @@
 // packages/auth/src/lucia.ts
 
-import { Lucia } from "lucia";
 import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
 import { db } from "@raptscallions/db";
 import { sessions, users } from "@raptscallions/db/schema";
+import { Lucia } from "lucia";
 
 /**
  * Database user attributes returned by Lucia.

@@ -1,8 +1,12 @@
 // packages/auth/src/session.service.ts
 
-import { lucia } from "./lucia.js";
-import type { Session, SessionUser, SessionValidationResult } from "./types.js";
+
 import { UnauthorizedError } from "@raptscallions/core";
+
+import { lucia } from "./lucia.js";
+
+import type { Session, SessionValidationResult } from "./types.js";
+import type { Cookie } from "lucia";
 
 /**
  * Session management service.
@@ -28,7 +32,7 @@ export class SessionService {
     try {
       const result = await lucia.validateSession(sessionId);
       return result;
-    } catch (error) {
+    } catch (_error) {
       // Lucia throws if session ID is malformed or database error occurs
       throw new UnauthorizedError("Invalid session");
     }
@@ -53,7 +57,7 @@ export class SessionService {
         last_activity_at: new Date(),
       });
       return session;
-    } catch (error) {
+    } catch (_error) {
       throw new Error("Failed to create session");
     }
   }
@@ -70,7 +74,7 @@ export class SessionService {
   async invalidate(sessionId: string): Promise<void> {
     try {
       await lucia.invalidateSession(sessionId);
-    } catch (error) {
+    } catch (_error) {
       // Ignore errors if session doesn't exist (already logged out)
       // This is safe because the end result is the same
     }
@@ -87,7 +91,7 @@ export class SessionService {
   async invalidateUserSessions(userId: string): Promise<void> {
     try {
       await lucia.invalidateUserSessions(userId);
-    } catch (error) {
+    } catch (_error) {
       throw new Error("Failed to invalidate user sessions");
     }
   }
@@ -102,7 +106,7 @@ export class SessionService {
    * const cookie = sessionService.createBlankSessionCookie();
    * reply.setCookie(cookie.name, cookie.value, cookie.attributes);
    */
-  createBlankSessionCookie() {
+  createBlankSessionCookie(): Cookie {
     return lucia.createBlankSessionCookie();
   }
 
@@ -120,7 +124,12 @@ export class SessionService {
    *
    * @returns Cookie attributes (secure, sameSite)
    */
-  get sessionCookieAttributes() {
+  get sessionCookieAttributes(): {
+    secure: boolean;
+    httpOnly: boolean;
+    sameSite: "lax";
+    path: string;
+  } {
     // Lucia v3 only exposes name and attributes (secure, sameSite)
     // httpOnly and path are hardcoded by Lucia
     return {

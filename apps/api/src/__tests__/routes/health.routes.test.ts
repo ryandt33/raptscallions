@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from "vitest";
 import fastify, { type FastifyInstance } from "fastify";
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from "vitest";
 
 describe("Health Routes (health.routes.ts)", () => {
   let app: FastifyInstance;

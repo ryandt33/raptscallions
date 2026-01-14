@@ -7,6 +7,7 @@ import {
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
+
 import { ltree } from "./types.js";
 
 /**
@@ -93,7 +94,9 @@ export type NewGroup = typeof groups.$inferInsert;
 Object.defineProperty(groups, "_", {
   get() {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
       name: Symbol.for("drizzle:Name") in groups
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
         ? (groups as any)[Symbol.for("drizzle:Name")]
         : "groups",
     };

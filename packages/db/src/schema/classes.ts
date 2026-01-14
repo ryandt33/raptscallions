@@ -6,6 +6,7 @@ import {
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
+
 import { groups } from "./groups.js";
 
 /**
@@ -111,8 +112,10 @@ export type NewClass = typeof classes.$inferInsert;
 Object.defineProperty(classes, "_", {
   get() {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
       name:
         Symbol.for("drizzle:Name") in classes
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
           ? (classes as any)[Symbol.for("drizzle:Name")]
           : "classes",
     };

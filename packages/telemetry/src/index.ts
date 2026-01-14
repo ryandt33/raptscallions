@@ -1,5 +1,7 @@
 // @raptscallions/telemetry - OpenTelemetry observability stubs
 
+import { getLogger } from './logger.js';
+
 import type { TelemetryConfig } from './types.js';
 
 // Re-export all types
@@ -9,7 +11,6 @@ export type * from './types.js';
 export { getLogger } from './logger.js';
 
 // Export default logger instance for convenience
-import { getLogger } from './logger.js';
 export const logger = getLogger('raptscallions');
 
 // Re-export tracing functions

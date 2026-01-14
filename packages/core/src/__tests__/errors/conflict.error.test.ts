@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { ConflictError } from "../../errors/common.error.js";
+
 import { ErrorCode } from "../../errors/base.error.js";
+import { ConflictError } from "../../errors/common.error.js";
 
 describe("ConflictError", () => {
   it("should have correct status code and error code", () => {

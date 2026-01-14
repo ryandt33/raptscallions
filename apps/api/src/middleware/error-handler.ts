@@ -1,6 +1,7 @@
-import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "@raptscallions/core";
 import { getLogger } from "@raptscallions/telemetry";
+
+import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 const logger = getLogger("api:error-handler");
 

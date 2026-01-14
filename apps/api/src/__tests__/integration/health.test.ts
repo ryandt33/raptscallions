@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi, type Mock } from "vitest";
+
 import type { FastifyInstance } from "fastify";
 
 describe("Health Endpoints Integration", () => {

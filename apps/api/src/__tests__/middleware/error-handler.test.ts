@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
-import type { FastifyRequest, FastifyReply } from "fastify";
 import { AppError, ValidationError, NotFoundError, UnauthorizedError } from "@raptscallions/core";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
+
+import type { FastifyRequest, FastifyReply } from "fastify";
 
 describe("Error Handler Middleware (error-handler.ts)", () => {
   let mockRequest: Partial<FastifyRequest>;
   let mockReply: Partial<FastifyReply>;
-  let mockLogger: {
+  let _mockLogger: {
     error: Mock;
   };
 
@@ -27,7 +28,7 @@ describe("Error Handler Middleware (error-handler.ts)", () => {
     };
 
     // Mock logger
-    mockLogger = {
+    _mockLogger = {
       error: vi.fn(),
     };
   });

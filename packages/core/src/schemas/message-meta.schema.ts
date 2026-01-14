@@ -90,6 +90,6 @@ export function parseMessageMeta(data: unknown): MessageMeta {
  * @param data - Unknown data to validate
  * @returns SafeParseResult with data or error
  */
-export function safeParseMessageMeta(data: unknown) {
+export function safeParseMessageMeta(data: unknown): z.SafeParseReturnType<unknown, MessageMeta> {
   return messageMetaSchema.safeParse(data);
 }

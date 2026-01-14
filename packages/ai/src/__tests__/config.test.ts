@@ -169,6 +169,8 @@ describe('AI Config', () => {
 
   describe('type inference', () => {
     it('should infer correct types from schema', () => {
+      // Schema used only for type inference via typeof
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const schema = z.object({
         AI_GATEWAY_URL: z.string().url().default('https://openrouter.ai/api/v1'),
         AI_API_KEY: z.string().min(1),

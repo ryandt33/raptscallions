@@ -9,6 +9,7 @@ import {
   index,
   unique,
 } from "drizzle-orm/pg-core";
+
 import { chatSessions } from "./chat-sessions.js";
 
 /**
@@ -119,8 +120,10 @@ export type NewMessage = typeof messages.$inferInsert;
 Object.defineProperty(messages, "_", {
   get() {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
       name:
         Symbol.for("drizzle:Name") in messages
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
           ? (messages as any)[Symbol.for("drizzle:Name")]
           : "messages",
     };

@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   pgEnum,
   pgTable,
@@ -6,11 +7,11 @@ import {
   index,
   unique,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { users } from "./users.js";
-import { groups } from "./groups.js";
+
 import { classMembers } from "./class-members.js";
 import { classes } from "./classes.js";
+import { groups } from "./groups.js";
+import { users } from "./users.js";
 
 /**
  * Member role enum representing permission levels within a group.
@@ -118,8 +119,10 @@ export type NewGroupMember = typeof groupMembers.$inferInsert;
 Object.defineProperty(groupMembers, "_", {
   get() {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
       name:
         Symbol.for("drizzle:Name") in groupMembers
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
           ? (groupMembers as any)[Symbol.for("drizzle:Name")]
           : "group_members",
     };

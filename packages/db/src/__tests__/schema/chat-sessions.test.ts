@@ -1,13 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq as _eq } from "drizzle-orm";
+import { describe, it, expect, beforeEach as _beforeEach, vi } from "vitest";
 
 import { chatSessions, sessionStateEnum } from "../../schema/chat-sessions.js";
+import { tools as _tools } from "../../schema/tools.js";
+import { users as _users } from "../../schema/users.js";
+
 import type { ChatSession, NewChatSession } from "../../schema/chat-sessions.js";
-import { users } from "../../schema/users.js";
-import { tools } from "../../schema/tools.js";
+
 
 // Mock database and test helpers
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const mockDb: any = {
   insert: vi.fn(),
   delete: vi.fn(),
@@ -51,7 +53,7 @@ interface MockTool {
   deletedAt: Date | null;
 }
 
-function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
+function _createMockUser(overrides: Partial<MockUser> = {}): MockUser {
   return {
     id: "user-123",
     email: "test@example.com",
@@ -65,7 +67,7 @@ function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
   };
 }
 
-function createMockTool(overrides: Partial<MockTool> = {}): MockTool {
+function _createMockTool(overrides: Partial<MockTool> = {}): MockTool {
   return {
     id: "tool-456",
     type: "chat",

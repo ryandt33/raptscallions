@@ -1,6 +1,7 @@
-import type { FastifyPluginAsync } from "fastify";
-import { getLogger } from "@raptscallions/telemetry";
 import { queryClient } from "@raptscallions/db";
+import { getLogger } from "@raptscallions/telemetry";
+
+import type { FastifyPluginAsync } from "fastify";
 
 const logger = getLogger("api:health");
 

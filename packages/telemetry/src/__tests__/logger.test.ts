@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest';
+
 import { getLogger } from '../logger.js';
 
 describe('Logger', () => {

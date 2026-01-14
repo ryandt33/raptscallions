@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { User, NewUser } from "../../schema/users.js";
+
 import { users, userStatusEnum } from "../../schema/users.js";
+
+import type { User, NewUser } from "../../schema/users.js";
 
 describe("Users Schema", () => {
   describe("Type Inference", () => {

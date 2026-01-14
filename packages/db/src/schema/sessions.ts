@@ -1,5 +1,6 @@
-import { pgTable, varchar, uuid, timestamp } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
+import { pgTable, varchar, uuid, timestamp } from "drizzle-orm/pg-core";
+
 import { users } from "./users.js";
 
 /**
@@ -75,7 +76,11 @@ export type NewSession = typeof sessions.$inferInsert;
 Object.defineProperty(sessions, "_", {
   get() {
     return {
-      name: Symbol.for("drizzle:Name") in sessions ? (sessions as any)[Symbol.for("drizzle:Name")] : "sessions",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
+      name: Symbol.for("drizzle:Name") in sessions
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
+        ? (sessions as any)[Symbol.for("drizzle:Name")]
+        : "sessions",
     };
   },
   enumerable: false,

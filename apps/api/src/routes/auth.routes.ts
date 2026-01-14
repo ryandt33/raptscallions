@@ -1,9 +1,14 @@
+import { lucia } from "@raptscallions/auth";
+import { registerSchema, loginSchema, type RegisterInput, type LoginInput } from "@raptscallions/core";
+
+import { AuthService } from "../services/auth.service.js";
+
+import { oauthRoutes } from "./oauth.routes.js";
+
 import type { FastifyPluginAsync } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { registerSchema, loginSchema, type RegisterInput, type LoginInput } from "@raptscallions/core";
-import { AuthService } from "../services/auth.service.js";
-import { lucia } from "@raptscallions/auth";
-import { oauthRoutes } from "./oauth.routes.js";
+
+
 
 const authService = new AuthService();
 

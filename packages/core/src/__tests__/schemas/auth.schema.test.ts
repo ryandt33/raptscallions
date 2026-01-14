@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { registerSchema, loginSchema } from "../../schemas/auth.schema.js";
 import { ZodError } from "zod";
+
+import { registerSchema, loginSchema } from "../../schemas/auth.schema.js";
 
 describe("Auth Schemas", () => {
   describe("registerSchema", () => {

@@ -1,12 +1,15 @@
-import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
-import fp from "fastify-plugin";
 import { createMongoAbility, subject } from "@casl/ability";
+import { ForbiddenError } from "@raptscallions/core";
 import { db } from "@raptscallions/db";
 import { groupMembers, groups } from "@raptscallions/db/schema";
 import { eq, inArray } from "drizzle-orm";
+import fp from "fastify-plugin";
+
 import { buildAbility } from "./abilities.js";
-import { ForbiddenError } from "@raptscallions/core";
+
+
 import type { Actions, Subjects, AppAbility, GroupPath } from "./types.js";
+import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
 
 /**
  * Permission middleware plugin for Fastify.
@@ -94,6 +97,9 @@ const permissionMiddlewarePlugin: FastifyPluginAsync = async (app) => {
       subjectType: Subjects,
       resource: Record<string, unknown>
     ): boolean => {
+      // CASL's subject() returns a complex type that doesn't directly match ability.can's expected parameter type
+      // This type assertion is safe because CASL internally handles the subject instance correctly
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return ability.can(action, subject(subjectType, resource) as any);
     }
   );

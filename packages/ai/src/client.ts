@@ -7,6 +7,7 @@ import OpenAI, {
   APIConnectionError,
   APIUserAbortError,
 } from 'openai';
+
 import { aiConfig } from './config.js';
 import {
   AiError,
@@ -16,6 +17,7 @@ import {
   AuthenticationError,
   ModelNotAvailableError,
 } from './errors.js';
+
 import type {
   ChatMessage,
   ChatCompletionOptions,
@@ -210,10 +212,12 @@ export class OpenRouterClient {
 
     // OpenAI SDK errors
     if (error instanceof APIError) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- status is typed as any in OpenAI SDK
       const status = error.status;
 
       // Rate limiting
       if (status === 429) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- headers is typed as any in OpenAI SDK
         const retryAfter = error.headers?.['retry-after'];
         return new RateLimitError(
           retryAfter ? parseInt(retryAfter, 10) : undefined

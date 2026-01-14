@@ -1,5 +1,6 @@
-import type { FastifyPluginAsync } from "fastify";
 import { getLogger } from "@raptscallions/telemetry";
+
+import type { FastifyPluginAsync } from "fastify";
 
 const logger = getLogger("api:request");
 

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { ClassMember, NewClassMember } from "../../schema/class-members.js";
+
 import { classMembers, classRoleEnum } from "../../schema/class-members.js";
+
+import type { ClassMember, NewClassMember } from "../../schema/class-members.js";
 
 describe("Class Members Schema", () => {
   describe("Type Inference", () => {

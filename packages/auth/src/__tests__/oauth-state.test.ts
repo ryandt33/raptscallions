@@ -1,4 +1,6 @@
+import { generateState } from "arctic";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   generateOAuthState,
   validateOAuthState,
@@ -10,8 +12,6 @@ import {
 vi.mock("arctic", () => ({
   generateState: vi.fn(() => "mock-state-abc123"),
 }));
-
-import { generateState } from "arctic";
 
 describe("oauth-state", () => {
   beforeEach(() => {

@@ -7,6 +7,7 @@ import {
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
+
 import { tools } from "./tools.js";
 import { users } from "./users.js";
 
@@ -72,6 +73,7 @@ export const chatSessions = pgTable(
     // Fork support (E04-T010)
     // Note: Self-reference requires explicit type annotation to avoid TS circular reference error
     parentSessionId: uuid("parent_session_id")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for Drizzle self-reference
       .references((): any => chatSessions.id, { onDelete: "set null" }),
     forkFromSeq: integer("fork_from_seq"),
 

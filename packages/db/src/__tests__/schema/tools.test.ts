@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { Tool, NewTool } from "../../schema/tools.js";
+
 import { tools, toolTypeEnum } from "../../schema/tools.js";
+
+import type { Tool, NewTool } from "../../schema/tools.js";
 
 describe("Tools Schema", () => {
   describe("Type Inference", () => {

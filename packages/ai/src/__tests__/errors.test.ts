@@ -2,7 +2,9 @@
  * Tests for AI-specific error classes
  */
 
+import { AppError } from '@raptscallions/core';
 import { describe, it, expect } from 'vitest';
+
 import {
   AiError,
   RateLimitError,
@@ -11,7 +13,6 @@ import {
   AuthenticationError,
   ModelNotAvailableError,
 } from '../errors.js';
-import { AppError } from '@raptscallions/core';
 
 describe('AI Error Classes', () => {
   describe('AiError', () => {

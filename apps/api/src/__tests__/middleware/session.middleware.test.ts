@@ -1,3 +1,5 @@
+import fastifyCookie from "@fastify/cookie";
+import fastify, { type FastifyInstance } from "fastify";
 import {
   describe,
   it,
@@ -6,8 +8,6 @@ import {
   afterEach,
   vi,
 } from "vitest";
-import fastify, { type FastifyInstance } from "fastify";
-import fastifyCookie from "@fastify/cookie";
 
 // Mock the auth package
 vi.mock("@raptscallions/auth", () => ({

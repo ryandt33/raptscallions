@@ -8,8 +8,9 @@ import {
   index,
   unique,
 } from "drizzle-orm/pg-core";
-import { users } from "./users.js";
+
 import { groups } from "./groups.js";
+import { users } from "./users.js";
 
 /**
  * Tool type enum representing the two interaction modes.
@@ -103,8 +104,10 @@ export type NewTool = typeof tools.$inferInsert;
 Object.defineProperty(tools, "_", {
   get() {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Required for test metadata accessor
       name:
         Symbol.for("drizzle:Name") in tools
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Required for test metadata accessor
           ? (tools as any)[Symbol.for("drizzle:Name")]
           : "tools",
     };

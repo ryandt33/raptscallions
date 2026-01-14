@@ -1,20 +1,20 @@
-import fastify, { type FastifyInstance } from "fastify";
-import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
+import cors from "@fastify/cors";
+import { permissionMiddleware } from "@raptscallions/auth";
+import fastify, { type FastifyInstance } from "fastify";
 import {
   serializerCompiler,
   validatorCompiler,
-  type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+
 import { config } from "./config.js";
+import { authMiddleware } from "./middleware/auth.middleware.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { rateLimitMiddleware } from "./middleware/rate-limit.middleware.js";
 import { requestLogger } from "./middleware/request-logger.js";
 import { sessionMiddleware } from "./middleware/session.middleware.js";
-import { rateLimitMiddleware } from "./middleware/rate-limit.middleware.js";
-import { authMiddleware } from "./middleware/auth.middleware.js";
-import { permissionMiddleware } from "@raptscallions/auth";
-import { healthRoutes } from "./routes/health.routes.js";
 import { authRoutes } from "./routes/auth.routes.js";
+import { healthRoutes } from "./routes/health.routes.js";
 
 export async function createServer(): Promise<FastifyInstance> {
   const app = fastify({

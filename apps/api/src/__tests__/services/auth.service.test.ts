@@ -1,10 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { AuthService } from "../../services/auth.service.js";
+import { hash, verify } from "@node-rs/argon2";
+import { lucia } from "@raptscallions/auth";
 import { ConflictError, UnauthorizedError } from "@raptscallions/core";
+import { db } from "@raptscallions/db";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import { AuthService } from "../../services/auth.service.js";
+
 import type { RegisterInput, LoginInput } from "@raptscallions/core";
 import type { User } from "@raptscallions/db/schema";
 
-// Mock dependencies
+
 vi.mock("@node-rs/argon2", () => ({
   hash: vi.fn(),
   verify: vi.fn(),
@@ -31,11 +36,6 @@ vi.mock("@raptscallions/auth", () => ({
     sessionAdapter: {}, // Mock adapter to prevent initialization errors
   },
 }));
-
-// Import mocked modules
-import { hash, verify } from "@node-rs/argon2";
-import { db } from "@raptscallions/db";
-import { lucia } from "@raptscallions/auth";
 
 describe("AuthService", () => {
   let service: AuthService;

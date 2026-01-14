@@ -1,9 +1,10 @@
 import { hash, verify } from "@node-rs/argon2";
+import { lucia } from "@raptscallions/auth";
+import { ConflictError, UnauthorizedError } from "@raptscallions/core";
 import { db } from "@raptscallions/db";
 import { users } from "@raptscallions/db/schema";
 import { eq } from "drizzle-orm";
-import { ConflictError, UnauthorizedError } from "@raptscallions/core";
-import { lucia } from "@raptscallions/auth";
+
 import type { RegisterInput, LoginInput } from "@raptscallions/core";
 import type { User } from "@raptscallions/db/schema";
 

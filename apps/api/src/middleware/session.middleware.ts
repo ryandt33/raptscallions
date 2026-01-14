@@ -1,12 +1,12 @@
 // apps/api/src/middleware/session.middleware.ts
 
-import { FastifyPluginAsync } from "fastify";
-import fp from "fastify-plugin";
 import {
   sessionService as defaultSessionService,
   type Session,
   type SessionUser,
 } from "@raptscallions/auth";
+import { type FastifyPluginAsync } from "fastify";
+import fp from "fastify-plugin";
 
 /**
  * Session validation result interface for dependency injection.

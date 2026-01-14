@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AppError } from "@raptscallions/core";
 
 // Mock config before importing oauth module
 vi.mock("@raptscallions/core/config", () => ({

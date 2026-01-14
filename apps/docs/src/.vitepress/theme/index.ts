@@ -1,7 +1,8 @@
 // apps/docs/.vitepress/theme/index.ts
-import { h } from 'vue';
-import type { Theme } from 'vitepress';
 import DefaultTheme from 'vitepress/theme';
+import { h } from 'vue';
+
+import type { Theme } from 'vitepress';
 
 // Import custom styles
 import './fonts.css';
@@ -14,7 +15,7 @@ export default {
       // Use default layout with custom styles applied via CSS
     });
   },
-  enhanceApp({ app, router, siteData }) {
+  enhanceApp({ app: _app, router: _router, siteData: _siteData }) {
     // No custom app enhancements needed for this phase
   }
 } satisfies Theme;

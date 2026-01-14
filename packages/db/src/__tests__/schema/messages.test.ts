@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { eq, asc } from "drizzle-orm";
+import { describe, it, expect, beforeEach as _beforeEach, vi } from "vitest";
 
+import { chatSessions as _chatSessions } from "../../schema/chat-sessions.js";
 import { messages, messageRoleEnum } from "../../schema/messages.js";
+
 import type { Message, NewMessage } from "../../schema/messages.js";
-import { chatSessions } from "../../schema/chat-sessions.js";
 
 // Mock database
 const mockDb = {
@@ -21,7 +22,7 @@ const mockDb = {
 } as any;
 
 // Test data factories
-function createMockSession(overrides: Partial<any> = {}): any {
+function _createMockSession(overrides: Partial<any> = {}): any {
   return {
     id: "session-123",
     toolId: "tool-456",

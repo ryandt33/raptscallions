@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ZodError } from "zod";
+
 import {
   groupBaseSchema,
   createGroupSchema,
@@ -11,7 +12,6 @@ import {
 import {
   createMockGroup,
   createMockCreateGroup,
-  createMockUpdateGroup,
   invalidGroupData
 } from "../factories.js";
 

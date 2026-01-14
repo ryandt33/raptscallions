@@ -1,11 +1,13 @@
-import type { FastifyPluginAsync } from "fastify";
 import { db } from "@raptscallions/db";
+
 import {
   initiateGoogleOAuth,
   handleGoogleCallback,
   initiateMicrosoftOAuth,
   handleMicrosoftCallback,
 } from "../services/oauth.service.js";
+
+import type { FastifyPluginAsync } from "fastify";
 
 export const oauthRoutes: FastifyPluginAsync = async (app) => {
   /**
