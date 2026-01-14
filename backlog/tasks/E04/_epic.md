@@ -37,6 +37,9 @@ Integrate OpenRouter as the AI gateway, implement chat session management with m
 | E04-T006 | SSE streaming endpoint                    | high     | E04-T005         |
 | E04-T007 | Chat API routes                           | high     | E04-T006         |
 | E04-T008 | Chat integration tests                    | high     | E04-T007         |
+| E04-T009 | Chat schema enhancements (E04-T001 follow-up) | medium | E04-T001 |
+| E04-T010 | Chat forking support (branch conversations) | medium | E04-T001, E04-T009 |
+| E04-T011 | Message attachments schema (uploaded files) | medium | E04-T001, E04-T009 |
 
 ## Out of Scope
 
@@ -45,6 +48,8 @@ Integrate OpenRouter as the AI gateway, implement chat session management with m
 - WebSocket real-time (SSE is sufficient for MVP)
 - Chat history search/filtering (future enhancement)
 - Message editing/deletion (future enhancement)
+- File upload/storage service implementation (E04-T011 is schema only)
+- Chat fork UI/navigation (E04-T010 is schema only)
 
 ## Risks
 

@@ -2,6 +2,7 @@ import {
   pgEnum,
   pgTable,
   uuid,
+  varchar,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -11,12 +12,12 @@ import { users } from "./users.js";
 /**
  * Session state enum representing the lifecycle of a chat session.
  * - active: Session is ongoing, user can send messages
- * - paused: Session temporarily paused (may resume later)
  * - completed: Session ended by user or system
+ *
+ * Note: "paused" state was removed per YAGNI principle (E04-T009).
  */
 export const sessionStateEnum = pgEnum("session_state", [
   "active",
-  "paused",
   "completed",
 ]);
 
@@ -28,8 +29,11 @@ export const sessionStateEnum = pgEnum("session_state", [
  *
  * Lifecycle:
  * - Created with state 'active' when user starts chat
- * - Can be 'paused' for temporary breaks
  * - Moved to 'completed' when user ends or session expires
+ *
+ * Soft Delete:
+ * - Sessions support soft delete via deleted_at timestamp
+ * - Query with isNull(deletedAt) to exclude deleted sessions
  *
  * Foreign key behavior:
  * - tool_id: RESTRICT delete (cannot delete tools with active sessions)
@@ -56,15 +60,24 @@ export const chatSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     state: sessionStateEnum("state").notNull().default("active"),
+
+    // Session metadata (E04-T009)
+    title: varchar("title", { length: 200 }),
+
+    // Timestamps
     startedAt: timestamp("started_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     toolIdIdx: index("chat_sessions_tool_id_idx").on(table.toolId),
     userIdIdx: index("chat_sessions_user_id_idx").on(table.userId),
     stateIdx: index("chat_sessions_state_idx").on(table.state),
+    // Index for efficient soft-delete queries
+    deletedAtIdx: index("chat_sessions_deleted_at_idx").on(table.deletedAt),
   })
 );
 
@@ -78,8 +91,9 @@ export const chatSessions = pgTable(
  *   where: eq(chatSessions.id, sessionId),
  *   with: { messages: true }
  * });
- * // session.state is 'active' | 'paused' | 'completed'
+ * // session.state is 'active' | 'completed'
  * // session.endedAt is Date | null
+ * // session.deletedAt is Date | null
  * ```
  */
 export type ChatSession = typeof chatSessions.$inferSelect;
@@ -99,13 +113,15 @@ export type ChatSession = typeof chatSessions.$inferSelect;
  */
 export type NewChatSession = typeof chatSessions.$inferInsert;
 
-// Add metadata accessor for test compatibility (matches existing pattern)
+// Metadata accessor for test compatibility
 Object.defineProperty(chatSessions, "_", {
   get() {
     return {
       name:
         Symbol.for("drizzle:Name") in chatSessions
-          ? (chatSessions as any)[Symbol.for("drizzle:Name")]
+          ? (chatSessions as unknown as Record<symbol, string>)[
+              Symbol.for("drizzle:Name")
+            ]
           : "chat_sessions",
     };
   },
