@@ -7,17 +7,20 @@ description: How to contribute code, documentation, and improvements
 
 Guidelines for contributing to the RaptScallions project, including code contributions, documentation updates, and development workflow.
 
-## Coming Soon
+## Documentation Guides
 
-This section will include:
+These guides help you write and format KB documentation:
 
-- Development environment setup
-- Code contribution guidelines
-- Documentation contribution process
-- Testing requirements
-- PR review process
+| Guide | Purpose |
+|-------|---------|
+| [Documentation Guide](/contributing/documentation) | **What to write** — Templates, conventions, where to put docs, linking rules |
+| [KB Page Design Patterns](/contributing/kb-page-design) | **How to format** — Markdown syntax, VitePress features, code blocks, containers |
+| [Design System](/contributing/design-system) | **Visual identity** — Colors, typography, spacing, theme system |
+| [CI Validation](/contributing/ci-validation) | **Quality assurance** — How docs are validated in CI, fixing build errors |
 
-Check the [GitHub repository](https://github.com/ryandt33/raptscallions) for current contribution guidelines.
+::: tip Start Here
+If you're writing KB documentation, read the [Documentation Guide](/contributing/documentation) first. It explains what templates to use, where to put your content, and how to link to other pages.
+:::
 
 ## Documentation Structure
 
@@ -73,13 +76,18 @@ description: How Lucia sessions are created, validated, and expired
 [Content here...]
 ```
 
-## KB Documentation Guidelines
+For complete templates and examples, see the [Documentation Guide](/contributing/documentation).
 
-When writing documentation for this knowledge base:
+## Code Contributions
 
-- **[KB Page Design Patterns](/contributing/kb-page-design)** — VitePress markdown patterns, code blocks, containers, and templates for consistent documentation
+Coming soon:
 
-This guide provides complete examples and a copy-paste template to help you create well-structured, accessible KB pages quickly.
+- Development environment setup
+- Code contribution guidelines
+- Testing requirements
+- PR review process
+
+Check the [GitHub repository](https://github.com/ryandt33/raptscallions) for current contribution guidelines.
 
 ## Quick Links
 

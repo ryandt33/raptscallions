@@ -1,18 +1,37 @@
 // apps/docs/scripts/lib/git-helper.ts
 
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { execFile, type ExecFileException } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-const execFileAsync = promisify(execFile);
+// Helper to promisify execFile with proper typing
+function execFilePromise(
+  cmd: string,
+  args: string[],
+  options?: { cwd?: string }
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, options, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
+
+// Export for testing - allows mocking this function
+export const _internal = {
+  execFilePromise,
+};
 
 /**
  * Check if git is available
  */
 export async function isGitAvailable(): Promise<boolean> {
   try {
-    await execFileAsync('git', ['--version']);
+    await _internal.execFilePromise('git', ['--version']);
     return true;
   } catch {
     return false;
@@ -24,7 +43,7 @@ export async function isGitAvailable(): Promise<boolean> {
  */
 export async function getGitRepoRoot(): Promise<string | null> {
   try {
-    const { stdout } = await execFileAsync('git', [
+    const { stdout } = await _internal.execFilePromise('git', [
       'rev-parse',
       '--show-toplevel',
     ]);
@@ -59,7 +78,7 @@ export async function getFileLastModified(
 
     // Query git for last commit date
     const dateFormat = useAuthorDate ? '%ai' : '%ci'; // Author vs Commit date
-    const { stdout } = await execFileAsync(
+    const { stdout } = await _internal.execFilePromise(
       'git',
       ['log', `--format=${dateFormat}`, '--max-count=1', '--', relativePath],
       {

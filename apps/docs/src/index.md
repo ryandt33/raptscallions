@@ -26,6 +26,10 @@ features:
   - icon: 🔍
     title: Troubleshooting
     details: Problem-solution guides for common issues
+  - icon: ✍️
+    title: Contributing
+    details: Write KB documentation with templates, conventions, and linking guides
+    link: /contributing/documentation
 ---
 
 ## About This KB
@@ -45,7 +49,7 @@ Use the search bar (Cmd/Ctrl + K) to find topics quickly, or browse by domain us
 
 ### Contributing
 
-Documentation contributions are welcome. See the main repository for contribution guidelines.
+Documentation contributions are welcome. See the [Documentation Guide](/contributing/documentation) for templates, conventions, and linking rules.
 
 ## Browse by Domain
 
@@ -71,4 +75,4 @@ Vitest setup, AAA pattern, mocking strategies, Fastify integration testing.
 
 ### [Contributing](/contributing/)
 
-How to contribute code, documentation, and improvements.
+How to contribute code and documentation. Start with the [Documentation Guide](/contributing/documentation) for KB contributions.

@@ -285,20 +285,132 @@ jobs:
             packages/*/dist
           retention-days: 7
 
+  # Check which files changed to determine if docs job should run
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for relevant file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            docs:
+              - 'apps/docs/**'
+              - '.github/workflows/ci.yml'
+            code:
+              - 'packages/**'
+              - 'apps/api/**'
+              - 'apps/web/**'
+
+  docs:
+    name: Docs Validation
+    runs-on: ubuntu-latest
+    needs: changes
+    # Run if docs files changed, or if code changed (for staleness), or on workflow_dispatch
+    if: needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for staleness detection
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build documentation
+        run: pnpm docs:build
+
+      - name: Check documentation staleness
+        id: check-staleness
+        if: github.event_name == 'pull_request'
+        run: |
+          pnpm --filter docs tsx scripts/check-staleness.ts \
+            --format markdown \
+            --output staleness-report.md \
+            || echo "staleness_found=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Report staleness as annotation
+        if: github.event_name == 'pull_request' && steps.check-staleness.outputs.staleness_found == 'true'
+        run: |
+          if [ -f apps/docs/staleness-report.md ]; then
+            echo "::warning file=apps/docs/staleness-report.md::Documentation may be stale. See staleness report in artifacts."
+          fi
+
+      - name: Upload staleness report
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staleness-report
+          path: apps/docs/staleness-report.md
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload docs build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-build
+          path: apps/docs/src/.vitepress/dist
+          retention-days: 7
+
   all-checks:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [typecheck, lint, test, build]
+    needs: [typecheck, lint, test, build, docs]
     if: always()
 
     steps:
       - name: Check if all jobs succeeded
         run: |
+          # Docs job can be skipped if no relevant files changed - that's OK
+          docs_ok=false
+          if [[ "${{ needs.docs.result }}" == "success" ]] || [[ "${{ needs.docs.result }}" == "skipped" ]]; then
+            docs_ok=true
+          fi
+
           if [[ "${{ needs.typecheck.result }}" != "success" ]] || \
              [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.test.result }}" != "success" ]] || \
-             [[ "${{ needs.build.result }}" != "success" ]]; then
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "$docs_ok" != "true" ]]; then
             echo "One or more checks failed"
+            echo "  typecheck: ${{ needs.typecheck.result }}"
+            echo "  lint: ${{ needs.lint.result }}"
+            echo "  test: ${{ needs.test.result }}"
+            echo "  build: ${{ needs.build.result }}"
+            echo "  docs: ${{ needs.docs.result }}"
             exit 1
           fi
           echo "All checks passed!"

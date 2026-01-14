@@ -3,8 +3,22 @@
 import { readFile } from 'node:fs/promises';
 import { glob } from 'glob';
 import matter from 'gray-matter';
+import yaml from 'js-yaml';
 import path from 'node:path';
 import type { DocMetadata } from './types.js';
+
+// Use JSON_SCHEMA which doesn't include timestamp parsing
+// This prevents gray-matter from auto-converting invalid date strings
+// like "2026-13-45" into valid dates through JavaScript's date rolling
+// JSON_SCHEMA still parses booleans, numbers, and null correctly
+const matterOptions = {
+  engines: {
+    yaml: {
+      parse: (str: string) => yaml.load(str, { schema: yaml.JSON_SCHEMA }),
+      stringify: yaml.dump,
+    },
+  },
+};
 
 /**
  * Scan documentation directory and extract frontmatter from all .md files
@@ -40,7 +54,7 @@ export async function parseDocFrontmatter(
 ): Promise<DocMetadata | null> {
   try {
     const content = await readFile(filePath, 'utf-8');
-    const { data } = matter(content);
+    const { data } = matter(content, matterOptions);
 
     // Extract required fields
     const title = typeof data.title === 'string' ? data.title : 'Untitled';
@@ -54,13 +68,10 @@ export async function parseDocFrontmatter(
         )
       : undefined;
 
-    // Handle last_verified as string or Date (gray-matter can parse YAML dates as Date objects)
+    // Handle last_verified - with FAILSAFE_SCHEMA it will always be a string if present
     let lastVerified: string | undefined;
     if (typeof data.last_verified === 'string') {
       lastVerified = data.last_verified;
-    } else if (data.last_verified instanceof Date) {
-      // Convert Date to ISO string (YYYY-MM-DD)
-      lastVerified = data.last_verified.toISOString().split('T')[0];
     } else {
       lastVerified = undefined;
     }

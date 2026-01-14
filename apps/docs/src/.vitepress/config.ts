@@ -37,12 +37,22 @@ export default defineConfig({
           {
             text: "Concepts",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/auth/concepts/" }],
+            items: [
+              { text: "Overview", link: "/auth/concepts/" },
+              { text: "Session Lifecycle", link: "/auth/concepts/sessions" },
+              { text: "Lucia Configuration", link: "/auth/concepts/lucia" },
+              { text: "OAuth Providers", link: "/auth/concepts/oauth" },
+              { text: "CASL Permissions", link: "/auth/concepts/casl" },
+            ],
           },
           {
             text: "Patterns",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/auth/patterns/" }],
+            items: [
+              { text: "Overview", link: "/auth/patterns/" },
+              { text: "Authentication Guards", link: "/auth/patterns/guards" },
+              { text: "Rate Limiting", link: "/auth/patterns/rate-limiting" },
+            ],
           },
           {
             text: "Decisions",
@@ -52,7 +62,10 @@ export default defineConfig({
           {
             text: "Troubleshooting",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/auth/troubleshooting/" }],
+            items: [
+              { text: "Overview", link: "/auth/troubleshooting/" },
+              { text: "Session Issues", link: "/auth/troubleshooting/session-issues" },
+            ],
           },
         ],
       },
@@ -93,12 +106,29 @@ export default defineConfig({
           {
             text: "Concepts",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/api/concepts/" }],
+            items: [
+              { text: "Overview", link: "/api/concepts/" },
+              { text: "Fastify Setup", link: "/api/concepts/fastify-setup" },
+              {
+                text: "Plugin Architecture",
+                link: "/api/concepts/plugin-architecture",
+              },
+              {
+                text: "Request Lifecycle",
+                link: "/api/concepts/request-lifecycle",
+              },
+            ],
           },
           {
             text: "Patterns",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/api/patterns/" }],
+            items: [
+              { text: "Overview", link: "/api/patterns/" },
+              { text: "Route Handlers", link: "/api/patterns/route-handlers" },
+              { text: "Error Handling", link: "/api/patterns/error-handling" },
+              { text: "Validation", link: "/api/patterns/validation" },
+              { text: "Middleware", link: "/api/patterns/middleware" },
+            ],
           },
           {
             text: "Decisions",
@@ -145,14 +175,43 @@ export default defineConfig({
         items: [
           { text: "Overview", link: "/testing/" },
           {
+            text: "Concepts",
+            collapsed: true,
+            items: [
+              {
+                text: "Vitest Monorepo Setup",
+                link: "/testing/concepts/vitest-setup",
+              },
+              { text: "Test Structure", link: "/testing/concepts/test-structure" },
+            ],
+          },
+          {
             text: "Patterns",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/testing/patterns/" }],
+            items: [
+              { text: "Overview", link: "/testing/patterns/" },
+              { text: "Mocking", link: "/testing/patterns/mocking" },
+              { text: "Test Factories", link: "/testing/patterns/factories" },
+              {
+                text: "Fastify Testing",
+                link: "/testing/patterns/fastify-testing",
+              },
+              {
+                text: "Fastify Plugin Encapsulation",
+                link: "/testing/patterns/fastify-plugin-encapsulation",
+              },
+              {
+                text: "Integration Tests",
+                link: "/testing/patterns/integration-tests",
+              },
+            ],
           },
           {
             text: "Troubleshooting",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/testing/troubleshooting/" }],
+            items: [
+              { text: "Common Issues", link: "/testing/troubleshooting/common-issues" },
+            ],
           },
         ],
       },
@@ -160,8 +219,10 @@ export default defineConfig({
         text: "Contributing",
         items: [
           { text: "Overview", link: "/contributing/" },
+          { text: "Documentation Guide", link: "/contributing/documentation" },
           { text: "KB Page Design", link: "/contributing/kb-page-design" },
           { text: "Design System", link: "/contributing/design-system" },
+          { text: "CI Validation", link: "/contributing/ci-validation" },
         ],
       },
     ],

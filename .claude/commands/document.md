@@ -24,6 +24,7 @@ Write and review knowledge base documentation for a documentation task.
 Use this command for KB documentation tasks (typically E06-T005 through E06-T010). This workflow is optimized for documentation tasks and skips the standard TDD workflow (analyze → tests → implement → QA).
 
 **Do NOT use this for:**
+
 - Code implementation tasks (use standard workflow)
 - Code documentation updates (use `/update-docs`)
 - API reference generation (different process)
@@ -34,17 +35,19 @@ Use this command for KB documentation tasks (typically E06-T005 through E06-T010
 
 1. Load the writer agent: `@writer`
 2. Read the task at `backlog/tasks/{epic}/{task-id}.md`
-3. Read KB page design patterns at `apps/docs/src/contributing/kb-page-design.md`
-4. Read design system guide at `apps/docs/src/contributing/design-system.md`
-5. Research the topic from existing code and specs
-6. Draft KB documentation pages following established patterns
-7. Ensure proper:
+3. **REQUIRED: Read KB design documentation before writing:**
+   - `apps/docs/src/contributing/kb-page-design.md` - Page structure, frontmatter, code blocks, containers
+   - `apps/docs/src/contributing/design-system.md` - Colors, typography, theme system, brand guidelines
+   - `apps/docs/src/contributing/index.md` - Overview of contributing guidelines
+4. Research the topic from existing code and specs
+5. Draft KB documentation pages following the patterns in the design docs
+6. Ensure proper:
    - Frontmatter (title, related_code, implements_task, last_verified)
    - Heading hierarchy
    - Code examples from real files
    - Cross-references and links
    - Design system consistency
-8. Update task:
+7. Update task:
    - Set `workflow_state` to `DOC_REVIEW`
    - Set `status` to `in-progress`
    - Add entry to History table
@@ -54,16 +57,20 @@ Use this command for KB documentation tasks (typically E06-T005 through E06-T010
 
 1. Load the reviewer agent: `@reviewer`
 2. Read the task at `backlog/tasks/{epic}/{task-id}.md`
-3. Read all documentation files created in Phase 1
-4. Verify:
+3. **REQUIRED: Read KB design documentation for review criteria:**
+   - `apps/docs/src/contributing/kb-page-design.md` - Verify page structure compliance
+   - `apps/docs/src/contributing/design-system.md` - Verify design system adherence
+   - `apps/docs/src/contributing/documentation.md` - General documentation guidelines
+4. Read all documentation files created in Phase 1
+5. Verify:
    - **Accuracy**: Code examples match actual implementation
    - **Completeness**: All acceptance criteria covered
    - **Clarity**: Documentation is clear and helpful
    - **Pattern adherence**: Follows KB page design patterns
    - **Links**: All cross-references and links work
    - **Design system**: Consistent with design system
-5. Create review file at `backlog/docs/reviews/{epic}/{task-id}-doc-review.md`
-6. Update task based on verdict:
+6. Create review file at `backlog/docs/reviews/{epic}/{task-id}-doc-review.md`
+7. Update task based on verdict:
    - **APPROVED**: Set `workflow_state` to `DONE`, `status` to `done`, set `completed_at`
    - **CHANGES_REQUESTED**: Set `workflow_state` to `DRAFT`, add feedback to Reviews section
 
@@ -89,24 +96,28 @@ The documentation review should follow this format:
 ## Review Criteria
 
 ### ✅ Accuracy
+
 - [ ] Code examples match actual implementation
 - [ ] File paths are correct
 - [ ] Task references are accurate
 - [ ] Technical details are correct
 
 ### ✅ Completeness
+
 - [ ] All acceptance criteria covered
 - [ ] Required sections present
 - [ ] Cross-references included
 - [ ] Related docs linked
 
 ### ✅ Clarity
+
 - [ ] Documentation is clear and helpful
 - [ ] Examples are illustrative
 - [ ] Explanations are sufficient
 - [ ] No ambiguous statements
 
 ### ✅ Pattern Adherence
+
 - [ ] Frontmatter is complete and correct
 - [ ] Heading hierarchy is proper (H1 → H2 → H3)
 - [ ] Code blocks have language tags
@@ -114,6 +125,7 @@ The documentation review should follow this format:
 - [ ] Links use correct markdown syntax
 
 ### ✅ Design System
+
 - [ ] Consistent with established design system
 - [ ] Theme elements referenced correctly
 - [ ] Typography guidance followed
@@ -147,8 +159,12 @@ If the review verdict is `CHANGES_REQUESTED`:
 
 1. Task returns to `DRAFT` state with feedback
 2. Writer agent is called again to address feedback
-3. Writer reads existing review and fixes identified issues
-4. Process repeats until `APPROVED`
+3. Writer reads:
+   - Existing review file for specific feedback
+   - `apps/docs/src/contributing/kb-page-design.md` - Re-verify page patterns
+   - `apps/docs/src/contributing/design-system.md` - Re-verify design compliance
+4. Writer fixes identified issues per design doc requirements
+5. Process repeats until `APPROVED`
 
 ## After Approval
 
@@ -169,14 +185,18 @@ When review verdict is `APPROVED`:
 claude -p "/document E06-T010"
 
 # Writer phase:
-# - Reads task and KB design patterns
+# - Reads task at backlog/tasks/{epic}/{task-id}.md
+# - MUST read design docs in apps/docs/src/contributing/:
+#   - kb-page-design.md (page structure, frontmatter, code blocks)
+#   - design-system.md (colors, typography, theme)
 # - Researches implemented code
-# - Writes KB pages in apps/docs/src/api/
+# - Writes KB pages following design doc patterns
 # - Updates task to DOC_REVIEW
 
 # Reviewer phase:
+# - Reads design docs to verify compliance
 # - Reads documentation pages
-# - Verifies accuracy and completeness
+# - Verifies accuracy, completeness, and design system adherence
 # - Creates review file
 # - Either approves (DONE) or requests changes (back to DRAFT)
 
@@ -186,19 +206,19 @@ claude -p "/document E06-T010"
 
 ## Key Differences from Standard Workflow
 
-| Standard Workflow | Documentation Workflow |
-|-------------------|------------------------|
-| Analyst → Spec | (skip - task is the spec) |
-| UX Review | (skip - KB patterns established) |
-| Plan Review | (skip - no implementation plan) |
-| Write Tests | (skip - no code to test) |
-| Implement | Writer researches and writes |
-| UI Review | (skip - KB design system set) |
-| Code Review | Reviewer checks docs |
-| QA | (skip - review covers this) |
-| Integration Test | (skip - no code to test) |
-| Update Docs | (N/A - this IS the docs) |
-| Commit & PR | (skip - docs in main repo) |
+| Standard Workflow | Documentation Workflow           |
+| ----------------- | -------------------------------- |
+| Analyst → Spec    | (skip - task is the spec)        |
+| UX Review         | (skip - KB patterns established) |
+| Plan Review       | (skip - no implementation plan)  |
+| Write Tests       | (skip - no code to test)         |
+| Implement         | Writer researches and writes     |
+| UI Review         | (skip - KB design system set)    |
+| Code Review       | Reviewer checks docs             |
+| QA                | (skip - review covers this)      |
+| Integration Test  | (skip - no code to test)         |
+| Update Docs       | (N/A - this IS the docs)         |
+| Commit & PR       | (skip - docs in main repo)       |
 
 ## Notes
 

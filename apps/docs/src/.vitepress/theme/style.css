@@ -87,11 +87,11 @@
    ======================================== */
 
 .dark {
-  /* Brand Colors - Lighter greens for contrast */
-  --vp-c-brand-1: #4ade80;  /* Green-400 - Primary (lighter) */
-  --vp-c-brand-2: #22c55e;  /* Green-500 - Hover */
-  --vp-c-brand-3: #16a34a;  /* Green-600 - Active */
-  --vp-c-brand-soft: #14532d; /* Green-900 - Soft backgrounds (dark) */
+  /* Brand Colors - Golden Wheat/Amber for dark mode */
+  --vp-c-brand-1: #fbbf24;  /* Amber-400 - Primary accent */
+  --vp-c-brand-2: #fde68a;  /* Amber-200 - Hover (lighter) */
+  --vp-c-brand-3: #f59e0b;  /* Amber-500 - Active (darker) */
+  --vp-c-brand-soft: #451a03; /* Amber-950 - Soft backgrounds (dark) */
 
   /* Backgrounds - Warm Brown-Blacks */
   --vp-c-bg: #120f0c;        /* Rich Brown-Black - Main background */
@@ -117,9 +117,9 @@
   --vp-c-danger: #f87171;    /* Red-400 - Lighter */
   --vp-c-tip: #4ade80;       /* Green-400 - Lighter */
 
-  /* Links - Lighter blue for visibility */
-  --vp-c-link: #38bdf8;      /* Blue-400 */
-  --vp-c-link-hover: #7dd3fc; /* Blue-300 */
+  /* Links - Golden Wheat/Amber for dark mode (matches design system) */
+  --vp-c-link: #fbbf24;      /* Amber-400 - Golden wheat accent */
+  --vp-c-link-hover: #fde68a; /* Amber-200 - Lighter gold hover */
 
   /* Sidebar */
   --vp-c-sidebar-bg: #120f0c; /* Brown-Black - Matches main bg */
@@ -127,11 +127,11 @@
 
   /* Code Blocks */
   --vp-code-bg: #1a1512;     /* Brown-900 - Inline code background */
-  --vp-code-color: #4ade80;  /* Green-400 - Inline code text (lighter) */
+  --vp-code-color: #fbbf24;  /* Amber-400 - Inline code text (matches brand) */
 
   /* Custom Shadows */
   --raptscallions-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --raptscallions-shadow-md: 0 4px 12px rgba(74, 222, 128, 0.1);
+  --raptscallions-shadow-md: 0 4px 12px rgba(251, 191, 36, 0.1); /* Amber tint */
 }
 
 /* ========================================
@@ -277,6 +277,24 @@ div[class*='language-'] {
 /* ========================================
    5. CUSTOM ENHANCEMENTS
    ======================================== */
+
+/* Dark Mode Content Links - Golden Wheat/Amber */
+.dark .vp-doc a {
+  color: #fbbf24;  /* Amber-400 - Golden wheat accent */
+}
+
+.dark .vp-doc a:hover {
+  color: #fde68a;  /* Amber-200 - Lighter gold hover */
+}
+
+/* Dark Mode Sidebar Links - Golden Wheat/Amber */
+.dark .VPSidebarItem a {
+  color: #fbbf24;
+}
+
+.dark .VPSidebarItem a:hover {
+  color: #fde68a;
+}
 
 /* Logo/Brand Area - Navbar */
 .VPNavBarTitle .title {

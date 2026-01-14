@@ -34,3 +34,6 @@ coverage/
 .turbo/
 integration-test-guards.mjs
 integration-test-results.json
+
+# MCP servers
+.playwright-mcp

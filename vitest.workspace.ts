@@ -9,6 +9,7 @@ export default defineWorkspace([
   'packages/auth',
   // Apps:
   'apps/api',
+  'apps/docs',
   // Future apps:
   // 'apps/worker',
   // 'apps/web',
