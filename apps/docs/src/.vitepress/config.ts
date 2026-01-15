@@ -219,6 +219,7 @@ export default defineConfig({
         text: "Contributing",
         items: [
           { text: "Overview", link: "/contributing/" },
+          { text: "Ubuntu Setup", link: "/contributing/ubuntu-setup" },
           { text: "Documentation Guide", link: "/contributing/documentation" },
           { text: "KB Page Design", link: "/contributing/kb-page-design" },
           { text: "Design System", link: "/contributing/design-system" },
