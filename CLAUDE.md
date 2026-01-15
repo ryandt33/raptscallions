@@ -329,9 +329,13 @@ When creating or updating KB documentation, follow the [KB Page Design Patterns]
 - Code blocks and syntax highlighting
 - Custom containers (callouts)
 - Cross-referencing and internal links
+- Backlog references (linking to tasks, specs, and reviews)
 - VitePress-specific features
 
 This ensures all KB pages maintain consistent formatting and navigation.
+
+**Backlog References:**
+KB pages can reference backlog tasks using descriptive inline links. Use the format `[E02-T002: Brief description](/backlog/completed/E02/E02-T002.md)` to make task references clickable and searchable. See [Backlog References](apps/docs/src/contributing/kb-page-design.md#backlog-references) for complete documentation.
 
 ## Task Management
 

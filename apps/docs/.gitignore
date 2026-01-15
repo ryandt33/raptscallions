@@ -2,6 +2,9 @@
 src/.vitepress/dist/
 src/.vitepress/cache/
 
+# Backlog copy (created by prebuild script)
+src/backlog/
+
 # TypeScript build outputs
 dist/
 *.tsbuildinfo
