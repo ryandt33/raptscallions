@@ -57,6 +57,34 @@
       "when": 1768171380000,
       "tag": "0008_create_chat_sessions_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768172000000,
+      "tag": "0009_add_tools_updated_at_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768173000000,
+      "tag": "0010_enhance_chat_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768174000000,
+      "tag": "0011_add_chat_forking",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1768175000000,
+      "tag": "0012_create_files_storage",
+      "breakpoints": true
     }
   ]
 }

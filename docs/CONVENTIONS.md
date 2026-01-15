@@ -455,6 +455,8 @@ await db.transaction(async (tx) => {
 - Descriptive names: `0001_create_users_table.sql`
 - Always include down migration
 - Test migrations on copy of production data
+- Run `pnpm db:migrate:check` before committing to validate migration safety
+- Migration journal is automatically validated before applying migrations (see [Migration Validation](/apps/docs/src/database/patterns/migration-validation.md) in KB)
 
 ---
 

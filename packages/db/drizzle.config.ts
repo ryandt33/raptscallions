@@ -22,6 +22,8 @@ export default {
     "./dist/schema/tools.js",
     "./dist/schema/chat-sessions.js",
     "./dist/schema/messages.js",
+    "./dist/schema/files.js",
+    "./dist/schema/user-storage-limits.js",
   ],
   out: "./src/migrations",
   dialect: "postgresql",
