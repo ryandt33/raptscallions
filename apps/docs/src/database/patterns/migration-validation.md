@@ -300,5 +300,3 @@ $ pnpm db:migrate:check
 
 **Related Docs:**
 - [Chat Schema](/database/concepts/chat-schema) - Example of enum migration pattern
-
-**Implements:** [E01-T009](/backlog/completed/E01/E01-T009.md) - Fix Database Migration Workflow
