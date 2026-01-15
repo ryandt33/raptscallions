@@ -21,7 +21,8 @@
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {
-    "@raptscallions/core": "workspace:*"
+    "@raptscallions/core": "workspace:*",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

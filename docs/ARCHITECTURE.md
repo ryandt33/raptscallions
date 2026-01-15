@@ -129,6 +129,8 @@ raptscallions/
 │   │   │   ├── types.ts        # IStorageBackend interface, UploadParams, etc.
 │   │   │   ├── registry.ts     # Plugin registration system
 │   │   │   ├── factory.ts      # Lazy instantiation with caching
+│   │   │   ├── config.ts       # Zod schemas & lazy Proxy-based config
+│   │   │   ├── config-registry.ts  # Backend config schema registry
 │   │   │   ├── errors.ts       # Storage-specific errors
 │   │   │   └── index.ts        # Barrel exports
 │   │   └── package.json

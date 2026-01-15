@@ -1,6 +1,6 @@
 ---
-title: Storage Backends
-description: Plugin-based storage backend system for file uploads with lazy instantiation and caching
+title: Backend Interface
+description: The IStorageBackend contract, plugin registry, factory pattern, and error handling
 related_code:
   - packages/storage/src/types.ts
   - packages/storage/src/registry.ts
@@ -11,28 +11,11 @@ implements_task: E05-T002a
 last_verified: 2026-01-16
 ---
 
-# Storage Backends
+# Backend Interface
 
-RaptScallions uses a plugin-based storage backend system that supports multiple storage providers (local filesystem, S3, MinIO, Azure Blob, etc.) without hardcoding backend types. This guide explains the interface contract, plugin registry, factory pattern, and error handling.
+All storage backends implement the `IStorageBackend` interface, which defines a consistent contract for file operations. The plugin registry enables runtime extensibility, while the factory provides lazy instantiation with singleton caching.
 
-## Overview
-
-The `@raptscallions/storage` package provides:
-
-- **IStorageBackend interface** — Contract for all storage implementations
-- **Plugin registry** — Register backends by string identifier at runtime
-- **Lazy factory** — Create backend instances on-demand with singleton caching
-- **Typed errors** — Domain-specific errors with HTTP status codes
-
-This architecture enables:
-- Third parties to add custom storage backends without modifying package code
-- Different backends for different environments (local for dev, S3 for production)
-- Efficient resource usage through lazy instantiation
-- Consistent error handling across all storage operations
-
-## Storage Backend Interface
-
-All storage backends implement `IStorageBackend`:
+## IStorageBackend Interface
 
 ```typescript
 // packages/storage/src/types.ts
@@ -191,6 +174,7 @@ The storage package provides domain-specific error classes:
 | `FileNotFoundError` | 404 | File lookup fails (download, delete, exists) |
 | `InvalidFileTypeError` | 400 | MIME type not in allowed list |
 | `BackendNotRegisteredError` | 500 | Unknown backend identifier |
+| `ConfigurationError` | 500 | Invalid or missing configuration |
 
 ### Error Examples
 
@@ -322,67 +306,15 @@ const storage = getBackend("local");
 expect(isBackendCached("local")).toBe(true);
 ```
 
-## Implementing a Custom Backend
-
-To create a new storage backend:
-
-1. Implement `IStorageBackend` interface
-2. Register with a unique identifier
-3. Handle all error cases with appropriate error types
-
-```typescript
-import type { IStorageBackend, UploadParams, UploadResult } from "@raptscallions/storage";
-import { StorageError, FileNotFoundError } from "@raptscallions/storage";
-
-class MyCustomBackend implements IStorageBackend {
-  constructor(private config: MyBackendConfig) {}
-
-  async upload(params: UploadParams): Promise<UploadResult> {
-    try {
-      // Implementation...
-      return { key: params.key };
-    } catch (error) {
-      throw new StorageError("Upload failed", { cause: error });
-    }
-  }
-
-  async download(key: string): Promise<Readable> {
-    const exists = await this.exists(key);
-    if (!exists) {
-      throw new FileNotFoundError(key);
-    }
-    // Return stream...
-  }
-
-  async delete(key: string): Promise<void> {
-    // Implementation...
-  }
-
-  async exists(key: string): Promise<boolean> {
-    // Implementation...
-  }
-
-  async getSignedUrl(key: string, options?: SignedUrlOptions): Promise<SignedUrl> {
-    // Implementation...
-  }
-}
-
-// Register the backend
-registerBackend("custom", () => new MyCustomBackend({
-  apiKey: process.env.CUSTOM_STORAGE_API_KEY,
-}));
-```
-
 ## Related Pages
 
 **Related Documentation:**
-- [File Storage Schema](/database/concepts/file-storage-schema) — Database schema for file metadata and storage quotas
+- [Configuration](/storage/concepts/configuration) — Environment variables and backend-specific settings
+- [Custom Backends](/storage/patterns/custom-backends) — How to implement your own storage backend
 - [Error Handling](/api/patterns/error-handling) — Error handling patterns for API routes
-- [Plugin Architecture](/api/concepts/plugin-architecture) — Fastify plugin system (similar pattern)
 
 **Implementation:**
-- [E05-T002a: Storage backend interface and plugin system](/backlog/tasks/E05/E05-T002a.md) ([spec](/backlog/docs/specs/E05/E05-T002a-spec.md), [code review](/backlog/docs/reviews/E05/E05-T002a-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T002a-qa-report.md))
-- [E05-T001: Files and storage limits schema](/backlog/completed/E05/E05-T001.md) ([spec](/backlog/docs/specs/E05/E05-T001-spec.md))
+- [E05-T002a: Storage backend interface and plugin system](/backlog/completed/E05/E05-T002a.md) ([spec](/backlog/docs/specs/E05/E05-T002a-spec.md), [code review](/backlog/docs/reviews/E05/E05-T002a-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T002a-qa-report.md))
 
 **Source Files:**
 - [types.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/storage/src/types.ts) — Interface and type definitions

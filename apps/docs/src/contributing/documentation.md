@@ -434,10 +434,11 @@ Ask these questions in order:
 
 1. **Is it about how to write/contribute to docs?** → `contributing/`
 2. **Is it about testing code?** → `testing/`
-3. **Does it involve AI/LLM calls?** → `ai/`
-4. **Does it involve authentication or authorization?** → `auth/`
-5. **Does it involve database or ORM?** → `database/`
-6. **Does it involve HTTP/routes/middleware?** → `api/`
+3. **Does it involve file storage backends?** → `storage/`
+4. **Does it involve AI/LLM calls?** → `ai/`
+5. **Does it involve authentication or authorization?** → `auth/`
+6. **Does it involve database or ORM?** → `database/`
+7. **Does it involve HTTP/routes/middleware?** → `api/`
 
 ### Domain Reference Table
 
@@ -445,6 +446,7 @@ Ask these questions in order:
 |------------|--------|----------------|
 | Sessions, login, permissions, CASL, OAuth | `auth/` | Login flow, session validation, permission guards |
 | Drizzle, migrations, PostgreSQL, entities | `database/` | Schema design, query patterns, migration strategies |
+| File uploads, S3, Azure Blob, storage backends | `storage/` | Backend interface, configuration, custom backends |
 | Fastify routes, middleware, validation | `api/` | Route handlers, error handling, request validation |
 | OpenRouter, streaming, AI errors | `ai/` | Model selection, streaming responses, retry logic |
 | Vitest, mocking, test patterns | `testing/` | Test setup, dependency injection, integration tests |
