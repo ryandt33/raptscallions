@@ -23,13 +23,23 @@ ALTER TYPE "session_state" RENAME TO "session_state_old";
 CREATE TYPE "session_state" AS ENUM('active', 'completed');
 --> statement-breakpoint
 
--- 2c. Alter column to use new enum (cast through text)
+-- 2c. Drop default constraint before type change
+ALTER TABLE "chat_sessions"
+  ALTER COLUMN "state" DROP DEFAULT;
+--> statement-breakpoint
+
+-- 2d. Alter column to use new enum (cast through text)
 ALTER TABLE "chat_sessions"
   ALTER COLUMN "state" TYPE "session_state"
   USING "state"::text::"session_state";
 --> statement-breakpoint
 
--- 2d. Drop old enum
+-- 2e. Re-add default constraint with new enum type
+ALTER TABLE "chat_sessions"
+  ALTER COLUMN "state" SET DEFAULT 'active'::"session_state";
+--> statement-breakpoint
+
+-- 2f. Drop old enum
 DROP TYPE "session_state_old";
 --> statement-breakpoint
 
