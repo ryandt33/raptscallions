@@ -16,10 +16,11 @@ export default defineConfig({
   // Backlog files are served as raw markdown, not processed as VitePress pages
   srcExclude: ["backlog/**"],
 
-  // Ignore dead links for template examples
+  // Ignore dead links for template examples and backlog references
+  // Backlog files are copied at build time and may not be available during link checking
   ignoreDeadLinks: [
     /^\/domain\//,
-    /^\/backlog\/.*\/E0X\//,
+    /^\/backlog\//,
   ],
 
   // Head configuration for font preconnect
