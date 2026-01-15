@@ -140,6 +140,52 @@ last_verified: 2026-01-13 # UPDATED to today's date (YYYY-MM-DD)
 - Include relevant imports and context
 - Add comments to explain non-obvious logic
 
+**4.6 Add Backlog References:**
+
+When updating KB pages, add or update implementation references in the Related Pages section:
+
+```markdown
+## Related Pages
+
+**Related Documentation:**
+- [Related KB Concept](/domain/concepts/concept)
+- [Related KB Pattern](/domain/patterns/pattern)
+
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md), [QA report](/backlog/docs/reviews/E02/E02-T008-qa-report.md))
+```
+
+**Guidelines:**
+
+- Include task ID in link text for searchability: `[E02-T002: Brief description](...)`
+- Use descriptive text (3-8 words) that explains what was implemented
+- Separate KB documentation links from backlog references with subsections
+- Link to spec if spec exists: `([spec](/backlog/docs/specs/{EPIC}/{TASK-ID}-spec.md))`
+- Link to review artifacts if relevant: `([QA report](/backlog/docs/reviews/...))`
+- Use correct backlog path based on task status:
+  - Active tasks: `/backlog/tasks/{EPIC}/{TASK-ID}.md`
+  - Completed tasks: `/backlog/completed/{EPIC}/{TASK-ID}.md`
+
+**Note:** At documentation time, task is still in `tasks/` directory. Use `/backlog/tasks/` path initially. The path will be updated when the task moves to `completed/` after PR merge.
+
+**4.7 Inline Task References (Optional):**
+
+For significant implementation details within content, add inline references sparingly:
+
+```markdown
+The session system (see [E02-T002: Sessions table](/backlog/tasks/E02/E02-T002.md))
+uses Lucia for session management.
+```
+
+**When to use:**
+
+- Explaining implementation details from a specific task
+- Pointing to specifications for complex features
+- Linking to review artifacts for context
+- Maximum 1-2 per paragraph
+- Use parenthetical "(see ...)" placement
+
 ### Phase 5: New Page Decision Point
 
 If no existing KB pages match task's code files:
@@ -178,19 +224,57 @@ Choice: [1/2]
 
 **5.3 If User Approves, Create New Page:**
 
-- Use appropriate template from `apps/docs/src/contributing/documentation.md`:
+**5.3a Choose Template:**
+
+Use appropriate template from `apps/docs/src/contributing/documentation.md`:
   - Concept Template (for mental models and "how X works")
   - Pattern Template (for reusable implementations)
   - Decision Record Template (for ADRs)
   - Troubleshooting Template (for problem → solution guides)
-- Set frontmatter with `related_code` and `last_verified`
-- Add `implements_task: {TASK-ID}` to track origin
+
+**5.3b Set Frontmatter:**
+
+```yaml
+---
+title: New Page Title
+description: Brief one-sentence description
+related_code:
+  - packages/auth/src/two-factor.service.ts
+  - packages/auth/src/totp.ts
+implements_task: E02-T010
+last_verified: 2026-01-15
+---
+```
+
+**5.3c Write Content:**
+
 - Follow formatting guidelines from `kb-page-design.md` (heading hierarchy, code blocks, containers)
 - Follow design system from `design-system.md` (consistent tone and style)
 - Include code examples from implementation
 - Add to appropriate content type folder (concepts, patterns, decisions, troubleshooting)
 
+**5.3d Add Related Pages Section:**
+
+Every new KB page must include a Related Pages section with backlog references:
+
+```markdown
+## Related Pages
+
+**Related Documentation:**
+- [Related Concept](/domain/concepts/related)
+- [Related Pattern](/domain/patterns/pattern)
+
+**Implementation:**
+- [E02-T010: Two-factor authentication with TOTP](/backlog/tasks/E02/E02-T010.md) ([spec](/backlog/docs/specs/E02/E02-T010-spec.md))
+```
+
+This provides:
+- Navigation to related KB pages
+- Traceability to implementing task
+- Quick access to implementation spec
+
 **5.4 Update Sidebar Config:**
+
 If new page created, update `.vitepress/config.ts`:
 
 - Find relevant domain section
@@ -261,7 +345,8 @@ After KB updates complete, update legacy docs:
 ### Phase 8: Task Metadata Updates
 
 **8.1 Add Documentation Updates Section:**
-Add new section to task file:
+
+Add new section to task file with details on all KB and legacy doc updates:
 
 ```markdown
 ## Documentation Updates
@@ -271,10 +356,12 @@ Add new section to task file:
 - Updated: `apps/docs/src/auth/patterns/session-guards.md`
   - Added example for role-based guards
   - Updated `related_code` with new middleware file
+  - Added backlog reference in Related Pages section
   - Set `last_verified: 2026-01-13`
 - Updated: `apps/docs/src/api/patterns/middleware.md`
   - Added guard middleware pattern
   - Updated frontmatter
+  - Added backlog reference to this task
 
 **Legacy Documentation:**
 
@@ -285,7 +372,13 @@ Add new section to task file:
 
 - ✅ Staleness check passed (0 stale docs)
 - ✅ Build check passed (no broken links)
+- ✅ All KB pages include backlog references
 ```
+
+**Important:** When documenting KB updates, note:
+- Which backlog references were added to Related Pages sections
+- Use correct backlog paths based on task status (tasks/ vs completed/)
+- At documentation time, task is still in `tasks/` directory
 
 **8.2 Update Task Frontmatter:**
 
@@ -296,7 +389,10 @@ updated_at: 2026-01-13T14:30:00Z
 ```
 
 **8.3 DO NOT Move to Completed:**
-Task moves to `completed/` only after PR is merged (handled by `/commit-and-pr`)
+
+Task moves to `completed/` only after PR is merged (handled by `/commit-and-pr`). When task moves:
+- Backlog reference paths in KB pages will need updating from `/backlog/tasks/` to `/backlog/completed/`
+- This is handled automatically by the `/commit-and-pr` workflow
 
 ## KB Page Structure Reference
 
@@ -401,6 +497,43 @@ const user = { id: "123", name: "Alice" };
 :::
 ````
 
+## Backlog Reference Best Practices
+
+When adding backlog references to KB pages, follow these guidelines:
+
+**DO:**
+
+- ✅ Include task ID in link text: `[E02-T002: Sessions table and Lucia setup](...)`
+- ✅ Use brief descriptions (3-8 words) that explain what was implemented
+- ✅ Separate KB documentation links from backlog references with subsections
+- ✅ Link to specs for complex implementations: `([spec](/backlog/docs/specs/...))`
+- ✅ Link to review artifacts when relevant: `([QA report](/backlog/docs/reviews/...))`
+- ✅ Use correct paths based on task status (tasks/ or completed/)
+- ✅ Group related task references together in Implementation subsection
+
+**DON'T:**
+
+- ❌ Use bare task IDs without description: `[E02-T002](...)`
+- ❌ Use generic text like "click here" or "see task"
+- ❌ Mix KB documentation links and backlog references in same list
+- ❌ Overuse inline references (max 1-2 per paragraph)
+- ❌ Forget to include spec links when specs exist
+- ❌ Skip backlog references entirely (they provide critical traceability)
+
+**Example of correct Related Pages section:**
+
+```markdown
+## Related Pages
+
+**Related Documentation:**
+- [Session Lifecycle](/auth/concepts/session-lifecycle)
+- [CASL Permissions](/auth/concepts/casl-setup)
+
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md), [QA report](/backlog/docs/reviews/E02/E02-T008-qa-report.md))
+```
+
 ## Verification Checklist
 
 Before completing the command, verify:
@@ -412,6 +545,11 @@ Before completing the command, verify:
 - [ ] Heading hierarchy maintained (no skipped levels)
 - [ ] Custom containers used appropriately
 - [ ] Cross-references updated if structure changed
+- [ ] **Related Pages section includes Implementation subsection**
+- [ ] **Backlog references use descriptive link text (not just task ID)**
+- [ ] **Backlog paths are correct (tasks/ vs completed/)**
+- [ ] **Spec links included where specs exist**
+- [ ] **Review artifact links included where relevant**
 - [ ] Staleness check passes (0 stale docs for updated pages)
 - [ ] Build check passes (no broken links)
 - [ ] Legacy docs updated with cross-references
@@ -496,18 +634,28 @@ If task touches multiple domains:
 # 1. Reads task, spec, and code files
 # 2. Detects domains: auth/, api/
 # 3. Finds KB pages with matching related_code
-# 4. Updates:
+# 4. Updates KB pages with:
 #    - apps/docs/src/auth/patterns/session-guards.md
+#      * New code example from implementation
+#      * Updated related_code frontmatter
+#      * Updated last_verified date
+#      * Added backlog reference in Related Pages:
+#        **Implementation:**
+#        - [E02-T003: Session middleware guards](/backlog/tasks/E02/E02-T003.md) ([spec](/backlog/docs/specs/E02/E02-T003-spec.md))
 #    - apps/docs/src/api/patterns/middleware.md
-# 5. Updates frontmatter (related_code, last_verified)
-# 6. Runs staleness check → passes
-# 7. Runs build check → passes
-# 8. Updates CONVENTIONS.md with cross-reference
-# 9. Adds Documentation Updates section to task
-# 10. Sets workflow_state to PR_READY
+#      * Updated guard middleware pattern
+#      * Added backlog reference to this task
+# 5. Runs staleness check → passes
+# 6. Runs build check → passes
+# 7. Updates CONVENTIONS.md with cross-reference to KB
+# 8. Adds Documentation Updates section to task
+# 9. Sets workflow_state to PR_READY
 
 # Next step: Create PR
 /commit-and-pr E02-T003
+
+# After PR merge, task moves to backlog/completed/E02/
+# KB page backlog references will show updated path automatically
 ```
 
 ## Contributing Documentation Reference
@@ -527,8 +675,9 @@ The writer agent should reference these guides when updating or creating KB docu
 2. Not sure which domain/folder? → `documentation.md` (Domain Selection Guide)
 3. How to format code blocks? → `kb-page-design.md` (Code Block Patterns)
 4. How to link to other pages? → `documentation.md` (Linking Conventions)
-5. What tone/style to use? → `design-system.md` (Writing Guidelines)
-6. Will this pass CI? → `ci-validation.md` (Local Validation)
+5. How to add backlog references? → `kb-page-design.md` (Backlog References section)
+6. What tone/style to use? → `design-system.md` (Writing Guidelines)
+7. Will this pass CI? → `ci-validation.md` (Local Validation)
 
 ## Notes
 

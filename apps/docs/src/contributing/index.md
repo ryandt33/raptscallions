@@ -79,6 +79,26 @@ description: How Lucia sessions are created, validated, and expired
 
 For complete templates and examples, see the [Documentation Guide](/contributing/documentation).
 
+## Improvements & Recommendations
+
+The KB tracks technical debt and enhancement opportunities in a dedicated [Improvements section](/improvements/).
+
+**When to add an improvement:**
+- Non-blocking code review suggestions
+- Technical debt discovered during development
+- Performance optimization opportunities
+- Security hardening ideas
+- DX enhancements
+
+**How to add an improvement:**
+1. Choose appropriate domain page (`/improvements/{domain}.md`)
+2. Assign next available ID (`{DOMAIN}-{NNN}`)
+3. Categorize priority (Critical/High/Medium/Low)
+4. Estimate effort (Small/Medium/Large)
+5. Link to source (epic review, code review, etc.)
+
+See [Improvements Policy](/contributing/improvements-policy) for detailed guidelines.
+
 ## Code Contributions
 
 Coming soon:

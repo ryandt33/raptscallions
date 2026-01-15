@@ -952,3 +952,439 @@ None - this is an enhancement for future workflow optimization
 ### Workflow Context
 
 [9]: https://github.com/ryandt33/raptscallions/blob/main/docs/EPIC_REVIEW.md "Epic Review Process Documentation"
+
+---
+
+## UX Review
+
+**Reviewer:** Designer Agent
+**Review Date:** 2026-01-15
+**Spec Version:** Initial (pre-implementation)
+**Focus Areas:** User flow, information architecture, accessibility, consistency
+
+### Summary
+
+The improvements tracking system spec demonstrates strong information architecture and organization principles. The proposed structure is logical, scalable, and follows established KB patterns. However, there are several UX concerns around discoverability, cognitive load, and user guidance that should be addressed before implementation.
+
+**Overall Assessment:** ✅ **APPROVED WITH RECOMMENDATIONS**
+
+The spec provides a solid foundation for implementation. The recommendations below will enhance usability but are not blockers.
+
+---
+
+### Strengths
+
+1. **Clear Information Hierarchy**
+   - Well-organized by domain with consistent structure
+   - Priority-based categorization is intuitive
+   - Separation of active vs. completed items reduces clutter
+
+2. **Excellent Navigation Design**
+   - Collapsed sidebar by default prevents overwhelming users
+   - Index page provides cross-domain overview
+   - Domain-specific pages allow focused exploration
+
+3. **Consistent Patterns**
+   - Reuses existing KB design patterns
+   - Table format is familiar from other documentation
+   - Frontmatter follows established conventions
+
+4. **Good Documentation**
+   - Policy page separates "how to use" from "how to implement"
+   - Examples provided for each priority level
+   - Integration points clearly documented
+
+---
+
+### Critical Issues
+
+**None identified.** No blocking UX concerns that would prevent implementation.
+
+---
+
+### High Priority Recommendations
+
+#### H1. Improve Discoverability of Critical Items
+
+**Issue:** Critical items are buried in the index page. Users might miss blocking items if they navigate directly to domain pages.
+
+**Impact:** Risk of overlooking critical deployment blockers
+
+**Recommendation:**
+- Add visual indicator/badge in sidebar when critical items exist (e.g., "Improvements ⚠️")
+- Consider a persistent alert/banner on KB homepage when critical items are present
+- Add critical count to each domain page header
+
+**Example:**
+```markdown
+::: danger Critical Items Present
+This domain has 1 critical blocking item. See [Critical section](#critical-blocking) below.
+:::
+```
+
+**Effort:** Small (2h)
+
+#### H2. Add Visual Priority Indicators
+
+**Issue:** Priority levels are text-only in tables. Users must read each row to understand urgency.
+
+**Impact:** Harder to scan and prioritize at a glance
+
+**Recommendation:**
+- Use VitePress custom containers for critical items
+- Add emoji/icon indicators for priority levels
+- Consider color-coding table rows (accessibility-safe colors)
+
+**Example:**
+```markdown
+### Critical (Blocking)
+
+::: danger AUTH-001: Security Vulnerability
+**Issue:** OAuth callback missing CSRF validation
+**Impact:** High | **Effort:** Medium | **Tracking:** E02-T015
+:::
+```
+
+**Effort:** Medium (4h)
+
+#### H3. Clarify "When to Use This vs. Tasks"
+
+**Issue:** The spec explains the difference but users may still be confused about when to create an improvement entry vs. a task.
+
+**Impact:** Inconsistent usage, items ending up in wrong place
+
+**Recommendation:**
+- Add a decision tree/flowchart in the policy page
+- Include examples of "looks like a task, but is actually an improvement"
+- Add quick reference table comparing improvements vs. tasks vs. issues
+
+**Example:**
+```markdown
+## Quick Decision Guide
+
+| Scenario | Use |
+|----------|-----|
+| Blocks deployment/has security risk | Task (immediate) |
+| Significant UX/performance impact | Task (within 2 sprints) |
+| Code quality improvement | Improvement (Medium) |
+| Nice-to-have feature | Improvement (Low) |
+| Active bug | GitHub Issue |
+```
+
+**Effort:** Small (2h)
+
+---
+
+### Medium Priority Recommendations
+
+#### M1. Add Search Guidance
+
+**Issue:** Users unfamiliar with improvement IDs may not know how to search effectively.
+
+**Impact:** Reduced discoverability via search
+
+**Recommendation:**
+- Add section to index page: "How to Search Improvements"
+- Document searchable patterns (ID format, issue types, domains)
+- Consider adding tags/labels for common themes (security, performance, DX)
+
+**Effort:** Small (1h)
+
+#### M2. Provide Context in Tables
+
+**Issue:** "Description" column limited to 50 chars may be too brief for understanding impact.
+
+**Impact:** Users need to read external reviews to understand context
+
+**Recommendation:**
+- Add expandable details sections below priority tables
+- Include "Details" sections with fuller context for each item
+- Link directly to source reviews/discussions
+
+**Current template already includes this pattern - ensure it's consistently applied**
+
+**Effort:** None (already in spec template)
+
+#### M3. Add Visual Progress Indicators
+
+**Issue:** Statistics are text-only. Hard to see trends or progress at a glance.
+
+**Impact:** Reduced visibility into improvement health
+
+**Recommendation:**
+- Consider simple progress bars for completion rate
+- Add trend indicators (↑↓→) for item counts month-over-month
+- Use VitePress badges for counts
+
+**Example:**
+```markdown
+## Summary Statistics
+
+- **Critical**: <Badge type="danger" text="0" />
+- **High**: <Badge type="warning" text="3" />
+- **Medium**: <Badge type="info" text="8" />
+```
+
+**Effort:** Small (2h) - deferred to future enhancement
+
+#### M4. Standardize Effort Estimates
+
+**Issue:** Effort levels (Small/Medium/Large) defined in hours, but teams may have different velocity.
+
+**Impact:** Effort estimates may not be meaningful across different team sizes
+
+**Recommendation:**
+- Define effort relative to "story points" or "typical PR size"
+- Add examples of each effort level in different domains
+- Consider T-shirt sizing (XS/S/M/L/XL) if teams prefer
+
+**Effort:** Small (1h)
+
+#### M5. Add Lifecycle Workflow Diagram
+
+**Issue:** Text description of lifecycle states is clear but could be visualized.
+
+**Impact:** Harder to understand state transitions
+
+**Recommendation:**
+- Add simple Mermaid diagram showing state transitions
+- Include in policy page for quick reference
+
+**Example:**
+```mermaid
+stateDiagram-v2
+    [*] --> Active: Added
+    Active --> InProgress: Task assigned
+    InProgress --> Completed: PR merged
+    Completed --> Archived: After 30 days
+    Active --> Archived: Stale (6 months)
+```
+
+**Effort:** Small (1h)
+
+---
+
+### Low Priority Suggestions
+
+#### L1. Add Quick Add Template
+
+**Issue:** Contributors need to construct table rows manually.
+
+**Impact:** Minor friction when adding new items
+
+**Recommendation:**
+- Provide copyable template at top of each domain page
+- Include markdown snippet for quick insertion
+
+**Example:**
+```markdown
+## Quick Add Template
+
+Copy and fill in:
+
+| {DOMAIN}-XXX | {Issue Type} | {Description} | {High/Med/Low} | {Small/Med/Large} | Backlog | {YYYY-MM-DD} |
+```
+
+**Effort:** Trivial (<30min)
+
+#### L2. Add "Last Updated" Timestamps
+
+**Issue:** Hard to know if a domain page is actively maintained.
+
+**Impact:** Users may not trust stale-looking pages
+
+**Recommendation:**
+- Add "Last updated" date to frontmatter
+- Auto-generate from Git history (future enhancement)
+
+**Effort:** Small (1h) - deferred to automation
+
+#### L3. Cross-Link Related Improvements
+
+**Issue:** Improvements may be related across domains but no linking mechanism.
+
+**Impact:** Missed opportunities to batch related work
+
+**Recommendation:**
+- Add "Related" section to item details
+- Link to related improvement IDs across domains
+
+**Effort:** Small (1h) - can be added organically as relationships emerge
+
+#### L4. Add Filtering Guidance
+
+**Issue:** Long lists of improvements may be hard to navigate.
+
+**Impact:** Cognitive overload on domain pages with many items
+
+**Recommendation:**
+- Add browser search guidance (Cmd/Ctrl+F)
+- Consider future enhancement: interactive filtering by effort/impact/type
+
+**Effort:** Trivial for guidance (<30min); Medium for interactive (deferred)
+
+---
+
+### Accessibility Review
+
+**WCAG 2.1 AA Compliance:**
+
+✅ **Passed:**
+- Semantic HTML structure (tables, headings)
+- Color not sole indicator of meaning (text labels present)
+- Keyboard navigation via standard VitePress controls
+- Text contrast ratios meet AA standards (checked against design system)
+
+⚠️ **Recommendations:**
+
+1. **Table Accessibility**
+   - Ensure `<th scope="col">` for header cells (VitePress default)
+   - Add `aria-label` to complex tables if needed
+   - Consider responsive table design for mobile
+
+2. **Custom Containers**
+   - Ensure VitePress containers have proper ARIA roles
+   - Don't rely solely on color for critical/high/medium (already using text labels ✅)
+
+3. **Links**
+   - Ensure all improvement IDs are keyboard-navigable
+   - Add descriptive link text (avoid "click here")
+
+**Overall:** No critical accessibility barriers. Follow VitePress defaults and existing KB patterns.
+
+---
+
+### Mobile Responsiveness
+
+**Considerations:**
+
+1. **Tables on Mobile**
+   - Tables with 7 columns will be cramped on mobile
+   - VitePress handles overflow with horizontal scroll (acceptable)
+   - Consider stacking table data vertically for critical items (future enhancement)
+
+2. **Navigation**
+   - Collapsed sidebar works well on mobile
+   - Consider adding "Jump to domain" quick links on index page
+
+3. **Reading Experience**
+   - Text content is responsive
+   - Tables require horizontal scrolling (standard pattern, acceptable)
+
+**Overall:** Acceptable for initial implementation. Mobile-specific optimizations can be deferred.
+
+---
+
+### Consistency with Existing KB
+
+**Alignment Check:**
+
+✅ **Follows Established Patterns:**
+- Frontmatter structure matches other KB pages
+- Table format consistent with existing documentation
+- Sidebar configuration follows existing conventions
+- Cross-referencing uses standard link format
+
+✅ **Design System Compliance:**
+- Uses standard VitePress containers (tip, warning, danger)
+- Typography follows default theme
+- No custom CSS required
+
+✅ **Navigation Patterns:**
+- Collapsed sections match contributing/reference sections
+- Index + domain pages mirrors auth/database structure
+
+**Overall:** Excellent consistency with existing KB. No conflicts or deviations.
+
+---
+
+### User Flow Analysis
+
+**Scenario 1: Developer wants to check for critical blockers before deployment**
+
+Current flow:
+1. Open KB
+2. Navigate to Improvements section
+3. Open index page
+4. Scroll to Critical Items section
+
+**Recommendation:** Add critical item indicator to sidebar (H1 above)
+
+---
+
+**Scenario 2: Code reviewer identifies non-blocking improvement during review**
+
+Current flow:
+1. Finish code review
+2. Remember to add improvement
+3. Navigate to appropriate domain page
+4. Find highest ID number
+5. Increment and add new row
+6. Update index statistics
+7. Commit changes
+
+**Issues:**
+- Easy to forget step 2 (no prompt)
+- Manual ID assignment error-prone
+- No template/checklist
+
+**Recommendations:**
+- Add to PR template: "Did you identify any improvements? Add to /improvements/"
+- Provide quick-add template on each page (L1 above)
+- Consider automation for ID assignment (future)
+
+---
+
+**Scenario 3: PM planning next sprint wants to select improvements to address**
+
+Current flow:
+1. Navigate to improvements section
+2. Review index for high-priority items
+3. Check effort estimates
+4. Review domain-specific pages for details
+5. Create tasks for selected items
+
+**Works well.** No major issues. Optional enhancement: Add "ready for planning" filter.
+
+---
+
+### Recommendations Summary
+
+**Must Fix (Blockers):** None
+
+**Should Fix (Pre-Implementation):**
+- H1: Add critical item indicators
+- H3: Add decision tree for improvements vs. tasks
+
+**Nice to Have (Can be deferred):**
+- H2: Visual priority indicators (can be added incrementally)
+- M1-M5: All medium priority items
+- L1-L4: All low priority items
+
+**Future Enhancements:**
+- Automation (ID validation, stats generation)
+- Interactive filtering
+- Mobile-optimized table views
+
+---
+
+### Architect Handoff
+
+This spec is **APPROVED FOR ARCHITECTURE REVIEW** with the following notes:
+
+1. **Implementation Sequence:**
+   - Start with structure and basic tables
+   - Add decision tree to policy page (H3)
+   - Consider critical item indicators after MVP (H1)
+
+2. **Technical Considerations for Architect:**
+   - Validate VitePress custom container support for visual indicators
+   - Check if sidebar badges are feasible (may require theme customization)
+   - Review frontmatter schema for "last updated" fields
+
+3. **Deferred Decisions:**
+   - Automation scripts (separate task)
+   - Interactive features (separate epic)
+   - GitHub Issues integration (separate epic)
+
+**Next Step:** → PLAN_REVIEW (architecture review)
