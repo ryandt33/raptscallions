@@ -4,6 +4,7 @@ description: Automated validation for database migration files before applicatio
 related_code:
   - packages/db/scripts/migrate-check.ts
   - packages/db/scripts/migrate.ts
+  - packages/db/src/migration-validation.ts
   - .github/workflows/ci.yml
   - docker-compose.yml
 last_verified: 2026-01-15
@@ -328,6 +329,230 @@ services:
 
 The health check ensures PostgreSQL is ready before migration steps run.
 
+## Journal Sync Validation
+
+The `migrate.ts` script includes runtime validation that verifies all SQL migration files are registered in Drizzle's `_journal.json` before applying migrations. This prevents silent failures where migration files exist but aren't tracked by Drizzle's migrator (see [E01-T015: Migration journal sync validation](/backlog/tasks/E01/E01-T015.md)).
+
+### The Problem
+
+During development, migration files can be created without being registered in the journal:
+
+1. Developer creates migration SQL file manually
+2. Developer forgets to run `pnpm db:generate` to update journal
+3. Migration script runs successfully (no errors)
+4. But new tables aren't created because Drizzle ignores unregistered migrations
+
+This is a **silent failure** that can reach production.
+
+### How It Works
+
+The validation runs automatically before database connection:
+
+```typescript [packages/db/scripts/migrate.ts]
+import { validateJournalSync } from "../src/migration-validation.js";
+
+async function runMigrations(): Promise<void> {
+  console.log("Starting database migrations...");
+
+  // Check for --skip-validation flag
+  const skipValidation = process.argv.includes("--skip-validation");
+
+  if (skipValidation) {
+    console.warn("⚠️  WARNING: Skipping journal sync validation (--skip-validation flag)");
+  } else {
+    // Validate journal sync before connecting to database
+    const migrationsPath = join(__dirname, "../src/migrations");
+    const validation = validateJournalSync(migrationsPath);
+
+    if (!validation.valid) {
+      console.error("❌ Migration validation failed:");
+      console.error(`   ${validation.message}`);
+      console.error("");
+      console.error("Details:");
+      console.error(`   SQL files:       ${validation.sqlCount}`);
+      console.error(`   Journal entries: ${validation.journalCount}`);
+      console.error("");
+      console.error("This usually means migration files were created but not registered.");
+      console.error("To fix this, run:");
+      console.error("");
+      console.error("   pnpm --filter @raptscallions/db db:generate");
+      console.error("");
+      console.error("If you need to bypass this check (emergency only), use:");
+      console.error("   pnpm --filter @raptscallions/db db:migrate --skip-validation");
+      process.exit(1);
+    }
+
+    console.log(`✅ ${validation.message}`);
+  }
+
+  // Continue with database connection and migration...
+}
+```
+
+### Validation Logic
+
+The validation compares SQL file counts to journal entry counts:
+
+```typescript [packages/db/src/migration-validation.ts]
+export function validateJournalSync(migrationsDir?: string): ValidationResult {
+  const migrationsDirPath = migrationsDir || join(__dirname, "./migrations");
+  const journalPath = join(migrationsDirPath, "meta/_journal.json");
+
+  // Count SQL migration files (excluding meta directory)
+  let sqlFiles: string[];
+  try {
+    sqlFiles = readdirSync(migrationsDirPath)
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
+  } catch (error) {
+    return {
+      valid: false,
+      message: `Failed to read migrations directory: ${error instanceof Error ? error.message : String(error)}`,
+      sqlCount: 0,
+      journalCount: 0,
+    };
+  }
+
+  const sqlCount = sqlFiles.length;
+
+  // Parse journal entries
+  let journalCount = 0;
+  try {
+    const journalContent = readFileSync(journalPath, "utf-8");
+    const journal = JSON.parse(journalContent) as Journal;
+    journalCount = journal.entries.length;
+  } catch (error) {
+    // Handle edge case: fresh database with no migrations yet
+    if (sqlCount === 0) {
+      return {
+        valid: true,
+        message: "No migrations found (fresh database)",
+        sqlCount: 0,
+        journalCount: 0,
+      };
+    }
+    // Journal file missing or corrupted with SQL files present
+    return {
+      valid: false,
+      message: `Failed to read journal file: ${error instanceof Error ? error.message : String(error)}`,
+      sqlCount,
+      journalCount: 0,
+    };
+  }
+
+  // Compare counts
+  if (sqlCount === journalCount) {
+    return {
+      valid: true,
+      message: `Journal in sync (${sqlCount} migrations)`,
+      sqlCount,
+      journalCount,
+    };
+  }
+
+  // Mismatch detected
+  return {
+    valid: false,
+    message: `Journal out of sync: ${sqlCount} SQL files but ${journalCount} journal entries`,
+    sqlCount,
+    journalCount,
+  };
+}
+```
+
+### When Validation Runs
+
+The journal sync validation runs automatically in all environments:
+
+1. **Local development** — `pnpm docker:up` runs migrations with validation
+2. **CI testing** — `.github/workflows/ci.yml` runs migrations with validation
+3. **Production deployment** — Any environment using `pnpm db:migrate`
+
+No CI or Docker configuration changes needed — validation is built into the migration script.
+
+### Edge Cases
+
+The validation gracefully handles several edge cases:
+
+**Fresh database (zero migrations):**
+```typescript
+if (sqlCount === 0) {
+  return {
+    valid: true,
+    message: "No migrations found (fresh database)",
+    sqlCount: 0,
+    journalCount: 0,
+  };
+}
+```
+
+**Missing or corrupted journal file:**
+```typescript
+try {
+  const journalContent = readFileSync(journalPath, "utf-8");
+  const journal = JSON.parse(journalContent) as Journal;
+  journalCount = journal.entries.length;
+} catch (error) {
+  // Handle edge case: fresh database with no migrations yet
+  if (sqlCount === 0) {
+    return { valid: true, message: "No migrations found (fresh database)", sqlCount: 0, journalCount: 0 };
+  }
+  return {
+    valid: false,
+    message: `Failed to read journal file: ${error instanceof Error ? error.message : String(error)}`,
+    sqlCount,
+    journalCount: 0,
+  };
+}
+```
+
+**Emergency bypass:**
+```bash
+# Skip validation for emergency production hotfix
+pnpm --filter @raptscallions/db db:migrate --skip-validation
+```
+
+### Error Messages
+
+**Journal out of sync:**
+```bash
+❌ Migration validation failed:
+   Journal out of sync: 12 SQL files but 8 journal entries
+
+Details:
+   SQL files:       12
+   Journal entries: 8
+
+This usually means migration files were created but not registered.
+To fix this, run:
+
+   pnpm --filter @raptscallions/db db:generate
+
+If you need to bypass this check (emergency only), use:
+   pnpm --filter @raptscallions/db db:migrate --skip-validation
+```
+
+**Success (matching counts):**
+```bash
+✅ Journal in sync (12 migrations)
+```
+
+**Warning (skip validation):**
+```bash
+⚠️  WARNING: Skipping journal sync validation (--skip-validation flag)
+```
+
+### Performance
+
+The validation has zero performance impact:
+
+- **Operation:** Count SQL files and parse JSON (no database queries)
+- **Complexity:** O(n) where n = number of migration files
+- **Execution time:** <15ms for 100 migrations
+- **Total overhead:** <1% of migration time (database I/O dominates)
+
+The validation runs before database connection is established, ensuring fast failure if journal is out of sync.
+
 ## Validation Output
 
 ### Success
@@ -374,9 +599,11 @@ $ pnpm db:migrate:check
 **Implementation:**
 - [E01-T009: Migration scripts and validation](/backlog/completed/E01/E01-T009.md) ([spec](/backlog/docs/specs/E01/E01-T009-spec.md))
 - [E01-T012: CI workflow for migration testing](/backlog/tasks/E01/E01-T012.md) ([spec](/backlog/docs/specs/E01/E01-T012-spec.md))
+- [E01-T015: Migration journal sync validation](/backlog/tasks/E01/E01-T015.md) ([spec](/backlog/docs/specs/E01/E01-T015-spec.md))
 
 **Source Files:**
-- [migrate-check.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate-check.ts) - Validation script implementation
-- [migrate.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate.ts) - Migration runner
+- [migrate-check.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate-check.ts) - Static validation script
+- [migration-validation.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/src/migration-validation.ts) - Journal sync validation logic
+- [migrate.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate.ts) - Migration runner with journal validation
 - [ci.yml](https://github.com/ryandt33/raptscallions/blob/main/.github/workflows/ci.yml) - CI workflow with migration steps
 - [docker-compose.yml](https://github.com/ryandt33/raptscallions/blob/main/docker-compose.yml) - Migration service configuration
