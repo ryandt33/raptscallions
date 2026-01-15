@@ -8,7 +8,8 @@ related_code:
   - packages/db/src/migrations/0010_enhance_chat_sessions.sql
   - packages/db/src/migrations/0011_add_chat_forking.sql
   - packages/core/src/schemas/message-meta.schema.ts
-last_verified: 2026-01-14
+  - packages/db/scripts/migrate-check.ts
+last_verified: 2026-01-15
 implements_task: E04-T001
 ---
 
@@ -471,6 +472,8 @@ PostgreSQL does not support `ALTER TYPE ... DROP VALUE`. The migration uses a re
 3. Create new enum without 'paused'
 4. Alter column to use new enum (cast through text)
 5. Drop old enum
+
+For more on migration validation and safety patterns, see [Migration Validation](/database/patterns/migration-validation).
 :::
 
 ### Fork Support (E04-T010)

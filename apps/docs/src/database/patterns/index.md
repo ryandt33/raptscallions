@@ -1,5 +1,7 @@
-# Coming Soon
+# Database Patterns
 
-This section is currently being populated with documentation.
+Reusable implementation patterns for working with the database layer.
 
-Check back soon or return to the [domain overview](../).
+## Available Patterns
+
+- [Migration Validation](./migration-validation) — Automated validation for database migration files before application

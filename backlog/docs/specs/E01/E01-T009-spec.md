@@ -806,6 +806,70 @@ docker compose exec postgres psql -U raptscallions -d raptscallions \
 - Example reverse migration provided
 - Backup requirements specified
 
+### AC9: Script execution method configured
+
+**Implementation:**
+
+- Update `packages/db/package.json` to use custom TypeScript migration runner
+- Change `db:migrate` script from `drizzle-kit migrate` to `tsx scripts/migrate.ts`
+- Ensure enhanced error handling and validation from custom script
+- Add `db:migrate:check` script for pre-commit validation
+
+**Done when:**
+
+- `pnpm --filter @raptscallions/db db:migrate` uses custom TypeScript wrapper
+- Custom script provides clear error messages on migration failure
+- Script validates migration completion and updates tracking table
+- Documentation references the custom script approach
+
+### AC10: Git hooks installation documented
+
+**Implementation:**
+
+- Add Git hooks setup instructions to developer documentation
+- Document both manual setup (`git config core.hooksPath`) and automated setup options
+- Provide verification steps to ensure hooks are active
+- Include troubleshooting for common hook issues
+
+**Done when:**
+
+- Clear instructions for installing pre-commit hooks in developer docs
+- Setup verification command provided (`git hook list` or similar)
+- Documentation explains what the hook validates
+- Instructions for temporarily bypassing hooks documented (`--no-verify`)
+
+### AC11: Cross-platform validation support
+
+**Implementation:**
+
+- Ensure `migrate-check.ts` validation script works on Unix/Linux/macOS
+- Document Windows-specific considerations if applicable
+- Test validation script in Docker environment (primary target)
+- Add fallback for environments where shell commands may differ
+
+**Done when:**
+
+- Validation script runs successfully in Docker containers
+- Script handles Unix shell commands (`git status`, `ls -1`) correctly
+- Documentation notes Docker-first approach and any Windows limitations
+- CI environment runs validation without cross-platform issues
+
+### AC12: Migration number validation edge cases handled
+
+**Implementation:**
+
+- Update migration number validation to handle zero migrations (fresh project)
+- Handle first migration only case (0001) gracefully
+- Document behavior for intentional gaps in migration sequence
+- Provide clear error messages for each edge case
+
+**Done when:**
+
+- Validation passes for fresh project with no migrations
+- Validation passes for project with only first migration (0001)
+- Clear warning (not error) for gaps in migration sequence
+- Documentation explains assumptions about sequential numbering
+
 ## Edge Cases
 
 ### Edge Case 1: Migration Fails Mid-Execution
@@ -1078,3 +1142,139 @@ After each phase, verify:
 - **PostgreSQL Enum Docs:** https://www.postgresql.org/docs/current/datatype-enum.html
 - **E04-T009 Migration:** `packages/db/src/migrations/0010_enhance_chat_sessions.sql` (exemplar)
 - **E04-T009 QA Report:** `backlog/docs/reviews/E04/E04-T009-qa-report.md` (incident log)
+
+---
+
+## Architecture Review
+
+**Reviewer:** architect  
+**Date:** 2026-01-14  
+**Verdict:** APPROVED
+
+### Summary
+
+The spec provides a comprehensive and well-structured solution to the critical migration workflow issue discovered during E04-T009. The proposed approach aligns excellently with the established architecture and conventions, adopts a production-like workflow for all environments, and includes proper validation, documentation, and testing strategies. The spec is thorough, technically sound, and ready for implementation.
+
+### Checklist Results
+
+- ✅ Architecture Fit - Perfect alignment with Drizzle, PostgreSQL, Docker, and CI/CD approach
+- ✅ Code Quality - Clear file organization, proper TypeScript patterns, separation of concerns
+- ✅ TypeScript Strictness - No `any` types, all interfaces properly typed, explicit error handling
+- ✅ Database - Proper migration approach, follows PostgreSQL best practices, handles edge cases well
+- ✅ Testing - Comprehensive test strategy covering unit, integration, and Docker workflow tests
+- ✅ Dependencies - No new packages required, reuses existing dependencies appropriately
+- ✅ Security - Migration validation prevents dangerous patterns, proper error handling, no sensitive data exposure
+
+### Strengths
+
+1. **Excellent Root Cause Analysis**: Clear identification of the four core problems (process gap, tool mismatch, tool limitation, documentation gap)
+
+2. **Comprehensive Solution**: Addresses all identified issues systematically:
+   - Docker integration (fixes tool mismatch)
+   - Validation scripts (fixes process gap)
+   - Pre-commit hooks (prevents future drift)
+   - CI integration (catches failures early)
+   - Documentation (fixes knowledge gap)
+
+3. **TypeScript Excellence**: All scripts use proper types, no `any`, good error handling with proper `ValidationResult` interfaces
+
+4. **Edge Case Coverage**: Thoughtful handling of migration failures, schema drift, enum changes, concurrent development, and accidental `push` usage
+
+5. **Developer Experience**: Interactive helpers, clear error messages, comprehensive documentation, and phased rollout plan
+
+6. **Testing Strategy**: Multi-layered approach (unit, integration, Docker) with realistic scenarios
+
+### Implementation Notes for Developer
+
+**Note 1: Script Execution Method**
+
+The spec proposes a custom TypeScript migration runner (`packages/db/scripts/migrate.ts`) with enhanced error handling. However, the current `packages/db/package.json` defines `"db:migrate": "drizzle-kit migrate"`. 
+
+**Recommendation**: Update `packages/db/package.json` to use the custom script:
+```json
+{
+  "scripts": {
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate:check": "tsx scripts/migrate-check.ts"
+  }
+}
+```
+
+This provides better error messages and validation, as shown in the spec (lines 200-247).
+
+**Addressed in AC9**: Script execution method configured
+
+**Note 2: Git Hooks Installation**
+
+The pre-commit hook validation requires Git hooks to be installed. Add setup instructions to developer documentation:
+```bash
+# Option 1: Manual configuration
+git config core.hooksPath .github/hooks
+chmod +x .github/hooks/pre-commit
+
+# Option 2: Use simple-git-hooks (recommended for team consistency)
+# Add to package.json and run pnpm install
+```
+
+**Addressed in AC10**: Git hooks installation documented
+
+**Note 3: Cross-Platform Validation Script**
+
+The `migrate-check.ts` script uses Unix shell commands (`git status`, `ls -1`). This is acceptable for the Docker-first environment but may need Windows-specific testing if Windows developers are common. The spec correctly prioritizes Docker/Unix environments.
+
+**Addressed in AC11**: Cross-platform validation support
+
+**Note 4: Migration Number Validation Edge Cases**
+
+The migration number validation should handle:
+- Zero migrations (fresh project) - currently would fail
+- First migration only (0001) - array iteration would skip validation
+- Intentional gaps (if old migrations are deleted) - should warn but not error
+
+Consider adding checks for these edge cases or documenting the assumptions.
+
+**Addressed in AC12**: Migration number validation edge cases handled
+
+### Security Considerations
+
+✅ **All security aspects properly addressed:**
+- No sensitive data in migration files (schema changes only)
+- Validation prevents dangerous SQL patterns (DROP TABLE without IF EXISTS, unsafe enum changes)
+- Pre-commit hooks catch issues before they reach repository
+- CI validation before merge prevents bad migrations reaching production
+- PostgreSQL transaction rollback prevents partial application on failure
+
+### Alignment with Architecture
+
+The spec aligns perfectly with established architecture:
+- **ARCHITECTURE.md line 395**: Migration file naming convention ✅
+- **CONVENTIONS.md lines 452-457**: Migration conventions ✅
+- **Docker containerization requirements**: All changes support containerized deployment ✅
+- **Testing requirements**: AAA pattern, proper coverage ✅
+- **Error handling patterns**: Typed errors, no `any` ✅
+- **Database conventions**: Drizzle ORM patterns ✅
+
+### Approved With Enhancements
+
+The spec is **APPROVED** and ready for implementation. Four additional acceptance criteria (AC9-AC12) have been added to address the implementation notes above:
+
+- **AC9**: Script execution method configured (use custom TypeScript wrapper for migrations)
+- **AC10**: Git hooks installation documented (manual and automated setup)
+- **AC11**: Cross-platform validation support (Docker-first, Unix shell commands)
+- **AC12**: Migration number validation edge cases handled (zero migrations, first migration, gaps)
+
+These enhancements strengthen the implementation without blocking immediate progress. The developer can proceed with confidence that all architectural concerns have been addressed.
+
+### Final Assessment
+
+This is an exemplary implementation spec that demonstrates:
+- Deep understanding of the problem
+- Thorough analysis of root causes
+- Comprehensive solution design
+- Proper architectural alignment
+- Excellent developer experience considerations
+- Strong testing and validation strategy
+
+The phased rollout plan (Infrastructure → Docker → Tooling → CI/CD → Docs → Team Rollout) is well-structured and reduces implementation risk.
+
+**Status**: Ready for developer assignment and implementation.

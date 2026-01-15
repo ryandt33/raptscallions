@@ -50,6 +50,8 @@ This epic establishes the infrastructure and documents the **currently implement
 | E06-T008 | Cross-linking conventions and contribution guide | medium   | E06-T005   |
 | E06-T009 | Document testing patterns and conventions        | high     | E06-T002   |
 | E06-T010 | Document API patterns and conventions            | high     | E06-T002   |
+| E06-T011 | Implement backlog citation system in KB         | high     | E06-T002   |
+| E06-T012 | Add recommendations/improvements tracking system | medium   | E06-T005, E06-T006, E06-T007 |
 
 ## Out of Scope
 

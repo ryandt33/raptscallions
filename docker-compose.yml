@@ -55,8 +55,11 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://raptscallions:raptscallions@postgres:5432/raptscallions
+      NODE_ENV: development
     working_dir: /app/packages/db
-    command: ["pnpm", "exec", "drizzle-kit", "push", "--force"]
+    # Use migrate instead of push for production-like workflow
+    # Direct pnpm command - exits cleanly on success/failure without healthcheck
+    command: ["pnpm", "db:migrate"]
     restart: "no"
 
   # ==========================================================================

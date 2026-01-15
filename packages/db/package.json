@@ -22,8 +22,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate:check": "tsx scripts/migrate-check.ts",
+    "db:push": "echo '⚠️  WARNING: push bypasses migrations. Use db:generate + db:migrate instead. Continue? (Ctrl+C to cancel)' && read && drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "lint": "eslint src --max-warnings 0",
     "lint:fix": "eslint src --fix"
@@ -37,6 +38,7 @@
     "@types/node": "^20.10.0",
     "dotenv": "^16.3.0",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.0",
     "vitest": "^1.1.0"
   }

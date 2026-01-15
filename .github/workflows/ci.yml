@@ -85,6 +85,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build packages
+        run: pnpm build
+        # Required: ESLint with @typescript-eslint needs .d.ts files
+        # to resolve types across package boundaries
+
       - name: Run linter
         run: pnpm lint
 

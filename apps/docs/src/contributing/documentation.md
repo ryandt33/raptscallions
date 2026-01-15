@@ -41,7 +41,7 @@ For VitePress markdown formatting (code blocks, containers, tables), see [KB Pag
 | KB doc (other domain) | `/domain/type/file` | `[CASL](/auth/concepts/casl)` |
 | Section anchor | `#heading-name` | `[Best Practices](#best-practices)` |
 | Anchor on another page | `/path#anchor` | `[OAuth Flow](/auth/concepts/oauth#google-setup)` |
-| Backlog task | Relative with `.md` | `[E02-T002](/backlog/completed/E02/E02-T002.md)` |
+| Backlog task | Plain text reference | `**Implements:** E02-T002` |
 | Source code file | GitHub URL | See [Source Code Links](#source-code-links) |
 | External URL | Full URL | `[Lucia Docs](https://lucia-auth.com)` |
 
@@ -91,15 +91,15 @@ Link to source code files using full GitHub URLs. This ensures links work both i
 Navigate to the file on GitHub, click the file, then copy the URL from your browser's address bar.
 :::
 
-### Backlog Task Links
+### Backlog Task References
 
-Link to completed backlog tasks using relative paths with the `.md` extension:
+Reference backlog tasks using plain text (not links, since backlog files are outside the docs directory):
 
 ```markdown
-**Implements:** [E02-T002](/backlog/completed/E02/E02-T002.md)
+**Implements:** E02-T002
 ```
 
-This format is machine-parseable for tooling. The regex pattern `\[([A-Z]\d+-T\d+)\]` can extract task IDs.
+This format is machine-parseable for tooling. The regex pattern `E\d+-T\d+` can extract task IDs.
 
 ### External Links
 
@@ -311,7 +311,7 @@ implements_task: [E0X-T0XX]
 
 ## References
 
-**Implements:** [E0X-T0XX](/backlog/completed/E0X/E0X-T0XX.md)
+**Implements:** E0X-T0XX
 
 **Related Docs:**
 - [Related Decision](/domain/decisions/related)
@@ -422,7 +422,7 @@ Every KB doc should end with a References section. Include only relevant subsect
 ```markdown
 ## References
 
-**Implements:** [E02-T002](/backlog/completed/E02/E02-T002.md)
+**Implements:** E02-T002
 
 **Key Files:**
 - [session.service.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/auth/src/session.service.ts) - Session creation and validation
