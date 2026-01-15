@@ -44,6 +44,7 @@ export {
   FileNotFoundError,
   InvalidFileTypeError,
   BackendNotRegisteredError,
+  ConfigurationError,
   StorageErrorCode,
 } from "./errors.js";
 export type { StorageErrorCodeType } from "./errors.js";
@@ -64,3 +65,35 @@ export {
   resetFactory,
   resetAll,
 } from "./factory.js";
+
+// Config registry exports
+export {
+  registerBackendConfig,
+  getBackendConfigSchema,
+  isBackendConfigRegistered,
+  getRegisteredBackendConfigs,
+  resetConfigRegistry,
+} from "./config-registry.js";
+
+// Config exports
+export {
+  storageConfig,
+  resetStorageConfig,
+  getBackendConfig,
+  registerBuiltInConfigs,
+  commonConfigSchema,
+  localConfigSchema,
+  s3ConfigSchema,
+  azureConfigSchema,
+  gcsConfigSchema,
+  aliyunConfigSchema,
+} from "./config.js";
+export type {
+  StorageConfig,
+  CommonConfig,
+  LocalConfig,
+  S3Config,
+  AzureConfig,
+  GcsConfig,
+  AliyunConfig,
+} from "./config.js";

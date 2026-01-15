@@ -856,6 +856,12 @@ AI_GATEWAY_URL=https://openrouter.ai/api/v1
 AI_API_KEY=sk-...
 AI_DEFAULT_MODEL=anthropic/claude-sonnet-4-20250514
 
+# Storage (see KB: /api/concepts/storage-backends)
+STORAGE_BACKEND=local              # local, s3, azure, gcs, aliyun
+STORAGE_MAX_FILE_SIZE_BYTES=10485760  # 10MB default
+STORAGE_QUOTA_BYTES=1073741824     # 1GB default
+# Backend-specific: STORAGE_S3_*, STORAGE_AZURE_*, etc.
+
 # Feature flags
 FEATURE_OAUTH_GOOGLE=true
 FEATURE_ONEROSTER_SYNC=false

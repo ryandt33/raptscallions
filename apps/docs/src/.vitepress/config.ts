@@ -113,6 +113,38 @@ export default defineConfig({
         ],
       },
       {
+        text: "Storage",
+        collapsed: false,
+        items: [
+          { text: "Overview", link: "/storage/" },
+          {
+            text: "Concepts",
+            collapsed: true,
+            items: [
+              { text: "Overview", link: "/storage/concepts/" },
+              {
+                text: "Backend Interface",
+                link: "/storage/concepts/backend-interface",
+              },
+              { text: "Configuration", link: "/storage/concepts/configuration" },
+            ],
+          },
+          {
+            text: "Patterns",
+            collapsed: true,
+            items: [
+              { text: "Overview", link: "/storage/patterns/" },
+              { text: "Custom Backends", link: "/storage/patterns/custom-backends" },
+            ],
+          },
+          {
+            text: "Troubleshooting",
+            collapsed: true,
+            items: [{ text: "Coming Soon", link: "/storage/troubleshooting/" }],
+          },
+        ],
+      },
+      {
         text: "API Design & Patterns",
         collapsed: false,
         items: [
@@ -130,10 +162,6 @@ export default defineConfig({
               {
                 text: "Request Lifecycle",
                 link: "/api/concepts/request-lifecycle",
-              },
-              {
-                text: "Storage Backends",
-                link: "/api/concepts/storage-backends",
               },
             ],
           },

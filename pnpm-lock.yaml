@@ -257,6 +257,9 @@ importers:
       '@raptscallions/core':
         specifier: workspace:*
         version: link:../core
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^20.10.0

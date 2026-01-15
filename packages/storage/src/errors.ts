@@ -14,6 +14,7 @@ export const StorageErrorCode = {
   FILE_NOT_FOUND: "FILE_NOT_FOUND",
   INVALID_FILE_TYPE: "INVALID_FILE_TYPE",
   BACKEND_NOT_REGISTERED: "BACKEND_NOT_REGISTERED",
+  CONFIGURATION_ERROR: "CONFIGURATION_ERROR",
 } as const;
 
 export type StorageErrorCodeType =
@@ -105,6 +106,25 @@ export class BackendNotRegisteredError extends AppError {
       availableBackends,
     });
     this.name = "BackendNotRegisteredError";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Error thrown when storage configuration validation fails.
+ * Provides details about which configuration fields are missing or invalid.
+ * Defaults to HTTP 500 Internal Server Error (configuration issue).
+ */
+export class ConfigurationError extends AppError {
+  constructor(
+    message: string,
+    details?: {
+      issues?: Array<{ field: string; message: string }>;
+      backend?: string;
+    }
+  ) {
+    super(message, StorageErrorCode.CONFIGURATION_ERROR, 500, details);
+    this.name = "ConfigurationError";
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
