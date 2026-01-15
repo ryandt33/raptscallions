@@ -131,6 +131,10 @@ export default defineConfig({
                 text: "Request Lifecycle",
                 link: "/api/concepts/request-lifecycle",
               },
+              {
+                text: "Storage Backends",
+                link: "/api/concepts/storage-backends",
+              },
             ],
           },
           {

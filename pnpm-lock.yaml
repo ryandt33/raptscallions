@@ -252,6 +252,22 @@ importers:
 
   packages/modules: {}
 
+  packages/storage:
+    dependencies:
+      '@raptscallions/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.19.28
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.1.0
+        version: 1.6.1(@types/node@20.19.28)(@vitest/ui@1.6.1)
+
   packages/telemetry: {}
 
 packages:

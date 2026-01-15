@@ -65,6 +65,7 @@ export default defineConfig({
       '@raptscallions/modules': resolve(__dirname, './packages/modules/src'),
       '@raptscallions/telemetry': resolve(__dirname, './packages/telemetry/src'),
       '@raptscallions/ai': resolve(__dirname, './packages/ai/src'),
+      '@raptscallions/storage': resolve(__dirname, './packages/storage/src'),
     },
   },
 });

@@ -124,6 +124,15 @@ raptscallions/
 │   │   │   └── built-in/       # Built-in modules
 │   │   └── package.json
 │   │
+│   ├── storage/                # Storage backend abstraction
+│   │   ├── src/
+│   │   │   ├── types.ts        # IStorageBackend interface, UploadParams, etc.
+│   │   │   ├── registry.ts     # Plugin registration system
+│   │   │   ├── factory.ts      # Lazy instantiation with caching
+│   │   │   ├── errors.ts       # Storage-specific errors
+│   │   │   └── index.ts        # Barrel exports
+│   │   └── package.json
+│   │
 │   └── telemetry/              # Observability
 │       ├── src/
 │       │   ├── tracing.ts
@@ -1258,6 +1267,7 @@ Vision and planning documents in `docs/references/initial_planning/`:
 | Worker threads for modules | Isolation, can kill runaway modules, no process overhead    |
 | SSE for streaming          | Industry standard for LLM, good browser support             |
 | Zod over Yup/Joi           | TypeScript inference, composable, better DX                 |
+| Plugin registry for storage| Extensible without code changes, third-party backends       |
 
 ---
 
