@@ -8,7 +8,7 @@ related_code:
   - apps/docs/scripts/lib/ci/vitepress-config.ts
   - apps/docs/scripts/check-staleness.ts
 implements_task: E06-T004
-last_verified: 2026-01-14
+last_verified: 2026-01-15
 ---
 
 # CI Documentation Validation
