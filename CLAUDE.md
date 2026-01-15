@@ -350,6 +350,7 @@ This project uses Backlog.md file structure for all task and project management 
 **CRITICAL GUIDANCE**
 
 - **Task files**: Manually create/edit markdown files in `backlog/tasks/{EPIC-ID}/{TASK-ID}.md`
+- **Completed tasks**: When searching for tasks or reviewing epics, check BOTH `backlog/tasks/{EPIC-ID}/` AND `backlog/completed/{EPIC-ID}/` directories
 - **Specs**: Write implementation specs in `backlog/docs/specs/{EPIC-ID}/{TASK-ID}-spec.md`
 - **Reviews**: Place review artifacts in `backlog/docs/reviews/{EPIC-ID}/`
 - **DO NOT** attempt to use any `mcp__backlog__*` tools - they are not functional

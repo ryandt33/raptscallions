@@ -14,18 +14,22 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 
 ## Tasks
 
-| ID       | Title                              | Status | Depends On         |
-| -------- | ---------------------------------- | ------ | ------------------ |
-| E01-T001 | Initialize pnpm monorepo           | DRAFT  | -                  |
-| E01-T002 | Setup packages/core with Zod       | DRAFT  | E01-T001           |
-| E01-T003 | Setup packages/db with Drizzle     | DRAFT  | E01-T001           |
-| E01-T004 | Create users schema                | DRAFT  | E01-T003           |
-| E01-T005 | Create groups schema with ltree    | DRAFT  | E01-T003, E01-T004 |
-| E01-T006 | Create group_members schema        | DRAFT  | E01-T004, E01-T005 |
-| E01-T007 | Setup packages/telemetry (stub)    | DRAFT  | E01-T001           |
-| E01-T008 | Configure Vitest for monorepo      | DRAFT  | E01-T001           |
-| E01-T009 | Fix Database Migration Workflow    | TODO   | E01-T001, E01-T003 |
-| E01-T010 | Configure ESLint for Monorepo      | TODO   | E01-T001, E01-T008 |
+| ID       | Title                                     | Status | Depends On         |
+| -------- | ----------------------------------------- | ------ | ------------------ |
+| E01-T001 | Initialize pnpm monorepo                  | DRAFT  | -                  |
+| E01-T002 | Setup packages/core with Zod              | DRAFT  | E01-T001           |
+| E01-T003 | Setup packages/db with Drizzle            | DRAFT  | E01-T001           |
+| E01-T004 | Create users schema                       | DRAFT  | E01-T003           |
+| E01-T005 | Create groups schema with ltree           | DRAFT  | E01-T003, E01-T004 |
+| E01-T006 | Create group_members schema               | DRAFT  | E01-T004, E01-T005 |
+| E01-T007 | Setup packages/telemetry (stub)           | DRAFT  | E01-T001           |
+| E01-T008 | Configure Vitest for monorepo             | DRAFT  | E01-T001           |
+| E01-T009 | Fix Database Migration Workflow           | TODO   | E01-T001, E01-T003 |
+| E01-T010 | Configure ESLint for Monorepo             | TODO   | E01-T001, E01-T008 |
+| E01-T011 | Add Pre-commit Hook for Migration Valid.  | TODO   | E01-T009           |
+| E01-T012 | Add CI Workflow for Migration Testing     | TODO   | E01-T009           |
+| E01-T013 | Document Database Migration Workflow      | TODO   | E01-T009           |
+| E01-T014 | Create Interactive Migration Helper (opt) | TODO   | E01-T009, E01-T013 |
 
 ## Completion Criteria
 
@@ -41,6 +45,9 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 - [ ] All packages buildable with `pnpm build`
 - [ ] All packages lintable with `pnpm lint`
 - [ ] Database migrations apply correctly in Docker environment
+- [ ] Pre-commit hook validates migrations before commit
+- [ ] CI workflow tests migrations before merge
+- [ ] Migration workflow fully documented for developers
 
 ## Architecture Notes
 

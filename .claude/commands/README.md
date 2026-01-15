@@ -43,6 +43,17 @@ Commands for finding and tracking tasks:
 | `/next-task` | - | Find next ready task | `/next-task` or `/next-task E01` |
 | `/task-status` | - | View task board or specific task | `/task-status` or `/task-status E01-T003` |
 
+## Agent Training & Improvement Commands
+
+Commands for auditing and improving agent definitions:
+
+| Command | Agent | Description | Usage |
+|---------|-------|-------------|-------|
+| `/audit` | trainer | Analyze agent output for quality | `/audit qa backlog/docs/reviews/E01/E01-T009-qa-report.md` |
+| `/postmortem` | trainer | Technical post-mortem when agent goes off-base | `/postmortem developer packages/db/src/schema.ts --context backlog/tasks/E01/E01-T010.md` |
+| `/refine-agent` | trainer | Analyze patterns and create improvement plan | `/refine-agent qa --epic E01` |
+| `/apply-improvements` | trainer | Apply approved improvements to agent files | `/apply-improvements backlog/docs/training/qa-improvements-20260115.md` |
+
 ## Command Details
 
 ### Planning & Breakdown
@@ -209,6 +220,38 @@ Commands for finding and tracking tasks:
 - Or details for specific task
 - Example: `/task-status` or `/task-status E01-T003`
 
+### Agent Training & Improvement
+
+**`/audit <agent-type> <artifact-path>`** ⭐ **NEW**
+- Analyzes a specific agent output for quality and completeness
+- Evaluates against quality criteria (completeness, clarity, adherence, effectiveness)
+- Generates balanced feedback with strengths, gaps, and recommendations
+- Use for standard quality checks
+- Example: `/audit qa backlog/docs/reviews/E01/E01-T009-qa-report.md`
+
+**`/postmortem <agent-type> <artifact-path> [--context <path>]`** ⭐ **NEW**
+- Deep dive technical analysis when an agent goes significantly off-base
+- Performs root cause analysis and traces failure back to agent instructions
+- Proposes specific, targeted fixes to prevent recurrence
+- Use when agent produced incorrect output or completely misunderstood task
+- Example: `/postmortem developer packages/db/src/schema.ts --context backlog/tasks/E01/E01-T010.md`
+
+**`/refine-agent <agent-type> [--all] [--since DATE] [--epic EPIC-ID]`** ⭐ **NEW**
+- Analyzes patterns across multiple agent outputs
+- Identifies recurring gaps, common errors, and inconsistencies
+- Creates systematic improvement plan with prioritized recommendations
+- Optionally creates backlog tasks for high-priority improvements
+- Example: `/refine-agent qa --epic E01`
+- Example: `/refine-agent reviewer --since 2026-01-01`
+
+**`/apply-improvements <plan-path> [--items 1,3,5]`** ⭐ **NEW**
+- Applies approved improvements to agent definition files
+- Always shows diffs and requires explicit confirmation before modifying files
+- Creates changelog for rollback capability
+- Can apply all improvements or specific items only
+- Example: `/apply-improvements backlog/docs/training/qa-improvements-20260115.md`
+- Example: `/apply-improvements backlog/docs/training/qa-improvements-20260115.md --items 1,2`
+
 ## Orchestrator Integration
 
 The orchestrator (`pnpm workflow:run`) automatically calls these commands in sequence:
@@ -346,6 +389,31 @@ claude -p "/document E06-T010"
 # If changes requested, automatically loops back to writer
 ```
 
+### Agent Training & Improvement
+
+```bash
+# Audit a single QA report for quality
+claude -p "/audit qa backlog/docs/reviews/E01/E01-T009-qa-report.md"
+
+# Deep dive when developer wrote incorrect code
+claude -p "/postmortem developer packages/db/src/schema.ts --context backlog/tasks/E01/E01-T010.md"
+
+# Analyze QA patterns across Epic E01
+claude -p "/refine-agent qa --epic E01"
+
+# Analyze all reviewer outputs ever
+claude -p "/refine-agent reviewer --all"
+
+# Analyze analyst outputs since January 2026
+claude -p "/refine-agent analyst --since 2026-01-01"
+
+# Apply all improvements from a plan
+claude -p "/apply-improvements backlog/docs/training/qa-improvements-20260115.md"
+
+# Apply only specific improvements (items 1 and 2)
+claude -p "/apply-improvements backlog/docs/training/qa-improvements-20260115.md --items 1,2"
+```
+
 ## Agent Context
 
 Each command runs in a specific agent context with:
@@ -407,7 +475,11 @@ All commands are defined in this directory:
 ├── roadmap.md            # Roadmap management
 ├── epic-review.md        # Epic review
 ├── next-task.md          # Find next ready task
-└── task-status.md        # Task board and status
+├── task-status.md        # Task board and status
+├── audit.md              # Audit agent output quality (NEW)
+├── postmortem.md         # Post-mortem failure analysis (NEW)
+├── refine-agent.md       # Pattern analysis & improvement planning (NEW)
+└── apply-improvements.md # Apply improvements to agent files (NEW)
 ```
 
 ## Related Documentation
