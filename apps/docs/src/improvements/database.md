@@ -56,15 +56,20 @@ No blocking items currently. 🎉
 
 | ID | Issue | Description | Impact | Effort | Tracking | Added |
 |----|-------|-------------|--------|--------|----------|-------|
-| DB-002 | DX | Export Database type from package entry point | Low | Trivial | Backlog | 2026-01-15 |
+| DB-003 | Migrations | Add down migration files for rollback capability | Medium | Medium | Backlog | 2026-01-15 |
 
-**DB-002 Details:**
-- **Source**: [E01-T003 Code Review](/backlog/docs/reviews/E01/E01-T003-code-review.md)
-- **Description**: Database type defined in client.ts but not re-exported from packages/db/src/index.ts
-- **Impact**: Consumers can't easily type function parameters accepting db instance
-- **Mitigation**: Add `export type { Database } from "./client.js";` to index.ts
-- **Blocking**: No - workaround is to import from client.ts directly
-- **Benefit**: Better developer experience, consistent with other package exports
+**DB-003 Details:**
+- **Source**: Multiple code reviews ([E01-T004](/backlog/docs/reviews/E01/E01-T004-code-review.md), [E01-T005](/backlog/docs/reviews/E01/E01-T005-code-review.md), [E01-T006](/backlog/docs/reviews/E01/E01-T006-code-review.md))
+- **Description**: Migration files lack corresponding down migrations for rollback capability. Currently only up migrations exist (0001-0011).
+- **Impact**: Cannot cleanly rollback database changes in production if issues occur after deployment
+- **Mitigation**: Create corresponding `NNNN_description_down.sql` files for each migration with DROP/REVERT statements
+- **Blocking**: No - can recreate database from scratch in development, but production rollbacks require down migrations
+- **Best Practice**: Essential for production-grade deployments, enables safe schema changes
+- **Suggested Pattern**:
+  ```sql
+  -- 0001_create_users_down.sql
+  DROP TABLE IF EXISTS users CASCADE;
+  ```
 
 ### Low Priority
 
@@ -74,9 +79,11 @@ No low priority items currently.
 
 Archive of addressed recommendations with implementation details.
 
-::: info No Completed Items Yet
-As improvements are implemented, they will be moved here with completion date and task reference.
-:::
+### DB-002: Export Database type from package entry point
+**Completed**: 2026-01-15
+**Resolution**: Database type is now properly exported from packages/db/src/index.ts, making it available for consumers to type function parameters that accept database instances. The export follows the pattern used for other package types.
+**Verification**: [packages/db/src/index.ts:4](https://github.com/ryandt33/raptscallions/blob/main/packages/db/src/index.ts#L4)
+**Impact**: Improved developer experience - consumers can now import Database type from the package entry point without reaching into internal client.ts file, consistent with TypeScript best practices.
 
 ## References
 

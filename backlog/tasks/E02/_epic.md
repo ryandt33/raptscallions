@@ -26,16 +26,18 @@ Establish the core API server using Fastify and implement a complete authenticat
 
 ## Tasks
 
-| ID       | Title                                      | Priority | Depends On       |
-| -------- | ------------------------------------------ | -------- | ---------------- |
-| E02-T001 | Fastify API server foundation              | critical | -                |
-| E02-T002 | Sessions table and Lucia setup             | critical | E02-T001         |
-| E02-T003 | Email/password authentication routes       | critical | E02-T002         |
-| E02-T004 | OAuth integration with Arctic              | high     | E02-T002         |
-| E02-T005 | CASL permission definitions and middleware | high     | E02-T002         |
-| E02-T006 | Authentication guards and decorators       | high     | E02-T003, E02-T005 |
-| E02-T007 | Rate limiting middleware                   | medium   | E02-T001         |
-| E02-T008 | Auth integration tests                     | high     | E02-T006         |
+| ID       | Title                                           | Priority | Depends On         |
+| -------- | ----------------------------------------------- | -------- | ------------------ |
+| E02-T001 | Fastify API server foundation                   | critical | -                  |
+| E02-T002 | Sessions table and Lucia setup                  | critical | E02-T001           |
+| E02-T003 | Email/password authentication routes            | critical | E02-T002           |
+| E02-T004 | OAuth integration with Arctic                   | high     | E02-T002           |
+| E02-T005 | CASL permission definitions and middleware      | high     | E02-T002           |
+| E02-T006 | Authentication guards and decorators            | high     | E02-T003, E02-T005 |
+| E02-T007 | Rate limiting middleware                        | medium   | E02-T001           |
+| E02-T008 | Auth integration tests                          | high     | E02-T006           |
+| E02-T009 | Encapsulate session cookie creation in auth pkg | low      | E02-T003, E02-T004 |
+| E02-T010 | Make database pool settings configurable        | medium   | -                  |
 
 ## Out of Scope
 

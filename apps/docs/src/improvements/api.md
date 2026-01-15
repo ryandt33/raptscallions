@@ -36,28 +36,7 @@ No high priority items currently.
 
 ### Medium Priority
 
-| ID | Issue | Description | Impact | Effort | Tracking | Added |
-|----|-------|-------------|--------|--------|----------|-------|
-| API-001 | Configuration | Add graceful shutdown handler for database connections | Low | Small | Backlog | 2026-01-15 |
-
-**API-001 Details:**
-- **Source**: [E01-T003 Code Review](/backlog/docs/reviews/E01/E01-T003-code-review.md) (suggestion)
-- **Description**: No closeConnection() export for proper cleanup in tests and application shutdown
-- **Impact**: Database connections may not close gracefully on server shutdown
-- **Mitigation**: Add shutdown handler to packages/db/src/client.ts and call in server close hook
-- **Blocking**: No - connections close on process exit, but explicit cleanup is better practice
-- **Suggested Implementation**:
-  ```typescript
-  // packages/db/src/client.ts
-  export async function closeConnection(): Promise<void> {
-    await sql.end();
-  }
-
-  // apps/api/src/server.ts
-  fastify.addHook('onClose', async () => {
-    await closeConnection();
-  });
-  ```
+No medium priority items currently.
 
 ### Low Priority
 
@@ -67,9 +46,11 @@ No low priority items currently.
 
 Archive of addressed recommendations with implementation details.
 
-::: info No Completed Items Yet
-As improvements are implemented, they will be moved here with completion date and task reference.
-:::
+### API-001: Database connection shutdown handlers
+**Completed**: 2026-01-15
+**Resolution**: Implemented graceful shutdown handlers for database connections using `queryClient.end()` in signal handlers (SIGTERM, SIGINT). The API server now properly closes database connections before exiting, ensuring clean teardown.
+**Verification**: [apps/api/src/index.ts:27-48](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/index.ts#L27-L48)
+**Impact**: Database connections now close gracefully on server shutdown, preventing connection leaks and ensuring proper resource cleanup in production deployments.
 
 ## References
 

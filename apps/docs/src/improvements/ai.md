@@ -40,7 +40,28 @@ No medium priority items currently.
 
 ### Low Priority
 
-No low priority items currently.
+| ID | Issue | Description | Impact | Effort | Tracking | Added |
+|----|-------|-------------|--------|--------|----------|-------|
+| AI-001 | Error Handling | Store timeout as instance variable in OpenRouter client | Low | Trivial | Backlog | 2026-01-15 |
+
+**AI-001 Details:**
+- **Source**: [E04-T002 Code Review](/backlog/docs/reviews/E04/E04-T002-code-review.md) (Should Fix #2)
+- **Description**: Error handler accesses global `aiConfig.AI_REQUEST_TIMEOUT_MS` instead of client's configured timeout when creating `TimeoutError`
+- **Impact**: Error messages show incorrect timeout value if client was constructed with custom timeout
+- **Mitigation**: Store configured timeout as instance variable and use in error handler
+- **Blocking**: No - functionality works, just error message accuracy
+- **Suggested Implementation**:
+  ```typescript
+  // Store configured timeout in instance
+  private timeout: number;
+
+  constructor(options) {
+    this.timeout = options?.timeout ?? aiConfig.AI_REQUEST_TIMEOUT_MS;
+  }
+
+  // Then in handleError:
+  return new TimeoutError(this.timeout);
+  ```
 
 ## Completed Improvements
 

@@ -43,6 +43,7 @@ No medium priority items currently.
 | ID | Issue | Description | Impact | Effort | Tracking | Added |
 |----|-------|-------------|--------|--------|----------|-------|
 | INFRA-001 | DX | Add ESLint configuration at package level | Low | Small | Backlog | 2026-01-15 |
+| INFRA-002 | DX | Add .npmrc with strict peer dependency settings | Low | Trivial | Backlog | 2026-01-15 |
 
 **INFRA-001 Details:**
 - **Source**: [E01-T003 Code Review](/backlog/docs/reviews/E01/E01-T003-code-review.md)
@@ -51,6 +52,19 @@ No medium priority items currently.
 - **Mitigation**: Add ESLint configuration with project conventions
 - **Blocking**: No - acceptable for early development, but should be addressed
 - **Related**: Part of broader code quality infrastructure
+
+**INFRA-002 Details:**
+- **Source**: [E01-T001 Code Review](/backlog/docs/reviews/E01/E01-T001-code-review.md) (Architect suggestion)
+- **Description**: Add `.npmrc` configuration with `strict-peer-dependencies=true` and `auto-install-peers=true`
+- **Impact**: Improves dependency management consistency across team members
+- **Mitigation**: Create `.npmrc` file in repository root
+- **Blocking**: No - pnpm works well without it, but explicit config improves team consistency
+- **Suggested Content**:
+  ```ini
+  # .npmrc
+  strict-peer-dependencies=true
+  auto-install-peers=true
+  ```
 
 ## Completed Improvements
 
