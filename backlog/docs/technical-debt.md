@@ -2,7 +2,7 @@
 
 **Purpose:** Track ongoing code quality, testing, performance, and documentation gaps. Update this document as you discover issues during development. Create time-boxed tasks when ready to address specific items.
 
-**Last Updated:** 2026-01-15
+**Last Updated:** 2026-01-15 (Coverage configuration updated to exclude VitePress docs)
 
 ---
 
@@ -12,13 +12,15 @@
 
 *Core functionality with no tests - highest risk*
 
-- [ ] **To be identified** - Use coverage reports to find critical untested paths
+- [ ] None currently identified - Great work!
 
 ### Priority: High (Partial Coverage)
 
 *Incomplete test coverage on important code*
 
-- [ ] **To be identified** - Focus on services, middleware, and route handlers
+- [ ] `apps/api/src/middleware/request-logger.ts` - Only 46.42% coverage (lines 9-13, 17-26 uncovered)
+- [ ] `packages/auth/src/lucia.ts` - 89.21% coverage but 0% function coverage (lines 73-77, 84-89 uncovered)
+- [ ] `packages/core/src/errors/rate-limit.error.ts` - 82.35% coverage, 0% function coverage (lines 14-16 uncovered)
 
 ### Priority: Medium (Low Coverage)
 
@@ -158,9 +160,23 @@ Addresses gap from backlog/docs/technical-debt.md
 
 ---
 
-## Coverage Report Instructions
+## Finding Test Coverage Gaps
 
-### Generate Coverage Report
+### Method 1: Manual Inspection
+
+Look for source files without corresponding test files:
+
+```bash
+# Find all source files
+find packages/*/src -name "*.ts" -not -path "*/__tests__/*" -not -name "*.test.ts" -not -name "index.ts" | sort
+
+# Find all test files
+find packages/*/src -name "*.test.ts" -o -path "*/__tests__/*.test.ts" | sort
+
+# Compare the two lists to find files without tests
+```
+
+### Method 2: Coverage Report (if working)
 
 ```bash
 # Run tests with coverage
@@ -173,19 +189,33 @@ open coverage/index.html
 pnpm test:coverage --reporter=text
 ```
 
-### Find Critical Gaps
+**Note:** If you get source map errors, use Method 1 or Method 3 instead.
+
+### Method 3: Quick File Comparison
 
 ```bash
-# Find files with 0% coverage (critical)
-pnpm test:coverage --reporter=json | jq '.coverage[] | select(.lines.pct == 0) | .path'
+# List source files that don't have a corresponding .test.ts file
+for file in $(find packages/*/src -name "*.ts" -not -path "*/__tests__/*" -not -name "*.test.ts" -not -name "index.ts"); do
+  testfile="${file/.ts/.test.ts}"
+  testdir="$(dirname $file)/__tests__/$(basename $testfile)"
+  if [ ! -f "$testfile" ] && [ ! -f "$testdir" ]; then
+    echo "Missing tests: $file"
+  fi
+done
+```
 
-# Find files with <50% coverage (high priority)
-pnpm test:coverage --reporter=json | jq '.coverage[] | select(.lines.pct < 50) | .path'
+### Method 4: Use Claude to Identify Gaps
+
+Ask Claude to search for source files and check if they have corresponding tests:
+
+```
+Please find all .ts files in packages/auth/src that don't have corresponding test files.
+Ignore index.ts and files in __tests__ directories.
 ```
 
 ### Update This Document
 
-After generating a coverage report, add specific files/functions to the appropriate priority section above.
+After identifying gaps using any method, add specific files/functions to the appropriate priority section above.
 
 ---
 

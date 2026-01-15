@@ -21,6 +21,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'html'],
+      // Fix source map issues
+      reportsDirectory: './coverage',
+      clean: true,
+      all: true,
+      include: [
+        'packages/*/src/**/*.ts',
+        'apps/api/src/**/*.ts',
+        'apps/worker/src/**/*.ts',
+        'apps/web/src/**/*.ts',
+      ],
       exclude: [
         '**/node_modules/**',
         '**/dist/**',
@@ -36,6 +46,8 @@ export default defineConfig({
         // Barrel exports (re-exports only)
         'packages/*/src/index.ts',
         'apps/*/src/index.ts',
+        // Exclude VitePress docs app entirely
+        'apps/docs/**',
       ],
       thresholds: {
         lines: 80,
