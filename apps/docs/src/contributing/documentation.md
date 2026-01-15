@@ -16,6 +16,7 @@ This guide explains how to contribute documentation to the RaptScallions Knowled
 | Add frontmatter | [Frontmatter Requirements](#frontmatter-requirements) |
 | Link to other docs | [Linking Conventions](#linking-conventions) |
 | Link to code files | [Source Code Links](#source-code-links) |
+| Reference backlog tasks | [Backlog References](#backlog-references) |
 | Add references footer | [Reference Section Template](#reference-section-template) |
 | Keep docs fresh | [Staleness Tracking](#staleness-tracking) |
 | Fix broken links | [Common Mistakes](#common-mistakes) |
@@ -41,7 +42,7 @@ For VitePress markdown formatting (code blocks, containers, tables), see [KB Pag
 | KB doc (other domain) | `/domain/type/file` | `[CASL](/auth/concepts/casl)` |
 | Section anchor | `#heading-name` | `[Best Practices](#best-practices)` |
 | Anchor on another page | `/path#anchor` | `[OAuth Flow](/auth/concepts/oauth#google-setup)` |
-| Backlog task | Plain text reference | `**Implements:** E02-T002` |
+| Backlog task | Citation reference | `[1]` → `/backlog/completed/E02/E02-T002.md` |
 | Source code file | GitHub URL | See [Source Code Links](#source-code-links) |
 | External URL | Full URL | `[Lucia Docs](https://lucia-auth.com)` |
 
@@ -91,16 +92,6 @@ Link to source code files using full GitHub URLs. This ensures links work both i
 Navigate to the file on GitHub, click the file, then copy the URL from your browser's address bar.
 :::
 
-### Backlog Task References
-
-Reference backlog tasks using plain text (not links, since backlog files are outside the docs directory):
-
-```markdown
-**Implements:** E02-T002
-```
-
-This format is machine-parseable for tooling. The regex pattern `E\d+-T\d+` can extract task IDs.
-
 ### External Links
 
 Use full URLs for external documentation:
@@ -110,6 +101,57 @@ See the [Lucia Auth documentation](https://lucia-auth.com) for more details.
 
 Reference: [Fastify Plugin Guide](https://fastify.dev/docs/latest/Reference/Plugins/)
 ```
+
+## Backlog References
+
+KB pages reference backlog tasks, specs, and reviews using descriptive inline links. This makes task references clickable, searchable, and accessible.
+
+### Inline References
+
+Reference tasks inline with descriptive link text:
+
+```markdown
+The session system (see [E02-T002: Sessions table](/backlog/completed/E02/E02-T002.md))
+uses Lucia for session management.
+```
+
+**Format:**
+- Link text: `[{TASK-ID}: {Brief Description}]`
+- Always include task ID for searchability
+- Brief description (3-8 words) provides context
+- Use parenthetical "(see ...)" placement
+
+### Related Pages Section
+
+Group backlog references at end of page:
+
+```markdown
+## Related Pages
+
+**Related Documentation:**
+- [Lucia Configuration](/auth/concepts/lucia)
+- [OAuth Providers](/auth/concepts/oauth)
+
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md))
+```
+
+### Quick Reference
+
+```markdown
+<!-- Inline reference -->
+(see [E02-T002: Sessions table](/backlog/completed/E02/E02-T002.md))
+
+<!-- Related Pages Implementation -->
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+
+<!-- With review -->
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md), [QA report](/backlog/docs/reviews/E02/E02-T008-qa-report.md))
+```
+
+For complete documentation and examples, see [Backlog References](/contributing/kb-page-design#backlog-references) in KB Page Design.
 
 ## Frontmatter Requirements
 
@@ -198,13 +240,16 @@ last_verified: [YYYY-MM-DD]
 
 [Variations or related patterns]
 
-## References
+## Related Pages
 
-**Key Files:**
+**Related Documentation:**
+- [Related Concept](/domain/concepts/related-concept)
+
+**Implementation:**
+- [E0X-T0XX: Task title and brief description](/backlog/completed/E0X/E0X-T0XX.md) ([spec](/backlog/docs/specs/E0X/E0X-T0XX-spec.md))
+
+**Source Files:**
 - [file.ts](https://github.com/ryandt33/raptscallions/blob/main/path/to/file.ts) - Description
-
-**Related Docs:**
-- Related Concept (link to actual concept page)
 ```
 
 ### Pattern Template
@@ -246,13 +291,16 @@ last_verified: [YYYY-MM-DD]
 
 [Anti-patterns or situations where it's inappropriate]
 
-## References
+## Related Pages
 
-**Key Files:**
+**Related Documentation:**
+- [Related Pattern](/domain/patterns/related-pattern)
+
+**Implementation:**
+- [E0X-T0XX: Task title and brief description](/backlog/completed/E0X/E0X-T0XX.md) ([spec](/backlog/docs/specs/E0X/E0X-T0XX-spec.md))
+
+**Source Files:**
 - [file.ts](https://github.com/ryandt33/raptscallions/blob/main/path/to/file.ts) - Description
-
-**Related Docs:**
-- Related Pattern (link to actual pattern page)
 ```
 
 ### Decision Record (ADR) Template
@@ -309,12 +357,13 @@ implements_task: [E0X-T0XX]
 - Cons: [...]
 - Why rejected: [...]
 
-## References
+## Related Pages
 
-**Implements:** E0X-T0XX
-
-**Related Docs:**
+**Related Documentation:**
 - [Related Decision](/domain/decisions/related)
+
+**Implementation:**
+- [E0X-T0XX: Task title and brief description](/backlog/completed/E0X/E0X-T0XX.md) ([spec](/backlog/docs/specs/E0X/E0X-T0XX-spec.md))
 ```
 
 ### Troubleshooting Template
@@ -365,13 +414,16 @@ last_verified: [YYYY-MM-DD]
 - Prevention measure 1
 - Prevention measure 2
 
-## References
+## Related Pages
 
-**Key Files:**
+**Related Documentation:**
+- [Related Troubleshooting](/domain/troubleshooting/related)
+
+**Implementation:**
+- [E0X-T0XX: Task title and brief description](/backlog/completed/E0X/E0X-T0XX.md) ([spec](/backlog/docs/specs/E0X/E0X-T0XX-spec.md))
+
+**Source Files:**
 - [file.ts](https://github.com/ryandt33/raptscallions/blob/main/path/to/file.ts) - Relevant file
-
-**Related Docs:**
-- Related Troubleshooting (link to actual troubleshooting page)
 ```
 
 ## Domain Selection Guide
@@ -417,35 +469,35 @@ Within each domain, choose the appropriate subdirectory:
 
 ## Reference Section Template
 
-Every KB doc should end with a References section. Include only relevant subsections:
+Every KB doc should end with a Related Pages section that includes both KB cross-references and backlog implementation references.
+
+### Related Pages Section Format
 
 ```markdown
-## References
+## Related Pages
 
-**Implements:** E02-T002
-
-**Key Files:**
-- [session.service.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/auth/src/session.service.ts) - Session creation and validation
-- [session.middleware.ts](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/middleware/session.middleware.ts) - Fastify request hook
-
-**Related Docs:**
+**Related Documentation:**
 - [OAuth Flow](/auth/concepts/oauth-flow)
 - [Guard Middleware Pattern](/auth/patterns/guard-middleware)
 
-**External Resources:**
-- [Lucia Auth Documentation](https://lucia-auth.com)
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md))
+
+**Source Files:**
+- [session.service.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/auth/src/session.service.ts) - Session creation and validation
+- [session.middleware.ts](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/middleware/session.middleware.ts) - Fastify request hook
 ```
 
 ### Subsections to Include
 
 | Subsection | When to Include |
 |------------|-----------------|
-| **Implements:** | Doc was created for a specific backlog task |
-| **Key Files:** | Doc describes specific source code files |
-| **Related Docs:** | There are related KB pages readers should know about |
-| **External Resources:** | Referencing external documentation/libraries |
+| **Related Documentation:** | There are related KB pages readers should know about |
+| **Implementation:** | Backlog tasks and specs that implement the documented features |
+| **Source Files:** | Doc describes specific source code files (GitHub URLs) |
 
-Keep to 3-6 related docs maximum. Prioritize direct dependencies or common next steps.
+Keep to 3-6 related items maximum per subsection. Prioritize direct dependencies or common next steps.
 
 ## Staleness Tracking
 

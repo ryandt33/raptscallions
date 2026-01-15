@@ -4,13 +4,23 @@ export default defineConfig({
   // Site metadata
   title: "RaptScallions KB",
   description:
-    "Knowledge base for RaptScallions platform architecture, patterns, and decisions",
+    "Knowledge base for Raptscallions platform architecture, patterns, and decisions",
 
   // Clean URLs (no .html extension)
   cleanUrls: true,
 
   // Last updated timestamp from git
   lastUpdated: true,
+
+  // Exclude backlog directory from VitePress processing
+  // Backlog files are served as raw markdown, not processed as VitePress pages
+  srcExclude: ["backlog/**"],
+
+  // Ignore dead links for template examples
+  ignoreDeadLinks: [
+    /^\/domain\//,
+    /^\/backlog\/.*\/E0X\//,
+  ],
 
   // Head configuration for font preconnect
   head: [

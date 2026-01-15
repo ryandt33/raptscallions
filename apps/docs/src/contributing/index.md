@@ -61,7 +61,8 @@ When adding documentation:
 2. Choose the content type (concepts, patterns, decisions, troubleshooting)
 3. Create a new `.md` file with kebab-case name
 4. Add frontmatter with title and description
-5. Update the sidebar in `.vitepress/config.ts` to add the new page
+5. Use descriptive inline links to reference backlog tasks and specs
+6. Update the sidebar in `.vitepress/config.ts` to add the new page
 
 Example:
 

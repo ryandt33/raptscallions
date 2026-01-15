@@ -984,6 +984,7 @@ For detailed KB page authoring guidelines, see the [KB Page Design Patterns](/co
 - Code block conventions (highlighting, line numbers, code groups)
 - Custom containers (tip, info, warning, danger)
 - Cross-referencing and navigation
+- Backlog references (linking to tasks, specs, and reviews)
 - VitePress-specific features
 
 **Code Examples:**

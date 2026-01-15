@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev src",
-    "build": "vitepress build src",
+    "dev": "npm run copy:backlog && vitepress dev src",
+    "build": "npm run copy:backlog && vitepress build src",
     "preview": "vitepress preview src",
-    "clean": "rm -rf src/.vitepress/dist src/.vitepress/cache dist *.tsbuildinfo",
+    "copy:backlog": "rm -rf src/backlog && cp -r ../../backlog src/backlog",
+    "clean": "rm -rf src/.vitepress/dist src/.vitepress/cache src/backlog dist *.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --max-warnings 0",
     "lint:fix": "eslint src --fix"

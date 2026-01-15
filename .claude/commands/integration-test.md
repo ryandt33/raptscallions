@@ -25,6 +25,8 @@ unit tests (with mocks) also works against real PostgreSQL and Redis.
 
 ## Process
 
+**⚠️ BEFORE STARTING:** Remember you are in READ-ONLY mode. No code changes allowed.
+
 1. Read the task at `backlog/tasks/{epic}/{task-id}.md`
 2. Read the spec at `backlog/docs/specs/{epic}/{task-id}-spec.md`
 3. Read the QA report at `backlog/docs/reviews/{epic}/{task-id}-qa-report.md`
@@ -185,16 +187,73 @@ Content-Type: application/json
 [Overall assessment - ready for docs or needs investigation]
 ```
 
+## Critical Constraints: READ-ONLY MODE
+
+**You are operating in VALIDATION MODE ONLY:**
+
+### ✅ ALLOWED Operations:
+- Run build commands (`pnpm build`, `pnpm test`, etc.)
+- Execute tests and validation scripts
+- Query APIs with curl/fetch
+- Read files for validation purposes
+- Write the integration report ONLY
+- Start/stop Docker infrastructure
+
+### ❌ FORBIDDEN Operations:
+- Edit ANY code files
+- Modify configuration files (package.json, tsconfig, vitepress config, etc.)
+- Change build scripts or tooling
+- Create new files (except the integration report)
+- Fix bugs or issues found during testing
+- Attempt workarounds or alternative implementations
+- Make "experimental" or "temporary" changes
+
+### When Issues Are Found
+
+**If any test fails or reveals unexpected behavior:**
+
+1. **Document the issue completely** in the integration report:
+   - What was expected vs. what actually happened
+   - Full error messages and responses
+   - Steps to reproduce
+   - Impact assessment
+
+2. **Determine if behavior might be expected:**
+   - If clearly a bug/failure → Mark as FAIL
+   - If ambiguous (e.g., 404s, missing features) → **ASK USER**: "Is this expected behavior or a defect?"
+
+3. **Set workflow_state appropriately:**
+   - Clear failure: `INTEGRATION_FAILED`
+   - User confirms expected: `DOCS_UPDATE` (document limitation)
+   - User confirms defect: `INTEGRATION_FAILED`
+
+4. **STOP immediately** - Do NOT attempt to fix
+
+5. **Recommend next steps:**
+   - Create follow-up task for missing features
+   - Use `/investigate-failure` for root cause analysis
+   - Update spec if requirements were unclear
+
+### Anti-Patterns to Avoid
+
+❌ **"Let me fix that for you"** - Never make unsolicited fixes
+❌ **"I'll try approach X"** - No architecture exploration
+❌ **"This should work if..."** - No experimental changes
+❌ **"Just a small config change"** - No "harmless" edits
+❌ **Scope creep** - Stick to validation only
+
 ## Failure Handling
 
 If any integration test fails:
 
 1. Document exactly what failed in the report
 2. Include full error messages and responses
-3. Set workflow_state to `INTEGRATION_FAILED`
-4. The `/investigate-failure` command will analyze root cause
+3. **If behavior is ambiguous, ASK USER** if it's expected
+4. Set workflow_state to `INTEGRATION_FAILED` (or `DOCS_UPDATE` if user confirms expected)
+5. Recommend next steps (new task, investigation, spec update)
+6. **STOP** - The `/investigate-failure` command will analyze root cause
 
-Do NOT attempt to fix issues - just document and transition to INTEGRATION_FAILED.
+**Do NOT attempt to fix issues** - just document and transition workflow state.
 
 ## Arguments
 

@@ -488,6 +488,83 @@ End pages with related links for navigation:
 - Keep to 3-6 related pages
 - Prioritize direct dependencies or common next steps
 
+## Backlog References
+
+KB pages can reference backlog tasks, specs, and reviews using descriptive inline links. This makes task references clickable, searchable, and accessible.
+
+### Inline References
+
+Reference tasks inline with descriptive link text:
+
+```markdown
+The session system (see [E02-T002: Sessions table](/backlog/completed/E02/E02-T002.md))
+uses Lucia for session management.
+```
+
+**Format:**
+- Link text: `[{TASK-ID}: {Brief Description}]`
+- Always include task ID for searchability
+- Brief description (3-8 words) provides context
+- Use parenthetical "(see ...)" placement
+
+### Related Pages with Implementation
+
+Group backlog references at end of page in the "Related Pages" section:
+
+```markdown
+## Related Pages
+
+**Related Documentation:**
+- [Lucia Configuration](/auth/concepts/lucia)
+- [OAuth Providers](/auth/concepts/oauth)
+
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md))
+```
+
+### Backlog Path Structure
+
+- **Tasks**: `/backlog/{tasks|completed}/{EPIC}/{TASK-ID}.md`
+  - Active: `/backlog/tasks/E06/E06-T011.md`
+  - Completed: `/backlog/completed/E02/E02-T002.md`
+- **Specs**: `/backlog/docs/specs/{EPIC}/{TASK-ID}-spec.md`
+- **Reviews**: `/backlog/docs/reviews/{EPIC}/{TASK-ID}-{type}.md`
+- **Epics**: `/backlog/tasks/{EPIC}/_epic.md`
+
+### Quick Reference Templates
+
+Copy-paste templates for common backlog reference types:
+
+```markdown
+<!-- Inline task reference -->
+(see [E02-T002: Sessions table](/backlog/completed/E02/E02-T002.md))
+
+<!-- Related Pages Implementation -->
+**Implementation:**
+- [E02-T002: Sessions table and Lucia setup](/backlog/completed/E02/E02-T002.md) ([spec](/backlog/docs/specs/E02/E02-T002-spec.md))
+
+<!-- With review artifact -->
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) ([spec](/backlog/docs/specs/E02/E02-T008-spec.md), [QA report](/backlog/docs/reviews/E02/E02-T008-qa-report.md))
+```
+
+### Best Practices
+
+- Include task ID in link text for searchability
+- Use descriptive text (not just "see task E02-T002")
+- Group backlog references in Related Pages section
+- Separate KB links from backlog references (use subsections)
+- Update paths when tasks move to completed status
+- Don't overuse inline references (1-2 per paragraph max)
+
+::: tip When to Reference Tasks
+Reference backlog tasks when:
+- Explaining implementation details that came from a specific task
+- Pointing to specifications for complex features
+- Linking to QA reports or review artifacts for context
+- Showing the origin of a pattern or decision
+:::
+
 ## Lists
 
 ### Unordered Lists
