@@ -29,3 +29,9 @@ export * from "./chat-sessions.js";
 
 // Export messages table and types
 export * from "./messages.js";
+
+// Export files table and types
+export * from "./files.js";
+
+// Export user_storage_limits table and types
+export * from "./user-storage-limits.js";
