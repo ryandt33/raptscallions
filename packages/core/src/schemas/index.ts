@@ -34,3 +34,18 @@ export {
   safeParseMessageMeta,
 } from "./message-meta.schema.js";
 export type { MessageMeta, Extraction } from "./message-meta.schema.js";
+
+export {
+  storageLimitValuesSchema,
+  roleStorageLimitsSchema,
+  groupStorageSettingsSchema,
+  fileUploadMetadataSchema,
+  setUserStorageLimitSchema,
+} from "./storage.schema.js";
+export type {
+  StorageLimitValues,
+  RoleStorageLimits,
+  GroupStorageSettings,
+  FileUploadMetadata,
+  SetUserStorageLimit,
+} from "./storage.schema.js";

@@ -88,7 +88,10 @@ export default defineConfig({
           {
             text: "Concepts",
             collapsed: true,
-            items: [{ text: "Coming Soon", link: "/database/concepts/" }],
+            items: [
+              { text: "Overview", link: "/database/concepts/" },
+              { text: "File Storage Schema", link: "/database/concepts/file-storage-schema" },
+            ],
           },
           {
             text: "Patterns",

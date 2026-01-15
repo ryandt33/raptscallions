@@ -30,6 +30,7 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 | E01-T012 | Add CI Workflow for Migration Testing     | TODO   | E01-T009           |
 | E01-T013 | Document Database Migration Workflow      | TODO   | E01-T009           |
 | E01-T014 | Create Interactive Migration Helper (opt) | TODO   | E01-T009, E01-T013 |
+| E01-T015 | Add Migration Journal Sync Validation     | TODO   | E01-T009           |
 
 ## Completion Criteria
 
@@ -48,6 +49,7 @@ Set up the foundational infrastructure for RaptScallions including pnpm monorepo
 - [ ] Pre-commit hook validates migrations before commit
 - [ ] CI workflow tests migrations before merge
 - [ ] Migration workflow fully documented for developers
+- [ ] Migration script validates journal sync before running
 
 ## Architecture Notes
 
