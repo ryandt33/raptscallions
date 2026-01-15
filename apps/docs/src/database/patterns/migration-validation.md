@@ -3,6 +3,8 @@ title: Migration Validation
 description: Automated validation for database migration files before application
 related_code:
   - packages/db/scripts/migrate-check.ts
+  - packages/db/scripts/migrate.ts
+  - .github/workflows/ci.yml
   - docker-compose.yml
 last_verified: 2026-01-15
 implements_task: E01-T009
@@ -254,6 +256,78 @@ These concerns should be addressed through:
 - Performance testing in staging environments
 - Code review of data transformation logic
 
+## CI Migration Testing
+
+In addition to file-level validation, CI applies migrations against a real PostgreSQL database before running tests. This catches runtime issues that static validation cannot detect (see [E01-T012: CI migration testing](/backlog/tasks/E01/E01-T012.md)).
+
+### How CI Migration Works
+
+The GitHub Actions workflow includes three migration-related steps:
+
+```yaml [.github/workflows/ci.yml]
+- name: Enable PostgreSQL extensions
+  run: |
+    psql -h localhost -U postgres -d raptscallions_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
+  env:
+    PGPASSWORD: postgres
+
+- name: Run database migrations
+  run: pnpm --filter @raptscallions/db db:migrate
+  env:
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+
+- name: Verify migration tracking table
+  run: |
+    MIGRATION_COUNT=$(psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM __drizzle_migrations")
+    echo "Applied migrations: $MIGRATION_COUNT"
+    if [ "$MIGRATION_COUNT" -lt 1 ]; then
+      echo "ERROR: No migrations found in tracking table"
+      exit 1
+    fi
+  env:
+    PGPASSWORD: postgres
+```
+
+### What CI Migration Catches
+
+| Issue | Static Validation | CI Migration |
+|-------|-------------------|--------------|
+| Invalid SQL syntax | ❌ | ✅ |
+| Missing ltree extension | ❌ | ✅ |
+| Foreign key violations | ❌ | ✅ |
+| Column type mismatches | ❌ | ✅ |
+| Index creation failures | ❌ | ✅ |
+| Unsafe patterns | ✅ | ✅ |
+| Duplicate numbers | ✅ | ✅ |
+| Empty migration files | ✅ | ✅ |
+
+::: tip Both Validations Are Complementary
+Run `pnpm db:migrate:check` locally before committing to catch file-level issues early. CI migration testing then validates against a real database, catching runtime issues that static analysis cannot detect.
+:::
+
+### PostgreSQL Service Configuration
+
+CI uses a PostgreSQL 16 Alpine container matching the production version:
+
+```yaml [.github/workflows/ci.yml]
+services:
+  postgres:
+    image: postgres:16-alpine
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: raptscallions_test
+    options: >-
+      --health-cmd pg_isready
+      --health-interval 10s
+      --health-timeout 5s
+      --health-retries 5
+    ports:
+      - 5432:5432
+```
+
+The health check ensures PostgreSQL is ready before migration steps run.
+
 ## Validation Output
 
 ### Success
@@ -291,12 +365,18 @@ $ pnpm db:migrate:check
 
 **Exit code 1** — Blocks pre-commit hooks and CI/CD pipelines.
 
-## References
+## Related Pages
 
-**Key Files:**
-- [migrate-check.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate-check.ts) - Validation script implementation
-- [docker-compose.yml](https://github.com/ryandt33/raptscallions/blob/main/docker-compose.yml) - Migration service configuration (line 62)
-- [migrations.test.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/src/__tests__/migrations.test.ts) - Validation test suite
-
-**Related Docs:**
+**Related Documentation:**
 - [Chat Schema](/database/concepts/chat-schema) - Example of enum migration pattern
+- [CI Documentation Validation](/contributing/ci-validation) - How CI validates documentation
+
+**Implementation:**
+- [E01-T009: Migration scripts and validation](/backlog/completed/E01/E01-T009.md) ([spec](/backlog/docs/specs/E01/E01-T009-spec.md))
+- [E01-T012: CI workflow for migration testing](/backlog/tasks/E01/E01-T012.md) ([spec](/backlog/docs/specs/E01/E01-T012-spec.md))
+
+**Source Files:**
+- [migrate-check.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate-check.ts) - Validation script implementation
+- [migrate.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/db/scripts/migrate.ts) - Migration runner
+- [ci.yml](https://github.com/ryandt33/raptscallions/blob/main/.github/workflows/ci.yml) - CI workflow with migration steps
+- [docker-compose.yml](https://github.com/ryandt33/raptscallions/blob/main/docker-compose.yml) - Migration service configuration

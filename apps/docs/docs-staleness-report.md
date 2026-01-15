@@ -1,13 +1,13 @@
 # Documentation Staleness Report
 
-**Generated:** 1/14/2026, 1:54:19 PM
+**Generated:** 1/15/2026, 4:43:16 PM
 **Threshold:** 7 days
 
 ## Summary
 
-- **Fresh:** 28 documents
+- **Fresh:** 31 documents
 - **Stale:** 0 documents
-- **Unchecked:** 24 documents
+- **Unchecked:** 269 documents
 
 ## ✅ All Documentation Up to Date
 

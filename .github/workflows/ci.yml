@@ -153,6 +153,33 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Enable PostgreSQL extensions
+        run: |
+          psql -h localhost -U postgres -d raptscallions_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run database migrations
+        run: pnpm --filter @raptscallions/db db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+
+      - name: Verify migration tracking table
+        run: |
+          # Check both possible locations for Drizzle migrations table
+          echo "Checking for migrations table..."
+          MIGRATION_COUNT=$(psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM drizzle.__drizzle_migrations" 2>/dev/null || psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM __drizzle_migrations" 2>/dev/null || echo "0")
+          MIGRATION_COUNT=$(echo "$MIGRATION_COUNT" | tr -d ' ')
+          echo "Applied migrations: $MIGRATION_COUNT"
+          if [ -z "$MIGRATION_COUNT" ] || [ "$MIGRATION_COUNT" -lt 1 ]; then
+            echo "ERROR: No migrations found in tracking table"
+            echo "Debugging: listing all tables..."
+            psql -h localhost -U postgres -d raptscallions_test -c "\dt *.*"
+            exit 1
+          fi
+        env:
+          PGPASSWORD: postgres
+
       - name: Run tests
         run: pnpm test
         env:
@@ -227,6 +254,33 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Enable PostgreSQL extensions
+        run: |
+          psql -h localhost -U postgres -d raptscallions_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run database migrations
+        run: pnpm --filter @raptscallions/db db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+
+      - name: Verify migration tracking table
+        run: |
+          # Check both possible locations for Drizzle migrations table
+          echo "Checking for migrations table..."
+          MIGRATION_COUNT=$(psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM drizzle.__drizzle_migrations" 2>/dev/null || psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM __drizzle_migrations" 2>/dev/null || echo "0")
+          MIGRATION_COUNT=$(echo "$MIGRATION_COUNT" | tr -d ' ')
+          echo "Applied migrations: $MIGRATION_COUNT"
+          if [ -z "$MIGRATION_COUNT" ] || [ "$MIGRATION_COUNT" -lt 1 ]; then
+            echo "ERROR: No migrations found in tracking table"
+            echo "Debugging: listing all tables..."
+            psql -h localhost -U postgres -d raptscallions_test -c "\dt *.*"
+            exit 1
+          fi
+        env:
+          PGPASSWORD: postgres
 
       - name: Run tests with coverage
         run: pnpm test:coverage
