@@ -24,6 +24,7 @@ These commands guide tasks through the development workflow:
 | `/commit-and-pr` | git-agent | Commit changes and create pull request | After docs updated (DOCS_UPDATE → PR_READY) |
 | `/align-design` | designer | Review/create design guides for UI alignment | Before project start or periodically |
 | `/document` | writer + reviewer | Write and review KB documentation | For documentation tasks (E06-T005+) |
+| `/write-improvement` | writer | Track technical debt in KB improvements | After reviews, when discovering tech debt |
 
 ## Epic Management Commands
 
@@ -167,6 +168,14 @@ Commands for auditing and improving agent definitions:
 - Automatic revision loop until approved
 - Use for E06 KB documentation tasks (E06-T005+)
 - Example: `/document E06-T010`
+
+**`/write-improvement [--domain <name>] [--from-review <path>]`** ⭐ **NEW**
+- Track technical debt and recommendations in KB improvements system
+- Follows improvements policy for formatting and categorization
+- Can extract improvements from review documents
+- Auto-generates IDs and updates index statistics
+- Example: `/write-improvement --domain ai`
+- Example: `/write-improvement --from-review backlog/docs/reviews/E04/E04-T002-code-review.md`
 
 ### GitHub Integration
 
@@ -471,6 +480,7 @@ All commands are defined in this directory:
 ├── investigate-failure.md # Analyze integration failures
 ├── update-docs.md        # Documentation updates
 ├── document.md           # KB documentation workflow
+├── write-improvement.md  # Track tech debt in KB improvements (NEW)
 ├── commit-and-pr.md      # Commit and create PR
 ├── roadmap.md            # Roadmap management
 ├── epic-review.md        # Epic review

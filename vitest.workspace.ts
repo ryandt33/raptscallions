@@ -7,6 +7,7 @@ export default defineWorkspace([
   'packages/telemetry',
   'packages/ai',
   'packages/auth',
+  'packages/storage',
   // Apps:
   'apps/api',
   'apps/docs',

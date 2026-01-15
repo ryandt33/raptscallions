@@ -36,7 +36,39 @@ No high priority items currently.
 
 ### Medium Priority
 
-No medium priority items currently.
+| ID | Issue | Description | Impact | Effort | Tracking | Added |
+|----|-------|-------------|--------|--------|----------|-------|
+| AI-002 | Security | Encryption key rotation procedure not documented | Medium | Medium | Backlog | 2026-01-16 |
+
+**AI-002 Details:**
+- **Source**: E04 Epic Review - Credential Management Discussion
+- **Description**: The credential encryption system (XChaCha20-Poly1305 via `@noble/ciphers`) requires a documented key rotation procedure. Currently there's no process for rotating the `CREDENTIAL_ENCRYPTION_KEY` without data loss.
+- **Impact**: Without key rotation capability, compromised keys or compliance requirements (periodic rotation policies) cannot be addressed safely
+- **Blocking**: No - system works, but operational security is incomplete
+- **Why This Matters**:
+  - Key compromise requires re-encryption with new key
+  - Compliance policies may mandate periodic rotation (e.g., 90-day rotation)
+  - Staff turnover may necessitate key changes
+  - No current path to recover if rotation is needed
+- **Suggested Implementation**:
+  1. **Phase 1**: Document manual rotation procedure
+     - Decrypt all credentials with old key
+     - Re-encrypt with new key
+     - Update environment variable
+     - Verify all credentials still work
+  2. **Phase 2**: CLI tool for automated rotation
+     ```bash
+     pnpm credential:rotate --old-key <hex> --new-key <hex>
+     ```
+  3. **Phase 3**: Consider dual-key support during transition
+     - Allow old key as fallback during migration window
+     - Auto-upgrade on decrypt (re-encrypt with new key)
+- **Security Considerations**:
+  - Rotation must be atomic (all-or-nothing)
+  - Old key should be securely destroyed after rotation
+  - Audit log should record rotation events
+  - Backup strategy before rotation is critical
+- **Related Tasks**: [E04-T012: AI credentials schema and encryption](/backlog/tasks/E04/E04-T012.md)
 
 ### Low Priority
 

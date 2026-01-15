@@ -13,9 +13,9 @@ Systematic tracking of technical improvements identified through epic reviews, c
 
 - **Critical (Blocking)**: 0 items
 - **High Priority**: 1 item
-- **Medium Priority**: 1 item
+- **Medium Priority**: 2 items
 - **Low Priority**: 3 items
-- **Total Active**: 5 items
+- **Total Active**: 6 items
 - **Completed (Last 30 Days)**: 4 items
 
 ::: tip No Critical Items
@@ -75,9 +75,9 @@ Recent focus: Graceful shutdown handlers for database connections.
 
 ### AI Gateway Integration
 
-**Active:** 1 Low
+**Active:** 1 Medium, 1 Low
 
-Recent focus: Error handling improvements for timeout accuracy.
+Recent focus: Credential encryption key rotation procedure, error handling improvements.
 
 [View AI Improvements →](/improvements/ai)
 

@@ -16,30 +16,35 @@ Integrate OpenRouter as the AI gateway, implement chat session management with m
 
 ## Success Criteria
 
-- [ ] OpenRouter client configured with model selection and streaming
-- [ ] Session and message schemas support chat history
+- [x] OpenRouter client configured with model selection and streaming
+- [x] Session and message schemas support chat history
+- [ ] Per-group AI credentials stored encrypted in database
 - [ ] Chat message flow handles user input → AI response → persistence
 - [ ] SSE streaming from AI to client works reliably
 - [ ] Tool YAML definitions control model selection and behavior
 - [ ] Usage tracking records tokens and costs per request
 - [ ] Error handling for AI failures (rate limits, timeouts, invalid responses)
-- [ ] Integration tests verify end-to-end chat flow
+- [ ] Integration tests verify end-to-end chat flow with real API
 
 ## Tasks
 
-| ID       | Title                                     | Priority | Depends On       |
-| -------- | ----------------------------------------- | -------- | ---------------- |
-| E04-T001 | Sessions and messages schemas             | critical | -                |
-| E04-T002 | OpenRouter client with streaming          | critical | -                |
-| E04-T003 | Usage tracking schema and service         | high     | E04-T002         |
-| E04-T004 | SessionService with message persistence   | high     | E04-T001         |
-| E04-T005 | Chat message flow and context building    | critical | E04-T002, E04-T004 |
-| E04-T006 | SSE streaming endpoint                    | high     | E04-T005         |
-| E04-T007 | Chat API routes                           | high     | E04-T006         |
-| E04-T008 | Chat integration tests                    | high     | E04-T007         |
-| E04-T009 | Chat schema enhancements (E04-T001 follow-up) | medium | E04-T001 |
-| E04-T010 | Chat forking support (branch conversations) | medium | E04-T001, E04-T009 |
-| E04-T011 | Message attachments schema (uploaded files) | medium | E04-T001, E04-T009 |
+| ID       | Title                                     | Priority | Depends On         | Status |
+| -------- | ----------------------------------------- | -------- | ------------------ | ------ |
+| E04-T001 | Sessions and messages schemas             | critical | -                  | ✅ Done |
+| E04-T002 | OpenRouter client with streaming          | critical | -                  | ✅ Done |
+| E04-T003 | Usage tracking schema and service         | high     | E04-T002           | Todo   |
+| E04-T004 | SessionService with message persistence   | high     | E04-T001           | Todo   |
+| E04-T005 | Chat message flow and context building    | critical | E04-T002, E04-T004, E04-T014 | Todo |
+| E04-T006 | SSE streaming endpoint                    | high     | E04-T005           | Todo   |
+| E04-T007 | Chat API routes                           | high     | E04-T006           | Todo   |
+| E04-T008 | Chat integration tests                    | high     | E04-T007           | Todo   |
+| E04-T009 | Chat schema enhancements (E04-T001 follow-up) | medium | E04-T001        | ✅ Done |
+| E04-T010 | Chat forking support (branch conversations) | medium | E04-T001, E04-T009 | ✅ Done |
+| E04-T011 | Message attachments schema (uploaded files) | medium | E04-T001, E04-T009, E05 | Todo |
+| E04-T012 | AI credentials schema and encryption      | critical | -                  | Todo   |
+| E04-T013 | Credential management service and API     | critical | E04-T012           | Todo   |
+| E04-T014 | Integrate credentials with OpenRouterClient | critical | E04-T012, E04-T002 | Todo |
+| E04-T015 | Validate AI client with real API keys     | high     | E04-T014           | Todo   |
 
 ## Out of Scope
 
@@ -84,13 +89,14 @@ User → POST /sessions/:id/messages (SSE)
 **OpenRouter Integration:**
 
 - Use OpenAI-compatible API (same SDK)
-- Model specified in tool YAML definition
-- Fallback to env var AI_DEFAULT_MODEL if not specified
+- **Per-group API keys** stored encrypted in database (@noble/ciphers XChaCha20-Poly1305)
+- Model specified in tool YAML definition, fallback to AI_DEFAULT_MODEL
 - Track usage via response metadata
+- Groups without credentials see "AI not configured" error
 
 **Session Management:**
 
-- Sessions have state: active, paused, completed
+- Sessions have state: active, completed (paused removed per YAGNI in E04-T009)
 - Messages stored with role (user, assistant, system) and sequence number
 - System message built from tool behavior definition
 - History context limited to last N messages (configurable)
