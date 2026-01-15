@@ -153,6 +153,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Enable PostgreSQL extensions
+        run: |
+          psql -h localhost -U postgres -d raptscallions_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run database migrations
+        run: pnpm --filter @raptscallions/db db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+
+      - name: Verify migration tracking table
+        run: |
+          MIGRATION_COUNT=$(psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM __drizzle_migrations")
+          echo "Applied migrations: $MIGRATION_COUNT"
+          if [ "$MIGRATION_COUNT" -lt 1 ]; then
+            echo "ERROR: No migrations found in tracking table"
+            exit 1
+          fi
+        env:
+          PGPASSWORD: postgres
+
       - name: Run tests
         run: pnpm test
         env:
@@ -227,6 +249,28 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Enable PostgreSQL extensions
+        run: |
+          psql -h localhost -U postgres -d raptscallions_test -c "CREATE EXTENSION IF NOT EXISTS ltree;"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run database migrations
+        run: pnpm --filter @raptscallions/db db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/raptscallions_test
+
+      - name: Verify migration tracking table
+        run: |
+          MIGRATION_COUNT=$(psql -h localhost -U postgres -d raptscallions_test -t -c "SELECT COUNT(*) FROM __drizzle_migrations")
+          echo "Applied migrations: $MIGRATION_COUNT"
+          if [ "$MIGRATION_COUNT" -lt 1 ]; then
+            echo "ERROR: No migrations found in tracking table"
+            exit 1
+          fi
+        env:
+          PGPASSWORD: postgres
 
       - name: Run tests with coverage
         run: pnpm test:coverage
