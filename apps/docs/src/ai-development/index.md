@@ -1,6 +1,7 @@
 ---
 title: AI-Assisted Development
 description: How RaptScallions uses AI agents throughout the development workflow
+source_synced_at: 2026-01-16
 ---
 
 # AI-Assisted Development
@@ -11,12 +12,12 @@ RaptScallions uses a heavily agentic development process where AI agents collabo
 
 | Agent Type | Role | Invoked By |
 |------------|------|------------|
-| Analyst | Requirements analysis, approach exploration | `/analyze` command |
-| Architect | Approach selection, spec creation | `/review-plan` command |
-| Developer | TDD implementation (tests first, then code) | `/write-tests`, `/implement` commands |
-| Designer | UX review of specs and implementations | `/review-ux`, `/review-ui` commands |
-| QA | Validation against acceptance criteria | `/qa` command |
-| Reviewer | Code review | `/review-code` command |
+| [Analyst](/ai-development/agents/current/analyst) | Requirements analysis, approach exploration | `/analyze` command |
+| [Architect](/ai-development/agents/current/architect) | Approach selection, spec creation | `/review-plan` command |
+| [Developer](/ai-development/agents/current/developer) | TDD implementation (tests first, then code) | `/write-tests`, `/implement` commands |
+| [Designer](/ai-development/agents/current/designer) | UX review of specs and implementations | `/review-ux`, `/review-ui` commands |
+| [QA](/ai-development/agents/current/qa) | Validation against acceptance criteria | `/qa` command |
+| [Reviewer](/ai-development/agents/current/reviewer) | Code review | `/review-code` command |
 
 ## Workflow
 
@@ -48,6 +49,7 @@ Task Created → Analyze → Review Plan → Write Tests → Implement → Revie
 |------|---------|
 | `.claude/agents/` | Agent definitions and responsibilities |
 | `.claude/commands/` | Slash command implementations |
+| `.claude/workflows/` | Workflow definitions |
 | `.claude/settings.json` | Agent configuration |
 
 ## Sections
@@ -55,19 +57,10 @@ Task Created → Analyze → Review Plan → Write Tests → Implement → Revie
 - [Concepts](/ai-development/concepts/) — Core ideas: agent architecture, workflow states, task lifecycle
 - [Patterns](/ai-development/patterns/) — Reusable approaches: TDD workflow, multi-agent handoff
 - [Decisions](/ai-development/decisions/) — Architecture decision records for agentic development
-- [Agents](/ai-development/agents/) — Agent documentation (current and deprecated)
+- [Agents](/ai-development/agents/) — Agent documentation ([current](/ai-development/agents/current/) and [deprecated](/ai-development/agents/deprecated/))
 - [Commands](/ai-development/commands/) — Slash command reference
-- [Workflows](/ai-development/workflows/) — Prescriptive vs deliberative workflow styles
+- [Workflows](/ai-development/workflows/) — [Deliberative](/ai-development/workflows/deliberative) (current) vs [prescriptive](/ai-development/workflows/prescriptive) (historical)
 - [Troubleshooting](/ai-development/troubleshooting/) — Common issues and solutions
-
-## Implementation Tasks
-
-| Task | Description | Status |
-|------|-------------|--------|
-| [E06-T013](/backlog/tasks/E06/E06-T013.md) | KB framework structure | In Progress |
-| [E06-T014](/backlog/tasks/E06/E06-T014.md) | Current agents and commands | Pending |
-| [E06-T015](/backlog/tasks/E06/E06-T015.md) | Historical prescriptive workflow | Pending |
-| [E06-T016](/backlog/tasks/E06/E06-T016.md) | Current deliberative workflow | Pending |
 
 ## Related Domains
 

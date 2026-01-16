@@ -128,6 +128,8 @@ id: "E05-T003"
 title: "Concise task title"
 status: "todo"
 priority: "critical"
+task_type: "backend"  # backend | frontend | fullstack
+workflow: "development"  # development | schema | infrastructure | documentation | bugfix
 epic: "E05"
 depends_on: ["E05-T001", "E05-T002"]
 blocks: ["E05-T006"]
@@ -164,6 +166,23 @@ Technical or business requirements that affect implementation:
 - Data integrity: Must maintain referential integrity
 - Scalability: Must handle N concurrent users
 
+## Workflow
+
+**Category:** `development` (standard)
+
+**Rationale:** [1-2 sentences explaining why this category/variant applies to this task]
+
+**Phases:**
+1. `/analyze` - Research codebase and write analysis
+2. Human approval of approach
+3. `/review-plan` - Architect validates approach
+4. `/write-tests` - TDD red phase
+5. `/implement` - Write code to pass tests
+6. `/review-code` - Fresh-eyes code review
+7. `/qa` - Validation and integration tests
+8. `/update-docs` - Update documentation
+9. PR creation
+
 ## Out of Scope
 
 What this task explicitly does NOT include:
@@ -178,6 +197,8 @@ Links to relevant docs, related tasks, or architectural decisions:
 - Connects to auth system from E02-T003
 - Uses pattern from E04-T002
 ```
+
+**CRITICAL: The Workflow section MUST include the Phases list.** This tells agents and humans exactly what commands to run for this task. Consult `.claude/workflows/{category}.md` for the correct phases for each workflow category.
 
 ### Task Quality Checklist
 
