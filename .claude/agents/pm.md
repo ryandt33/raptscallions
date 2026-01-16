@@ -137,10 +137,20 @@ pr_url: ""
 
 ## Workflow
 
-- **Category:** development
-- **Variant:** standard
-- **Labels:** (none / frontend / security / etc.)
-- **Rationale:** [Why this category/variant was chosen]
+**Category:** `development` (standard)
+
+**Rationale:** [1-2 sentences explaining why this category/variant was chosen based on task characteristics]
+
+**Phases:**
+1. `/analyze` - Research codebase and write analysis
+2. Human approval of approach
+3. `/review-plan` - Architect validates approach
+4. `/write-tests` - TDD red phase
+5. `/implement` - Write code to pass tests
+6. `/review-code` - Fresh-eyes code review
+7. `/qa` - Validation and integration tests
+8. `/update-docs` - Update documentation
+9. PR creation
 
 ### First Command
 
@@ -292,20 +302,34 @@ Apply these labels to modify workflow behavior:
 
 ### Task File Workflow Section
 
-Add this section to all task files:
+Add this section to all task files. **You MUST include the full list of phases** so agents and humans know exactly what commands to run:
 
 ```markdown
 ## Workflow
 
-- **Category:** development
-- **Variant:** standard
-- **Labels:** frontend
-- **Rationale:** New API route with React component
+**Category:** `development` (standard)
+
+**Rationale:** New API route with React component requiring full TDD workflow with UI review.
+
+**Phases:**
+1. `/analyze` - Research codebase and write analysis
+2. Human approval of approach
+3. `/review-plan` - Architect validates approach
+4. `/review-ux` - Designer reviews spec for UX concerns
+5. `/write-tests` - TDD red phase
+6. `/implement` - Write code to pass tests
+7. `/review-ui` - Designer reviews implemented UI
+8. `/review-code` - Fresh-eyes code review
+9. `/qa` - Validation and integration tests
+10. `/update-docs` - Update documentation
+11. PR creation
 
 ### First Command
 
 Run `/analyze E01-T003` (analyst)
 ```
+
+**Important:** The phases list should be the exact commands for THIS task's workflow. Different categories have different phases. Consult `.claude/workflows/{category}.md` for the correct phase list.
 
 ### Workflow Reference
 

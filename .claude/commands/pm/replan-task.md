@@ -164,6 +164,50 @@ Schools need to monitor AI costs to stay within budget. Teachers need visibility
 
 ---
 
+### Problem 6: Missing or Incomplete Workflow Section
+
+**Signs:**
+- No Workflow section at all
+- Workflow section missing "Phases" list
+- `task_type` or `workflow` missing from frontmatter
+- Phases list doesn't match the workflow category
+
+**Example:**
+```markdown
+## Workflow
+
+- **Category:** development
+- **Variant:** standard
+
+### First Command
+
+Run `/analyze E01-T003` (analyst)
+```
+
+**Problem:** Missing the Phases list. Agents and humans don't know what commands come after `/analyze`.
+
+**Fix:** Add complete workflow section with phases from `.claude/workflows/{category}.md`:
+```markdown
+## Workflow
+
+**Category:** `development` (standard)
+
+**Rationale:** New API route with React component requiring full TDD workflow.
+
+**Phases:**
+1. `/analyze` - Research codebase and write analysis
+2. Human approval of approach
+3. `/review-plan` - Architect validates approach
+4. `/write-tests` - TDD red phase
+5. `/implement` - Write code to pass tests
+6. `/review-code` - Fresh-eyes code review
+7. `/qa` - Validation and integration tests
+8. `/update-docs` - Update documentation
+9. PR creation
+```
+
+---
+
 ## Process
 
 1. **Load the pm agent:** `@pm`
@@ -176,6 +220,8 @@ Schools need to monitor AI costs to stay within budget. Teachers need visibility
    - Check for implementation prescriptions
    - Check for missing "Why This Matters"
    - Check for vague or missing constraints
+   - Check for missing/incomplete Workflow section (must have Phases list)
+   - Check that `task_type` and `workflow` are in frontmatter
 4. **Determine if split needed:**
    - If 15+ AC → definitely split
    - If multiple domains (DB + API + UI) → split
@@ -191,6 +237,7 @@ Schools need to monitor AI costs to stay within budget. Teachers need visibility
    - **Why This Matters:** User value, business justification
    - **Acceptance Criteria:** Observable behaviors, 5-10 items
    - **Constraints:** Performance, security, integration requirements
+   - **Workflow:** Category, Rationale, and full Phases list from `.claude/workflows/{category}.md`
    - **Out of Scope:** What this explicitly doesn't include
    - **Context:** Relevant docs, patterns, WITHOUT implementation code
 7. **Preserve metadata:**
@@ -211,6 +258,8 @@ id: "E05-T006a"  # Original ID with subtask suffix if split
 title: "Concise, outcome-focused title"
 status: "todo"
 priority: "critical"
+task_type: "backend"  # backend | frontend | fullstack
+workflow: "development"  # development | schema | infrastructure | documentation | bugfix
 labels: [backend, service]
 epic: "E05"
 depends_on: ["E05-T001"]
@@ -246,6 +295,23 @@ Technical/business requirements (NO prescribed solutions):
 - Concurrency: Handles M simultaneous operations without race conditions
 - Data integrity: Maintains referential integrity with entity X
 
+## Workflow
+
+**Category:** `development` (standard)
+
+**Rationale:** [1-2 sentences explaining why this category/variant applies]
+
+**Phases:**
+1. `/analyze` - Research codebase and write analysis
+2. Human approval of approach
+3. `/review-plan` - Architect validates approach
+4. `/write-tests` - TDD red phase
+5. `/implement` - Write code to pass tests
+6. `/review-code` - Fresh-eyes code review
+7. `/qa` - Validation and integration tests
+8. `/update-docs` - Update documentation
+9. PR creation
+
 ## Out of Scope
 
 What this task does NOT include:
@@ -266,6 +332,8 @@ Relevant architecture, patterns, or integration points:
 | 2026-01-13 | REPLANNED | pm | Original task too large, split into subtasks |
 | 2026-01-13 | DRAFT | pm | Task created for Epic E05 |
 ```
+
+**CRITICAL: The Workflow section MUST include the Phases list.** Consult `.claude/workflows/{category}.md` for the correct phases for each workflow category (development, schema, infrastructure, documentation, bugfix).
 
 ---
 
@@ -588,11 +656,13 @@ E05-T006a (limits) → E05-T006b (upload) → E05-T006c (download)
 - [ ] "Why This Matters" section explaining value
 - [ ] 5-10 observable acceptance criteria
 - [ ] Constraints section (performance, security, etc.)
+- [ ] **Workflow section with Category, Rationale, and Phases list**
 - [ ] Out of scope section
 - [ ] Context without code
 - [ ] Appropriate size (1-3 hours)
 - [ ] No implementation details in AC
 - [ ] No code in description or notes
+- [ ] `task_type` and `workflow` fields in frontmatter
 
 ---
 
