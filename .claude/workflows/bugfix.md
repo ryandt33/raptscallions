@@ -86,32 +86,32 @@ For critical bugs requiring immediate attention:
 
 ### Simple Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → FIXING | `/implement` | developer | Task file | Fix code |
-| FIXING → VERIFICATION | `/verify-fix` | qa | Fix + bug report | Verification report |
-| VERIFICATION → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → FIXING | `/developer:implement` | Task file | Fix code |
+| FIXING → VERIFICATION | `/qa:verify-fix` | Fix + bug report | Verification report |
+| VERIFICATION → PR_READY | — | — | Manual PR creation |
 
 ### Standard Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → INVESTIGATING | `/investigate` | developer | Bug report | Root cause analysis |
-| INVESTIGATING → TESTS_READY | `/write-tests` | developer | Root cause | Regression test (failing) |
-| TESTS_READY → FIXING | `/implement` | developer | Test + root cause | Fix code (test passes) |
-| FIXING → CODE_REVIEW | `/review-code` | reviewer | Fix code | Review report |
-| CODE_REVIEW → VERIFICATION | `/verify-fix` | qa | All artifacts | Verification report |
-| VERIFICATION → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → INVESTIGATING | `/developer:investigate` | Bug report | Root cause analysis |
+| INVESTIGATING → TESTS_READY | `/developer:write-tests` | Root cause | Regression test (failing) |
+| TESTS_READY → FIXING | `/developer:implement` | Test + root cause | Fix code (test passes) |
+| FIXING → CODE_REVIEW | `/reviewer:review-code` | Fix code | Review report |
+| CODE_REVIEW → VERIFICATION | `/qa:verify-fix` | All artifacts | Verification report |
+| VERIFICATION → PR_READY | — | — | Manual PR creation |
 
 ### Hotfix Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → INVESTIGATING | `/investigate` | developer | Bug report | Root cause (quick) |
-| INVESTIGATING → FIXING | `/implement` | developer | Root cause | Fix code |
-| FIXING → TESTS_READY | `/write-tests` | developer | Fix code | Regression test |
-| TESTS_READY → VERIFICATION | `/verify-fix` | qa | All artifacts | Verification report |
-| VERIFICATION → PR_READY | — | — | — | Manual PR + follow-up task |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → INVESTIGATING | `/developer:investigate` | Bug report | Root cause (quick) |
+| INVESTIGATING → FIXING | `/developer:implement` | Root cause | Fix code |
+| FIXING → TESTS_READY | `/developer:write-tests` | Fix code | Regression test |
+| TESTS_READY → VERIFICATION | `/qa:verify-fix` | All artifacts | Verification report |
+| VERIFICATION → PR_READY | — | — | Manual PR + follow-up task |
 
 ---
 
@@ -356,27 +356,27 @@ When a hotfix completes, automatically create a follow-up task:
 
 **Start a simple bugfix:**
 ```bash
-/implement E06-T020         # Fix the bug
-/verify-fix E06-T020        # QA verification
+/developer:implement E06-T020   # Fix the bug
+/qa:verify-fix E06-T020         # QA verification
 # Manual: create PR and merge
 ```
 
 **Start a standard bugfix:**
 ```bash
-/investigate E06-T021       # Find root cause
-/write-tests E06-T021       # Write failing regression test
-/implement E06-T021         # Fix (test should pass)
-/review-code E06-T021       # Code review
-/verify-fix E06-T021        # QA verification
+/developer:investigate E06-T021   # Find root cause
+/developer:write-tests E06-T021   # Write failing regression test
+/developer:implement E06-T021     # Fix (test should pass)
+/reviewer:review-code E06-T021    # Code review
+/qa:verify-fix E06-T021           # QA verification
 # Manual: create PR and merge
 ```
 
 **Start a hotfix:**
 ```bash
-/investigate E06-T022       # Quick root cause
-/implement E06-T022         # Fix immediately
-/write-tests E06-T022       # Regression test after fix
-/verify-fix E06-T022        # QA verification
+/developer:investigate E06-T022   # Quick root cause
+/developer:implement E06-T022     # Fix immediately
+/developer:write-tests E06-T022   # Regression test after fix
+/qa:verify-fix E06-T022           # QA verification
 # Manual: create PR, merge, follow-up task auto-created
 ```
 

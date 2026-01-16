@@ -43,16 +43,16 @@ Based on the task workflow:
 **If APPROVED (no issues or all issues addressed):**
 
 **Development workflow:**
-Run `/qa {task-id}` (qa) - QA validation and integration testing
+Run `/qa:qa {task-id}` - QA validation and integration testing
 
 **Infrastructure workflow (standard):**
-Run `/qa {task-id}` (qa) - Validation
+Run `/qa:qa {task-id}` - Validation
 
 **Bugfix workflow (standard):**
-Run `/verify-fix {task-id}` (qa) - Verify bug is fixed
+Run `/qa:verify-fix {task-id}` - Verify bug is fixed
 
 **If NEEDS_REVISION:**
-Run `/implement {task-id}` (developer) - Address review feedback
+Run `/developer:implement {task-id}` - Address review feedback
 
 ---
 

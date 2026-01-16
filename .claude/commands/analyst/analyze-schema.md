@@ -180,7 +180,7 @@ Add to History:
 
 Based on the **schema** workflow:
 
-Run `/review-plan {task-id}` (architect) - Tech debt sign-off required
+Run `/architect:review-plan {task-id}` - Tech debt sign-off required
 
 ---
 

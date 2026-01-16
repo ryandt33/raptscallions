@@ -45,7 +45,7 @@ Review the 3 proposed approaches. You can:
 
 Based on the **development** workflow:
 
-Run `/review-plan {task-id}` (architect) - Validate approach and create implementation spec
+Run `/architect:review-plan {task-id}` - Validate approach and create implementation spec
 
 ---
 

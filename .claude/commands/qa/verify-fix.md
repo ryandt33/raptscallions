@@ -147,7 +147,7 @@ Task is ready for PR review and merge.
 
 **If not verified:**
 
-Run `/implement {task-id}` (developer) - Fix needs more work
+Run `/developer:implement {task-id}` - Fix needs more work
 
 ---
 

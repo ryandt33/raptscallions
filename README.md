@@ -74,6 +74,36 @@ pnpm dev
 pnpm --filter @raptscallions/api dev
 ```
 
+## MinIO Object Storage
+
+The development environment includes MinIO, an S3-compatible object storage service for testing file uploads locally.
+
+### Accessing the MinIO Console
+
+When running with Docker Compose, the MinIO web console is available at:
+
+- **URL**: http://localhost:9001
+- **Username**: minioadmin (or `MINIO_ROOT_USER` if set)
+- **Password**: minioadmin (or `MINIO_ROOT_PASSWORD` if set)
+
+The console allows you to:
+- Browse uploaded files
+- Create/delete buckets
+- Manage access policies
+- View storage metrics
+
+### Storage Configuration
+
+The API server connects to MinIO automatically when using Docker Compose. When running the app outside Docker (`pnpm dev`), ensure MinIO is running and update your `.env`:
+
+```bash
+STORAGE_BACKEND=s3
+STORAGE_S3_ENDPOINT=http://localhost:9000
+STORAGE_S3_BUCKET=raptscallions-files
+```
+
+See `.env.example` for all storage configuration options.
+
 ## API Server
 
 The Fastify API server (`apps/api`) provides the backend foundation with:

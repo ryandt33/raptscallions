@@ -47,14 +47,14 @@ Review the selected approach and constraints. You can:
 Based on the task workflow:
 
 **Development workflow:**
-- If task has `frontend` label: Run `/review-ux {task-id}` (designer)
-- Otherwise: Run `/write-tests {task-id}` (developer)
+- If task has `frontend` label: Run `/designer:review-ux {task-id}`
+- Otherwise: Run `/developer:write-tests {task-id}`
 
 **Schema workflow:**
-Run `/implement {task-id}` (developer) - Create migration
+Run `/developer:implement {task-id}` - Create migration
 
 **Infrastructure workflow (standard):**
-Run `/write-tests {task-id}` (developer) - Write tests for scripts
+Run `/developer:write-tests {task-id}` - Write tests for scripts
 
 ---
 

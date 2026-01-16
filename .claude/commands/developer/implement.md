@@ -176,26 +176,26 @@ if (!artifactStep) {
 Based on the task workflow:
 
 **Development workflow:**
-- If task has `frontend` label: Run `/review-ui {task-id}` (designer)
-- Otherwise: Run `/review-code {task-id}` (reviewer)
+- If task has `frontend` label: Run `/designer:review-ui {task-id}`
+- Otherwise: Run `/reviewer:review-code {task-id}`
 
 **Schema workflow:**
-Run `/review-migration {task-id}` (reviewer) - Migration safety review
+Run `/reviewer:review-migration {task-id}` - Migration safety review
 
 **Infrastructure workflow (standard):**
-Run `/review-code {task-id}` (reviewer) - Code review
+Run `/reviewer:review-code {task-id}` - Code review
 
 **Infrastructure workflow (simple - `infra:simple`):**
-Run `/update-docs {task-id}` (writer) - Update documentation
+Run `/writer:update-docs {task-id}` - Update documentation
 
 **Bugfix workflow (standard):**
-Run `/review-code {task-id}` (reviewer) - Code review
+Run `/reviewer:review-code {task-id}` - Code review
 
 **Bugfix workflow (simple - `bugfix:simple`):**
-Run `/verify-fix {task-id}` (qa) - Verify bug is fixed
+Run `/qa:verify-fix {task-id}` - Verify bug is fixed
 
 **Bugfix workflow (hotfix - `bugfix:hotfix`):**
-Run `/write-tests {task-id}` (developer) - Write regression test (after fix)
+Run `/developer:write-tests {task-id}` - Write regression test (after fix)
 
 ---
 

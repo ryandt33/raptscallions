@@ -97,3 +97,10 @@ export type {
   GcsConfig,
   AliyunConfig,
 } from "./config.js";
+
+// Backend implementations
+export { S3StorageBackend, createS3Backend } from "./backends/index.js";
+export type {
+  S3StorageBackendOptions,
+  PresignerFunction,
+} from "./backends/index.js";

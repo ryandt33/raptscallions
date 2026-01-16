@@ -22,18 +22,18 @@ DOCS_UPDATE → PR_READY → DONE
 
 ## Phase Reference
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → ANALYZED | `/analyze` | analyst | Task file | Analysis with 3 approaches |
-| ANALYZED → UX_REVIEW | `/review-ux` | designer | Analysis | UX review (appended to spec) |
-| UX_REVIEW → PLAN_REVIEW | `/review-plan` | architect | Analysis + UX review | Implementation spec |
-| APPROVED → TESTS_READY | `/write-tests` | developer | Spec | Failing tests (TDD red) |
-| TESTS_READY → IMPLEMENTING | `/implement` | developer | Failing tests | Passing code (TDD green) |
-| IMPLEMENTING → UI_REVIEW | `/review-ui` | designer | Code + tests | UI review report |
-| UI_REVIEW → CODE_REVIEW | `/review-code` | reviewer | Code + tests | Code review report |
-| CODE_REVIEW → QA_REVIEW | `/qa` | qa | Code + reviews | QA report (unit + integration) |
-| QA_REVIEW → DOCS_UPDATE | `/update-docs` | writer | All artifacts | Documentation updates |
-| DOCS_UPDATE → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → ANALYZED | `/analyst:analyze` | Task file | Analysis with 3 approaches |
+| ANALYZED → UX_REVIEW | `/designer:review-ux` | Analysis | UX review (appended to spec) |
+| UX_REVIEW → PLAN_REVIEW | `/architect:review-plan` | Analysis + UX review | Implementation spec |
+| APPROVED → TESTS_READY | `/developer:write-tests` | Spec | Failing tests (TDD red) |
+| TESTS_READY → IMPLEMENTING | `/developer:implement` | Failing tests | Passing code (TDD green) |
+| IMPLEMENTING → UI_REVIEW | `/designer:review-ui` | Code + tests | UI review report |
+| UI_REVIEW → CODE_REVIEW | `/reviewer:review-code` | Code + tests | Code review report |
+| CODE_REVIEW → QA_REVIEW | `/qa:qa` | Code + reviews | QA report (unit + integration) |
+| QA_REVIEW → DOCS_UPDATE | `/writer:update-docs` | All artifacts | Documentation updates |
+| DOCS_UPDATE → PR_READY | — | — | Manual PR creation |
 
 ---
 
@@ -434,32 +434,32 @@ DONE
 
 **Start a task:**
 ```bash
-/analyze E01-T001
+/analyst:analyze E01-T001
 ```
 
 **Full sequence (backend):**
 ```bash
-/analyze E01-T001       # Explore approaches
-/review-plan E01-T001   # Create spec
-/write-tests E01-T001   # Write failing tests
-/implement E01-T001     # Make tests pass
-/review-code E01-T001   # Code quality review
-/qa E01-T001            # Validate + integration test
-/update-docs E01-T001   # Update documentation
+/analyst:analyze E01-T001        # Explore approaches
+/architect:review-plan E01-T001  # Create spec
+/developer:write-tests E01-T001  # Write failing tests
+/developer:implement E01-T001    # Make tests pass
+/reviewer:review-code E01-T001   # Code quality review
+/qa:qa E01-T001                  # Validate + integration test
+/writer:update-docs E01-T001     # Update documentation
 # Manual: create PR and merge
 ```
 
 **Full sequence (frontend):**
 ```bash
-/analyze E01-T001       # Explore approaches
-/review-ux E01-T001     # UX review
-/review-plan E01-T001   # Create spec
-/write-tests E01-T001   # Write failing tests
-/implement E01-T001     # Make tests pass
-/review-ui E01-T001     # UI quality review
-/review-code E01-T001   # Code quality review
-/qa E01-T001            # Validate + integration test
-/update-docs E01-T001   # Update documentation
+/analyst:analyze E01-T001        # Explore approaches
+/designer:review-ux E01-T001     # UX review
+/architect:review-plan E01-T001  # Create spec
+/developer:write-tests E01-T001  # Write failing tests
+/developer:implement E01-T001    # Make tests pass
+/designer:review-ui E01-T001     # UI quality review
+/reviewer:review-code E01-T001   # Code quality review
+/qa:qa E01-T001                  # Validate + integration test
+/writer:update-docs E01-T001     # Update documentation
 # Manual: create PR and merge
 ```
 

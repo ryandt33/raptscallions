@@ -123,7 +123,7 @@ Add to History:
 Based on the **documentation** workflow:
 
 **Standard workflow:**
-Run `/review-docs {task-id}` (writer) - Technical accuracy review
+Run `/writer:review-docs {task-id}` - Technical accuracy review
 
 **Simple workflow (`docs:simple`):**
 Task is ready for PR creation (human step)

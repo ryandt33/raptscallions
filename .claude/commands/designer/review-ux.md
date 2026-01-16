@@ -34,10 +34,10 @@ Review an implementation spec for user experience concerns before architecture r
 Based on the **development** workflow (frontend):
 
 **If APPROVED:**
-Run `/write-tests {task-id}` (developer) - Write tests (TDD red phase)
+Run `/developer:write-tests {task-id}` - Write tests (TDD red phase)
 
 **If NEEDS_REVISION:**
-Run `/analyze {task-id}` (analyst) - Revise analysis based on UX feedback
+Run `/analyst:analyze {task-id}` - Revise analysis based on UX feedback
 
 ---
 

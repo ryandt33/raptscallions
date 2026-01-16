@@ -7,6 +7,8 @@ related_code:
   - packages/storage/src/factory.ts
   - packages/storage/src/errors.ts
   - packages/storage/src/index.ts
+  - packages/storage/src/backends/s3.backend.ts
+  - packages/storage/src/backends/index.ts
 implements_task: E05-T002a
 last_verified: 2026-01-16
 ---
@@ -310,10 +312,12 @@ expect(isBackendCached("local")).toBe(true);
 
 **Related Documentation:**
 - [Configuration](/storage/concepts/configuration) — Environment variables and backend-specific settings
+- [S3-Compatible Backend](/storage/patterns/s3-backend) — Using the S3StorageBackend for AWS S3, MinIO, and other S3-compatible services
 - [Custom Backends](/storage/patterns/custom-backends) — How to implement your own storage backend
 - [Error Handling](/api/patterns/error-handling) — Error handling patterns for API routes
 
 **Implementation:**
+- [E05-T003a: S3-compatible storage backend implementation](/backlog/tasks/E05/E05-T003a.md) ([spec](/backlog/docs/specs/E05/E05-T003a-spec.md), [code review](/backlog/docs/reviews/E05/E05-T003a-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T003a-qa-report.md))
 - [E05-T002a: Storage backend interface and plugin system](/backlog/completed/E05/E05-T002a.md) ([spec](/backlog/docs/specs/E05/E05-T002a-spec.md), [code review](/backlog/docs/reviews/E05/E05-T002a-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T002a-qa-report.md))
 
 **Source Files:**

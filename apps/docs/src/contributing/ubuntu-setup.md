@@ -169,11 +169,11 @@ This installs 610+ packages across all workspace projects. It takes 2-3 minutes 
 
 ## Step 5: Start Database Services
 
-### Start PostgreSQL and Redis
+### Start PostgreSQL, Redis, and MinIO
 
 ```bash
-# Start database services in the background
-docker compose up -d postgres redis
+# Start database and storage services in the background
+docker compose up -d postgres redis minio minio-init
 
 # Wait a few seconds for services to start
 sleep 5
@@ -182,10 +182,19 @@ sleep 5
 docker compose ps
 ```
 
-You should see both `raptscallions-postgres` and `raptscallions-redis` with status "Up" and "healthy".
+You should see these containers with status "Up" and "healthy":
+- `raptscallions-postgres` - PostgreSQL database
+- `raptscallions-redis` - Redis cache
+- `raptscallions-minio` - MinIO S3-compatible storage
+
+The `raptscallions-minio-init` container will show "Exited (0)" which is expected - it runs once to create the default bucket and exits.
 
 ::: info Port Configuration
-PostgreSQL runs on port **5433** (not 5432) to avoid conflicts with existing PostgreSQL installations. This is configured in the `.env` file.
+- **PostgreSQL**: Port 5433 (not 5432) to avoid conflicts with existing installations
+- **MinIO API**: Port 9000
+- **MinIO Console**: Port 9001 - Web UI for browsing files
+
+These ports are configured in `.env` and can be changed if you have conflicts.
 :::
 
 ### Run Database Migrations
@@ -332,6 +341,23 @@ cd packages/db && pnpm db:push
 
 # View database in CLI
 docker exec -it raptscallions-postgres psql -U raptscallions -d raptscallions
+```
+
+### MinIO (S3 Storage)
+
+```bash
+# Access MinIO web console
+# URL: http://localhost:9001
+# Username: minioadmin
+# Password: minioadmin
+
+# View MinIO logs
+docker compose logs minio
+
+# Reset MinIO data (clears all files)
+docker compose down
+docker volume rm raptscallions_minio_data
+docker compose up -d
 ```
 
 ### Documentation
