@@ -58,15 +58,15 @@ Any task that doesn't meet simple criteria, including:
 
 ## Phase Reference
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → SCHEMA_ANALYZED | `/analyze-schema` | schema-analyst | Task file | Schema analysis with tech debt assessment |
-| SCHEMA_ANALYZED → PLAN_REVIEW | `/review-plan` | architect | Schema analysis | Implementation spec (approved schema) |
-| APPROVED → IMPLEMENTING | `/implement` | developer | Spec | Schema + migration files |
-| IMPLEMENTING → MIGRATION_REVIEW | `/review-migration` | reviewer | Migration files | Migration review report |
-| MIGRATION_REVIEW → QA_REVIEW | `/qa` | qa | Schema + migration | QA report (unit + integration) |
-| QA_REVIEW → DOCS_UPDATE | `/update-docs` | writer | All artifacts | Documentation updates |
-| DOCS_UPDATE → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → SCHEMA_ANALYZED | `/analyst:analyze-schema` | Task file | Schema analysis with tech debt assessment |
+| SCHEMA_ANALYZED → PLAN_REVIEW | `/architect:review-plan` | Schema analysis | Implementation spec (approved schema) |
+| APPROVED → IMPLEMENTING | `/developer:implement` | Spec | Schema + migration files |
+| IMPLEMENTING → MIGRATION_REVIEW | `/reviewer:review-migration` | Migration files | Migration review report |
+| MIGRATION_REVIEW → QA_REVIEW | `/qa:qa` | Schema + migration | QA report (unit + integration) |
+| QA_REVIEW → DOCS_UPDATE | `/writer:update-docs` | All artifacts | Documentation updates |
+| DOCS_UPDATE → PR_READY | — | — | Manual PR creation |
 
 ---
 
@@ -417,22 +417,22 @@ DONE
 
 **Start a simple schema task:**
 ```bash
-/analyze-schema E01-T007   # Schema analysis (data model focus)
-/review-plan E01-T007      # Approve with tech debt sign-off
-/implement E01-T007        # Create schema + migration
-/qa E01-T007               # Validate + integration test
-/update-docs E01-T007      # Update documentation
+/analyst:analyze-schema E01-T007   # Schema analysis (data model focus)
+/architect:review-plan E01-T007    # Approve with tech debt sign-off
+/developer:implement E01-T007      # Create schema + migration
+/qa:qa E01-T007                    # Validate + integration test
+/writer:update-docs E01-T007       # Update documentation
 # Manual: create PR and merge
 ```
 
 **Start a complex schema task:**
 ```bash
-/analyze-schema E01-T007   # Schema analysis (data model focus)
-/review-plan E01-T007      # Approve with tech debt sign-off
-/implement E01-T007        # Create schema + migration
-/review-migration E01-T007 # Migration safety review
-/qa E01-T007               # Validate + integration test
-/update-docs E01-T007      # Update documentation
+/analyst:analyze-schema E01-T007     # Schema analysis (data model focus)
+/architect:review-plan E01-T007      # Approve with tech debt sign-off
+/developer:implement E01-T007        # Create schema + migration
+/reviewer:review-migration E01-T007  # Migration safety review
+/qa:qa E01-T007                      # Validate + integration test
+/writer:update-docs E01-T007         # Update documentation
 # Manual: create PR and merge
 ```
 

@@ -35,10 +35,10 @@ Review implemented UI components for design system compliance, accessibility, an
 Based on the **development** workflow (frontend):
 
 **If APPROVED:**
-Run `/review-code {task-id}` (reviewer) - Fresh-eyes code review
+Run `/reviewer:review-code {task-id}` - Fresh-eyes code review
 
 **If NEEDS_REVISION:**
-Run `/implement {task-id}` (developer) - Address UI review feedback
+Run `/developer:implement {task-id}` - Address UI review feedback
 
 ---
 

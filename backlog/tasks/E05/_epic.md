@@ -36,16 +36,22 @@ The system provides:
 
 ## Tasks
 
-| ID       | Title                                              | Priority | Depends On         |
-| -------- | -------------------------------------------------- | -------- | ------------------ |
-| E05-T001 | Files and storage limits schemas                   | critical | -                  |
-| E05-T002 | Storage backend abstraction and configuration      | critical | -                  |
-| E05-T003 | S3/MinIO storage implementation                    | critical | E05-T002           |
-| E05-T004 | Local filesystem storage implementation            | high     | E05-T002           |
-| E05-T005 | File service with three-tier limits and quotas     | critical | E05-T001, E05-T003 |
-| E05-T006 | File upload API routes                             | critical | E05-T005           |
-| E05-T007 | File download and management API routes            | high     | E05-T005           |
-| E05-T008 | Integration tests and cleanup jobs                 | high     | E05-T005, E05-T006 |
+| ID        | Title                                              | Priority | Depends On                | Status |
+| --------- | -------------------------------------------------- | -------- | ------------------------- | ------ |
+| E05-T001  | Files and storage limits schemas                   | critical | -                         | ✅ done |
+| E05-T002  | Storage backend abstraction and configuration      | critical | -                         | ✅ done (split) |
+| E05-T002a | Storage backend interface and plugin registry      | critical | -                         | ✅ done |
+| E05-T002b | Storage configuration system with validation       | critical | E05-T002a                 | ✅ done |
+| E05-T003  | S3/MinIO storage implementation (PARENT - SPLIT)   | critical | E05-T002                  | split |
+| E05-T003a | S3-compatible storage backend implementation       | critical | E05-T002a, E05-T002b      | todo |
+| E05-T003b | MinIO Docker Compose integration                   | high     | -                         | todo |
+| E05-T003c | S3 backend integration tests with MinIO            | high     | E05-T003a, E05-T003b      | todo |
+| E05-T003d | Production S3 credentials and validation           | high     | E05-T003a, E05-T003c      | todo |
+| E05-T004  | Local filesystem storage implementation            | high     | E05-T002a, E05-T002b      | todo |
+| E05-T005  | File service with three-tier limits and quotas     | critical | E05-T001, E05-T003a       | todo |
+| E05-T006  | File upload API routes                             | critical | E05-T005                  | todo |
+| E05-T007  | File download and management API routes            | high     | E05-T005                  | todo |
+| E05-T008  | Integration tests and cleanup jobs                 | high     | E05-T005, E05-T006        | todo |
 
 ## Out of Scope
 

@@ -114,7 +114,7 @@ Based on the **documentation** workflow (standard):
 
 **Human checkpoint:** Review and approve the outline structure.
 
-Once approved, run `/write-docs {task-id}` (writer)
+Once approved, run `/writer:write-docs {task-id}`
 
 ---
 

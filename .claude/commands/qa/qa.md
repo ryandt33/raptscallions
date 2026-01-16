@@ -54,16 +54,16 @@ Based on the task workflow:
 **If PASS:**
 
 **Development workflow:**
-Run `/update-docs {task-id}` (writer) - Update documentation
+Run `/writer:update-docs {task-id}` - Update documentation
 
 **Schema workflow:**
-Run `/update-docs {task-id}` (writer) - Update documentation
+Run `/writer:update-docs {task-id}` - Update documentation
 
 **Infrastructure workflow (standard):**
-Run `/update-docs {task-id}` (writer) - Update documentation
+Run `/writer:update-docs {task-id}` - Update documentation
 
 **If FAIL:**
-Run `/implement {task-id}` (developer) - Address QA issues
+Run `/developer:implement {task-id}` - Address QA issues
 
 ---
 

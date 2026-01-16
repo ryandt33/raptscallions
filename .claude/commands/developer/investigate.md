@@ -102,10 +102,10 @@ Add to History:
 Based on the **bugfix** workflow:
 
 **Standard bugfix:**
-Run `/write-tests {task-id}` (developer) - Write regression test first
+Run `/developer:write-tests {task-id}` - Write regression test first
 
 **Hotfix (`bugfix:hotfix`):**
-Run `/implement {task-id}` (developer) - Fix immediately, test after
+Run `/developer:implement {task-id}` - Fix immediately, test after
 
 ---
 

@@ -62,20 +62,20 @@ Any documentation task that doesn't meet simple criteria:
 
 ### Simple Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → WRITING | `/write-docs` | writer | Task file | Documentation content |
-| WRITING → PR_READY | — | — | — | VitePress build validates |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → WRITING | `/writer:write-docs` | Task file | Documentation content |
+| WRITING → PR_READY | — | — | VitePress build validates |
 
 ### Standard Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → OUTLINED | `/outline` | writer | Task file | Document outline |
-| OUTLINED → CONTENT_REVIEW | — | — | Outline | Human approval |
-| CONTENT_REVIEW → WRITING | `/write-docs` | writer | Approved outline | Documentation content |
-| WRITING → TECHNICAL_REVIEW | `/review-docs` | writer | Content | Technical accuracy check |
-| TECHNICAL_REVIEW → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → OUTLINED | `/writer:outline` | Task file | Document outline |
+| OUTLINED → CONTENT_REVIEW | — | Outline | Human approval |
+| CONTENT_REVIEW → WRITING | `/writer:write-docs` | Approved outline | Documentation content |
+| WRITING → TECHNICAL_REVIEW | `/writer:review-docs` | Content | Technical accuracy check |
+| TECHNICAL_REVIEW → PR_READY | — | — | Manual PR creation |
 
 ---
 
@@ -239,16 +239,16 @@ DONE
 
 **Start a simple documentation task:**
 ```bash
-/write-docs E06-T010      # Write content (VitePress validates)
+/writer:write-docs E06-T010      # Write content (VitePress validates)
 # Manual: create PR and merge (human review here)
 ```
 
 **Start a standard documentation task:**
 ```bash
-/outline E06-T005         # Create outline
+/writer:outline E06-T005         # Create outline
 # Human: approve structure
-/write-docs E06-T005      # Write content
-/review-docs E06-T005     # Technical accuracy check
+/writer:write-docs E06-T005      # Write content
+/writer:review-docs E06-T005     # Technical accuracy check
 # Manual: create PR and merge
 ```
 

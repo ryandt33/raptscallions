@@ -15,6 +15,21 @@ The `@raptscallions/storage` package provides a pluggable file storage system th
 - **Lazy Instantiation** — Backends created on-demand with singleton caching
 - **Typed Errors** — Domain-specific errors with HTTP status codes
 
+## Local Development
+
+The Docker Compose development environment includes MinIO, an S3-compatible object storage service. This enables realistic S3 storage testing without cloud credentials:
+
+```bash
+# Start all services including MinIO
+docker compose up -d
+
+# Access MinIO console at http://localhost:9001
+# Username: minioadmin
+# Password: minioadmin
+```
+
+See [S3-Compatible Backend](/storage/patterns/s3-backend#local-development-with-minio) for configuration details.
+
 ## Quick Start
 
 ```typescript
@@ -46,6 +61,7 @@ Core ideas and mental models for the storage system:
 
 Reusable implementation patterns:
 
+- [S3-Compatible Backend](/storage/patterns/s3-backend) — Using the S3StorageBackend for AWS S3, MinIO, and other S3-compatible services
 - [Custom Backends](/storage/patterns/custom-backends) — How to implement your own storage backend
 
 ### Troubleshooting
@@ -58,6 +74,8 @@ Reusable implementation patterns:
 - [File Storage Schema](/database/concepts/file-storage-schema) — Database schema for file metadata and quotas
 
 **Implementation:**
+- [E05-T003a: S3-compatible storage backend implementation](/backlog/tasks/E05/E05-T003a.md) ([spec](/backlog/docs/specs/E05/E05-T003a-spec.md))
+- [E05-T003b: MinIO Docker Compose integration](/backlog/completed/E05/E05-T003b.md) ([spec](/backlog/docs/specs/E05/E05-T003b-spec.md))
 - [E05-T002a: Storage backend interface and plugin system](/backlog/completed/E05/E05-T002a.md) ([spec](/backlog/docs/specs/E05/E05-T002a-spec.md))
 - [E05-T002b: Storage configuration system](/backlog/tasks/E05/E05-T002b.md) ([spec](/backlog/docs/specs/E05/E05-T002b-spec.md))
 - [E05-T001: Files and storage limits schema](/backlog/completed/E05/E05-T001.md) ([spec](/backlog/docs/specs/E05/E05-T001-spec.md))

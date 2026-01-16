@@ -218,10 +218,10 @@ Add to History:
 Based on the **schema** workflow:
 
 **If APPROVED:**
-Run `/qa {task-id}` (qa) - Integration testing
+Run `/qa:qa {task-id}` - Integration testing
 
 **If NEEDS_REVISION:**
-Run `/implement {task-id}` (developer) - Address review feedback
+Run `/developer:implement {task-id}` - Address review feedback
 
 ---
 

@@ -89,13 +89,13 @@ If you write tests with incorrect API assumptions, the implementer will reject t
 Based on the task workflow:
 
 **Development workflow:**
-Run `/implement {task-id}` (developer) - Write implementation to pass tests
+Run `/developer:implement {task-id}` - Write implementation to pass tests
 
 **Infrastructure workflow (standard):**
-Run `/implement {task-id}` (developer) - Implement scripts/config
+Run `/developer:implement {task-id}` - Implement scripts/config
 
 **Bugfix workflow (standard):**
-Run `/implement {task-id}` (developer) - Implement the fix
+Run `/developer:implement {task-id}` - Implement the fix
 
 ---
 

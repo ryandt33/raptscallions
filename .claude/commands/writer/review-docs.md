@@ -116,7 +116,7 @@ Based on the **documentation** workflow:
 Task is ready for PR creation (human step)
 
 **If NEEDS_REVISION:**
-Run `/write-docs {task-id}` (writer) - Address review feedback
+Run `/writer:write-docs {task-id}` - Address review feedback
 
 ---
 

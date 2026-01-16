@@ -91,25 +91,25 @@ When `security` label is present on ANY infrastructure task:
 
 ### Simple Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → IMPLEMENTING | `/implement` | developer | Task file | Config/code files |
-| IMPLEMENTING → VALIDATION | — | — | Files | Tool execution results |
-| VALIDATION → DOCS_UPDATE | `/update-docs` | writer | All artifacts | Documentation updates |
-| DOCS_UPDATE → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → IMPLEMENTING | `/developer:implement` | Task file | Config/code files |
+| IMPLEMENTING → VALIDATION | — | Files | Tool execution results |
+| VALIDATION → DOCS_UPDATE | `/writer:update-docs` | All artifacts | Documentation updates |
+| DOCS_UPDATE → PR_READY | — | — | Manual PR creation |
 
 ### Standard Workflow
 
-| Phase | Command | Agent | Input | Output |
-|-------|---------|-------|-------|--------|
-| DRAFT → ANALYZED | `/analyze` | analyst | Task file | Implementation spec |
-| ANALYZED → PLAN_REVIEW | `/review-plan` | architect | Spec | Approved spec |
-| APPROVED → TESTS_READY | `/write-tests` | developer | Spec | Test files |
-| TESTS_READY → IMPLEMENTING | `/implement` | developer | Spec + tests | Implementation |
-| IMPLEMENTING → CODE_REVIEW | `/review-code` | reviewer | Code | Review report |
-| CODE_REVIEW → QA_REVIEW | `/qa` | qa | All artifacts | QA report |
-| QA_REVIEW → DOCS_UPDATE | `/update-docs` | writer | All artifacts | Documentation updates |
-| DOCS_UPDATE → PR_READY | — | — | — | Manual PR creation |
+| Phase | Command | Input | Output |
+|-------|---------|-------|--------|
+| DRAFT → ANALYZED | `/analyst:analyze` | Task file | Implementation spec |
+| ANALYZED → PLAN_REVIEW | `/architect:review-plan` | Spec | Approved spec |
+| APPROVED → TESTS_READY | `/developer:write-tests` | Spec | Test files |
+| TESTS_READY → IMPLEMENTING | `/developer:implement` | Spec + tests | Implementation |
+| IMPLEMENTING → CODE_REVIEW | `/reviewer:review-code` | Code | Review report |
+| CODE_REVIEW → QA_REVIEW | `/qa:qa` | All artifacts | QA report |
+| QA_REVIEW → DOCS_UPDATE | `/writer:update-docs` | All artifacts | Documentation updates |
+| DOCS_UPDATE → PR_READY | — | — | Manual PR creation |
 
 ---
 
@@ -348,30 +348,30 @@ DONE
 
 **Start a simple infrastructure task:**
 ```bash
-/implement E01-T010        # Create config/code
+/developer:implement E01-T010    # Create config/code
 # Validate by running tool (pnpm lint, pnpm test, etc.)
-/update-docs E01-T010      # Update documentation
+/writer:update-docs E01-T010     # Update documentation
 # Manual: create PR and merge
 ```
 
 **Start a simple infrastructure task with security:**
 ```bash
-/implement E01-T010        # Create config/code
-/review-code E01-T010      # Mandatory security review
+/developer:implement E01-T010    # Create config/code
+/reviewer:review-code E01-T010   # Mandatory security review
 # Validate by running tool
-/update-docs E01-T010      # Update documentation
+/writer:update-docs E01-T010     # Update documentation
 # Manual: create PR and merge
 ```
 
 **Start a standard infrastructure task:**
 ```bash
-/analyze E01-T009          # Analysis spec
-/review-plan E01-T009      # Approve approach
-/write-tests E01-T009      # Write tests first (TDD)
-/implement E01-T009        # Implement to pass tests
-/review-code E01-T009      # Code review
-/qa E01-T009               # QA validation
-/update-docs E01-T009      # Update documentation
+/analyst:analyze E01-T009          # Analysis spec
+/architect:review-plan E01-T009    # Approve approach
+/developer:write-tests E01-T009    # Write tests first (TDD)
+/developer:implement E01-T009      # Implement to pass tests
+/reviewer:review-code E01-T009     # Code review
+/qa:qa E01-T009                    # QA validation
+/writer:update-docs E01-T009       # Update documentation
 # Manual: create PR and merge
 ```
 
