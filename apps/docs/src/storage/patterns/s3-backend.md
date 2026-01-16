@@ -94,7 +94,7 @@ The `minio-init` container automatically creates the `raptscallions-files` bucke
 
 Access the MinIO web console to browse files, manage buckets, and debug storage issues:
 
-- **URL**: http://localhost:9001
+- **URL**: `http://localhost:9001`
 - **Username**: minioadmin (or `MINIO_ROOT_USER` if set)
 - **Password**: minioadmin (or `MINIO_ROOT_PASSWORD` if set)
 
