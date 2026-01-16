@@ -275,6 +275,52 @@ export default defineConfig({
         ],
       },
       {
+        text: "AI-Assisted Development",
+        collapsed: false,
+        items: [
+          { text: "Overview", link: "/ai-development/" },
+          {
+            text: "Concepts",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/concepts/" }],
+          },
+          {
+            text: "Patterns",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/patterns/" }],
+          },
+          {
+            text: "Decisions",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/decisions/" }],
+          },
+          {
+            text: "Agents",
+            collapsed: true,
+            items: [
+              { text: "Overview", link: "/ai-development/agents/" },
+              { text: "Current Agents", link: "/ai-development/agents/current/" },
+              { text: "Deprecated Agents", link: "/ai-development/agents/deprecated/" },
+            ],
+          },
+          {
+            text: "Commands",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/commands/" }],
+          },
+          {
+            text: "Workflows",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/workflows/" }],
+          },
+          {
+            text: "Troubleshooting",
+            collapsed: true,
+            items: [{ text: "Overview", link: "/ai-development/troubleshooting/" }],
+          },
+        ],
+      },
+      {
         text: "Improvements & Recommendations",
         collapsed: true,
         items: [

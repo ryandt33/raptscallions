@@ -374,3 +374,25 @@ Update the task file:
 - If FAILED: Set `workflow_state: IMPLEMENTING`
 - Add entry to History table
 - Update Reviews section with verdict and link to QA report
+
+## Next Step
+
+Based on the task's workflow category:
+
+**If PASSED:**
+
+**Development workflow:**
+Run `/update-docs {task-id}` (writer) - Update documentation
+
+**Schema workflow:**
+Run `/update-docs {task-id}` (writer) - Update documentation
+
+**Infrastructure workflow (standard):**
+Run `/update-docs {task-id}` (writer) - Update documentation
+
+**If FAILED:**
+Run `/implement {task-id}` (developer) - Address QA issues
+
+---
+
+*QA validation includes both unit and integration testing. After pass, docs are updated before PR.*

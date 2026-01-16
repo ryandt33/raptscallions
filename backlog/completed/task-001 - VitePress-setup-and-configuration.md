@@ -8,6 +8,7 @@ labels:
   - docs
   - infrastructure
 milestone: E06
+agentic_style: "prescriptive"
 dependencies: []
 priority: high
 ---
