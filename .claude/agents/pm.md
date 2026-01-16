@@ -98,6 +98,7 @@ title: "Descriptive task title"
 status: "todo"
 priority: "critical" # critical | high | medium | low
 task_type: "backend" # frontend | backend | fullstack
+category: "development" # development | schema | infrastructure | documentation | bugfix
 labels:
   - backend
   - database
@@ -105,6 +106,7 @@ assignee: ""
 
 workflow_state: "DRAFT"
 epic: "E01"
+agentic_style: "deliberative"
 depends_on: []
 blocks: []
 breakpoint: false
@@ -132,6 +134,17 @@ pr_url: ""
 - [ ] AC1: [Specific, testable criterion]
 - [ ] AC2: [Specific, testable criterion]
 - [ ] AC3: [Specific, testable criterion]
+
+## Workflow
+
+- **Category:** development
+- **Variant:** standard
+- **Labels:** (none / frontend / security / etc.)
+- **Rationale:** [Why this category/variant was chosen]
+
+### First Command
+
+Run `/analyze {TASK-ID}` (analyst)
 
 ## Technical Notes
 
@@ -166,6 +179,24 @@ pr_url: ""
 - **Verdict:**
 - **Notes:**
 ```
+
+## Agentic Style
+
+All new tasks use `agentic_style: "deliberative"`. This determines the workflow:
+
+**Deliberative (Current):**
+- Analyst proposes 3 approaches in an analysis document (no implementation code)
+- Architect selects approach and defines constraints in a lean spec
+- Developer has autonomy to implement within constraints
+- User feedback points between each command
+
+**Prescriptive (Historical):**
+- Used in E01-E05 tasks
+- Analyst wrote detailed implementation code in specs
+- Less developer autonomy
+- Marked with `agentic_style: "prescriptive"` in completed tasks
+
+Always set `agentic_style: "deliberative"` for new tasks.
 
 ## Task Sizing Guidelines
 
@@ -224,15 +255,86 @@ The `task_type` field determines which review steps are applicable:
 
 **Important:** Set `task_type` accurately to avoid unnecessary review steps.
 
+## Workflow Selection
+
+When creating tasks, you MUST select the appropriate workflow category and variant. This determines which commands/phases the task goes through.
+
+### Category Selection
+
+| If task involves... | Category | Example |
+|---------------------|----------|---------|
+| API routes, services, business logic | `development` | User service, auth routes |
+| Database tables, migrations, schema changes | `schema` | Create users table, add column |
+| Config files, CI/CD, tooling, scripts | `infrastructure` | ESLint config, GitHub Actions |
+| KB pages, guides, docs without code changes | `documentation` | KB concept page, README |
+| Fixing bugs, defects, regressions | `bugfix` | Login fails on mobile |
+
+### Variant Selection
+
+After category, determine if a simple variant applies:
+
+| Category | Simple Criteria | Use Simple When |
+|----------|-----------------|-----------------|
+| `infrastructure` | `infra:simple` | Config-only, no logic, tool validates correctness |
+| `documentation` | `docs:simple` | Updating existing content, narrow scope |
+| `bugfix` | `bugfix:simple` | Fix is obvious, no investigation needed |
+| `bugfix` | `bugfix:hotfix` | Critical/urgent, needs expedited workflow |
+| `schema` | `schema:simple` | Simple migration, PM judgment |
+
+### Modifier Labels
+
+Apply these labels to modify workflow behavior:
+
+| Label | When to Apply | Effect |
+|-------|---------------|--------|
+| `frontend` | Task involves UI components | Adds UX_REVIEW and UI_REVIEW phases |
+| `security` | Task involves secrets, auth, permissions | Forces CODE_REVIEW even on simple workflows |
+
+### Task File Workflow Section
+
+Add this section to all task files:
+
+```markdown
+## Workflow
+
+- **Category:** development
+- **Variant:** standard
+- **Labels:** frontend
+- **Rationale:** New API route with React component
+
+### First Command
+
+Run `/analyze E01-T003` (analyst)
+```
+
+### Workflow Reference
+
+See `.claude/workflows/README.md` for full workflow details including:
+- All phases for each workflow
+- Commands to run at each phase
+- Human checkpoints
+- Label effects
+
+---
+
 ## Labels to Use
 
+### Standard Labels
 - `backend` - API/server code
-- `frontend` - React/UI code
+- `frontend` - React/UI code (triggers UX/UI reviews)
 - `database` - Schema, migrations
 - `auth` - Authentication/authorization
 - `infra` - DevOps, CI/CD, deployment
 - `docs` - Documentation
 - `testing` - Test infrastructure
+
+### Workflow Labels
+- `infra:simple` - Simple infrastructure workflow
+- `docs:simple` - Simple documentation workflow
+- `bugfix:simple` - Simple bugfix workflow
+- `bugfix:hotfix` - Hotfix workflow (creates follow-up debt task)
+- `schema:simple` - Simple schema workflow
+- `security` - Forces code review on any workflow
 
 ## Epic Review (After Completion)
 

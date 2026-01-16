@@ -380,3 +380,25 @@ Always prefer existing shadcn/ui components:
 - Create UI review file (or minimal "not applicable" note)
 - Add entry to History table
 - Update Reviews section in task
+
+## Next Step
+
+### After UX Review
+
+**If APPROVED or NOT_APPLICABLE:**
+Run `/write-tests {task-id}` (developer) - Write tests (TDD red phase)
+
+**If NEEDS_UX_CHANGES:**
+Run `/analyze {task-id}` (analyst) - Revise analysis based on UX feedback
+
+### After UI Review
+
+**If APPROVED or NOT_APPLICABLE:**
+Run `/review-code {task-id}` (reviewer) - Fresh-eyes code review
+
+**If NEEDS_UI_CHANGES:**
+Run `/implement {task-id}` (developer) - Address UI review feedback
+
+---
+
+*UX review happens early (at spec stage), UI review happens after implementation.*

@@ -220,3 +220,25 @@ Update the task file:
 - If CHANGES_REQUESTED: Set `workflow_state: IMPLEMENTING`
 - Add entry to History table
 - Update Reviews section with verdict and link to review file
+
+## Next Step
+
+Based on the task's workflow category:
+
+**If APPROVED:**
+
+**Development workflow:**
+Run `/qa {task-id}` (qa) - QA validation and integration testing
+
+**Infrastructure workflow (standard):**
+Run `/qa {task-id}` (qa) - Validation
+
+**Bugfix workflow (standard):**
+Run `/verify-fix {task-id}` (qa) - Verify bug is fixed
+
+**If CHANGES_REQUESTED:**
+Run `/implement {task-id}` (developer) - Address review feedback
+
+---
+
+*Code review is the quality gate before QA. Must Fix issues block progress.*

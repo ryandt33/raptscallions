@@ -206,3 +206,14 @@ If any files are found:
 2. Report the cleanup in your Documentation Updates section
 
 This ensures the active backlog only contains pending work.
+
+## Next Step
+
+Based on all workflows that include docs update:
+
+**Development, Schema, Infrastructure workflows:**
+Task is ready for PR creation (human step)
+
+---
+
+*After docs are updated, the task is `PR_READY`. Human creates PR and merges.*
