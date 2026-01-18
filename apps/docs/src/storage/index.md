@@ -62,6 +62,7 @@ Core ideas and mental models for the storage system:
 Reusable implementation patterns:
 
 - [S3-Compatible Backend](/storage/patterns/s3-backend) — Using the S3StorageBackend for AWS S3, MinIO, and other S3-compatible services
+- [Production S3 Setup](/storage/patterns/production-s3-setup) — Complete guide to configuring S3 storage for production deployment
 - [Custom Backends](/storage/patterns/custom-backends) — How to implement your own storage backend
 
 ### Troubleshooting
@@ -74,7 +75,9 @@ Reusable implementation patterns:
 - [File Storage Schema](/database/concepts/file-storage-schema) — Database schema for file metadata and quotas
 
 **Implementation:**
-- [E05-T003a: S3-compatible storage backend implementation](/backlog/tasks/E05/E05-T003a.md) ([spec](/backlog/docs/specs/E05/E05-T003a-spec.md))
+- [E05-T003d: Production S3 credentials and validation](/backlog/completed/E05/E05-T003d.md) ([spec](/backlog/docs/specs/E05/E05-T003d-spec.md))
+- [E05-T003c: MinIO integration tests](/backlog/completed/E05/E05-T003c.md) ([spec](/backlog/docs/specs/E05/E05-T003c-spec.md))
+- [E05-T003a: S3-compatible storage backend implementation](/backlog/completed/E05/E05-T003a.md) ([spec](/backlog/docs/specs/E05/E05-T003a-spec.md))
 - [E05-T003b: MinIO Docker Compose integration](/backlog/completed/E05/E05-T003b.md) ([spec](/backlog/docs/specs/E05/E05-T003b-spec.md))
 - [E05-T002a: Storage backend interface and plugin system](/backlog/completed/E05/E05-T002a.md) ([spec](/backlog/docs/specs/E05/E05-T002a-spec.md))
 - [E05-T002b: Storage configuration system](/backlog/tasks/E05/E05-T002b.md) ([spec](/backlog/docs/specs/E05/E05-T002b-spec.md))
