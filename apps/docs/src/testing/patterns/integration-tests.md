@@ -5,7 +5,8 @@ related_code:
   - apps/api/src/__tests__/integration/auth.routes.test.ts
   - apps/api/src/__tests__/integration/auth.guards.test.ts
   - apps/api/src/__tests__/integration/oauth.routes.test.ts
-last_verified: 2026-01-14
+  - packages/storage/src/__tests__/integration/s3.backend.integration.test.ts
+last_verified: 2026-01-18
 ---
 
 # Integration Tests
@@ -31,7 +32,11 @@ Integration tests do **not** test:
 ::: info Unit vs Integration
 - **Unit tests**: Test a single function/class in isolation
 - **Integration tests**: Test the HTTP layer with mocked dependencies
-- **E2E tests**: Test against real database and services (not yet implemented)
+- **Real-service integration tests**: Test against real external services (MinIO, etc.) via Docker
+:::
+
+::: tip Real-Service Integration Tests
+For testing against real external services like S3/MinIO, see [S3 Backend Integration Tests](/storage/patterns/s3-backend#integration-tests-with-minio). These tests use Docker Compose for service dependencies and skip gracefully when services are unavailable.
 :::
 
 ## Complete Integration Test Example
@@ -459,17 +464,20 @@ describe("Guard Composition", () => {
 
 ## Related Pages
 
+**Related Documentation:**
 - [Fastify Testing](/testing/patterns/fastify-testing) — app.inject() API details
 - [Fastify Plugin Encapsulation](/testing/patterns/fastify-plugin-encapsulation) — Plugin registration issues
 - [Mocking Patterns](/testing/patterns/mocking) — vi.mock and vi.hoisted
 - [Test Factories](/testing/patterns/factories) — Creating mock data
 - [Testing Overview](/testing/) — All testing patterns
+- [S3 Backend Integration Tests](/storage/patterns/s3-backend#integration-tests-with-minio) — Real-service integration tests with MinIO
 
-## References
+**Implementation:**
+- [E02-T008: Auth integration tests](/backlog/completed/E02/E02-T008.md) — API route integration tests with mocked dependencies
+- [E05-T003c: S3 integration tests with MinIO](/backlog/tasks/E05/E05-T003c.md) ([spec](/backlog/docs/specs/E05/E05-T003c-spec.md)) — Real-service integration test pattern
 
-**Key Files:**
+**Source Files:**
 - [auth.routes.test.ts](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/__tests__/integration/auth.routes.test.ts) — Complete integration test
 - [auth.guards.test.ts](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/__tests__/integration/auth.guards.test.ts) — Guard testing
 - [oauth.routes.test.ts](https://github.com/ryandt33/raptscallions/blob/main/apps/api/src/__tests__/integration/oauth.routes.test.ts) — OAuth flow testing
-
-**Implements:** E02-T008 (Auth integration tests)
+- [s3.backend.integration.test.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/storage/src/__tests__/integration/s3.backend.integration.test.ts) — S3/MinIO integration tests

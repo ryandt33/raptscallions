@@ -4,8 +4,9 @@ description: Using the S3StorageBackend for AWS S3, MinIO, and other S3-compatib
 related_code:
   - packages/storage/src/backends/s3.backend.ts
   - packages/storage/src/backends/index.ts
+  - packages/storage/src/__tests__/integration/s3.backend.integration.test.ts
 implements_task: E05-T003a
-last_verified: 2026-01-16
+last_verified: 2026-01-18
 ---
 
 # S3-Compatible Backend
@@ -345,6 +346,114 @@ describe("S3StorageBackend", () => {
 The `S3StorageBackend` constructor accepts an `S3Client` instance, enabling pure dependency injection testing. This follows the project convention of avoiding `vi.mock()` for better test reliability with Fastify.
 :::
 
+### Integration Tests with MinIO
+
+Integration tests verify the S3 backend works against a real S3-compatible service (MinIO). These tests catch real-world issues that unit tests with mocked clients cannot detect.
+
+**Running Integration Tests:**
+
+```bash
+# Start MinIO first
+docker compose up -d minio minio-init
+
+# Run integration tests
+pnpm --filter @raptscallions/storage test:integration
+
+# Run only unit tests (no Docker needed)
+pnpm --filter @raptscallions/storage test:unit
+
+# Run all tests (unit + integration)
+pnpm --filter @raptscallions/storage test
+```
+
+**Test Structure:**
+
+```typescript
+import { S3Client } from "@aws-sdk/client-s3";
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
+import { S3StorageBackend } from "../../backends/s3.backend.js";
+import { FileNotFoundError } from "../../errors.js";
+
+// Test configuration - matches docker-compose.yml MinIO service
+const MINIO_ENDPOINT = process.env.STORAGE_S3_ENDPOINT || "http://localhost:9000";
+const MINIO_BUCKET = process.env.STORAGE_S3_BUCKET || "raptscallions-files";
+
+// Helper to check MinIO availability
+async function isMinioAvailable(): Promise<boolean> {
+  try {
+    const response = await fetch(`${MINIO_ENDPOINT}/minio/health/live`);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+describe("S3StorageBackend Integration Tests", () => {
+  let backend: S3StorageBackend;
+  const testKeys: string[] = []; // Track keys for cleanup
+
+  // Generate unique test keys to avoid conflicts
+  const createTestKey = (name: string): string => {
+    const key = `integration-test/${Date.now()}-${Math.random().toString(36).slice(2)}-${name}`;
+    testKeys.push(key);
+    return key;
+  };
+
+  beforeAll(async () => {
+    const available = await isMinioAvailable();
+    if (!available) {
+      console.warn("MinIO not available - start with: docker compose up -d minio minio-init");
+    }
+  });
+
+  afterEach(async () => {
+    // Clean up test files - ensures no orphaned files
+    await Promise.allSettled(
+      testKeys.map((key) => backend.delete(key).catch(() => undefined))
+    );
+    testKeys.length = 0;
+  });
+
+  it("should complete file lifecycle: upload → download → delete", async () => {
+    if (!(await isMinioAvailable())) {
+      console.warn("Skipping - MinIO not available");
+      return;
+    }
+
+    const key = createTestKey("lifecycle-test.txt");
+    const content = "Hello, MinIO!";
+
+    // Upload
+    const result = await backend.upload({
+      key,
+      body: Buffer.from(content),
+      contentType: "text/plain",
+    });
+    expect(result.etag).toBeDefined();
+
+    // Download and verify
+    const stream = await backend.download(key);
+    const downloaded = await streamToString(stream);
+    expect(downloaded).toBe(content);
+
+    // Delete
+    await backend.delete(key);
+    expect(await backend.exists(key)).toBe(false);
+  });
+});
+```
+
+**Key Patterns:**
+
+1. **Graceful Skip** — Tests skip with a warning when MinIO isn't available (CI-friendly)
+2. **Unique Keys** — Each test uses timestamped keys to avoid conflicts
+3. **Guaranteed Cleanup** — `afterEach` cleans up all test files, even on failure
+4. **Real HTTP Verification** — Signed URLs are tested with actual `fetch()` calls
+
+::: tip Test Isolation
+The integration tests use the `integration-test/` prefix for all keys. This makes it easy to identify and clean up test data in the MinIO console if needed.
+:::
+
 ## Architecture
 
 ### Class Structure
@@ -396,6 +505,7 @@ export function createS3Backend(): S3StorageBackend {
 **Implementation:**
 - [E05-T003a: S3-compatible storage backend implementation](/backlog/tasks/E05/E05-T003a.md) ([spec](/backlog/docs/specs/E05/E05-T003a-spec.md), [code review](/backlog/docs/reviews/E05/E05-T003a-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T003a-qa-report.md))
 - [E05-T003b: MinIO Docker Compose integration](/backlog/completed/E05/E05-T003b.md) ([spec](/backlog/docs/specs/E05/E05-T003b-spec.md))
+- [E05-T003c: S3 backend integration tests with MinIO](/backlog/tasks/E05/E05-T003c.md) ([spec](/backlog/docs/specs/E05/E05-T003c-spec.md), [code review](/backlog/docs/reviews/E05/E05-T003c-code-review.md), [QA report](/backlog/docs/reviews/E05/E05-T003c-qa-report.md))
 
 **Source Files:**
 - [s3.backend.ts](https://github.com/ryandt33/raptscallions/blob/main/packages/storage/src/backends/s3.backend.ts) — S3StorageBackend class and createS3Backend factory
