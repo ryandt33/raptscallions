@@ -135,6 +135,7 @@ export default defineConfig({
             items: [
               { text: "Overview", link: "/storage/patterns/" },
               { text: "S3-Compatible Backend", link: "/storage/patterns/s3-backend" },
+              { text: "Production S3 Setup", link: "/storage/patterns/production-s3-setup" },
               { text: "Custom Backends", link: "/storage/patterns/custom-backends" },
             ],
           },

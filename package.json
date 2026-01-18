@@ -32,6 +32,7 @@
     "docker:build": "docker compose build --no-cache",
     "docker:restart": "docker compose down && docker compose up -d",
     "docker:clean": "docker compose down -v --rmi local",
+    "validate:s3": "tsx scripts/validate-s3.ts",
     "workflow:run": "tsx scripts/orchestrator.ts run",
     "workflow:status": "tsx scripts/orchestrator.ts status",
     "workflow:next": "tsx scripts/orchestrator.ts next",
@@ -44,9 +45,11 @@
     "yaml": "^2.3.4"
   },
   "devDependencies": {
+    "@raptscallions/storage": "workspace:*",
     "@types/node": "^20.10.0",
     "@vitest/coverage-v8": "^1.1.0",
     "@vitest/ui": "^1.1.0",
+    "dotenv": "^16.3.0",
     "eslint": "^9.17.0",
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import": "^2.31.0",
